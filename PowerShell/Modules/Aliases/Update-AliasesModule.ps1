@@ -105,11 +105,13 @@ function Get-FunctionInfo {
 
     # Generate alias name using specific mapping to match current conventions
     $aliasMapping = @{
-        'Get-FileTree'     = 'filetree'
-        'Set-ProjectRoot'  = 'projectroot'
-        'Update-EnvVars'   = 'updateenv'
-        'Get-SecretKey'    = 'gensecret'
-        'Get-AliasHelp'    = 'aliashelp'
+        'Get-FileTree'              = 'filetree'
+        'Set-ProjectRoot'           = 'projectroot'
+        'Update-EnvVars'            = 'updateenv'
+        'Get-SecretKey'             = 'gensecret'
+        'Get-AliasHelp'             = 'aliashelp'
+        'Test-NewFunction'          = 'testnewfunction'
+        'Invoke-UpdateAliasesModule' = 'updatealiases'
     }
 
     $aliasName = if ($aliasMapping.ContainsKey($functionName)) {

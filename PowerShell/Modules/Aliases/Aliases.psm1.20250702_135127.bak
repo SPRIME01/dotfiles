@@ -16,6 +16,7 @@ try {
     . "$ModulePath\Get-SecretKey.ps1"
     . "$ModulePath\Invoke-UpdateAliasesModule.ps1"
     . "$ModulePath\Set-ProjectRoot.ps1"
+    . "$ModulePath\Update-AliasesModuleFunction.ps1"
     . "$ModulePath\Update-EnvVars.ps1"
     Write-Verbose "Successfully dot-sourced function files."
 }
@@ -31,6 +32,7 @@ try {
     Set-Alias -Name gensecret -Value Get-SecretKey -Description "Generates a cryptographically secure URL-safe string." -Scope Global -Force
     Set-Alias -Name updatealiases -Value Invoke-UpdateAliasesModule -Description "Completely regenerates the Aliases module and profile lazy-loading functions." -Scope Global -Force
     Set-Alias -Name projectroot -Value Set-ProjectRoot -Description "Changes the current location to a specified project directory." -Scope Global -Force
+    Set-Alias -Name aliasesmodulefunction -Value Update-AliasesModuleFunction -Description "Completely regenerates the Aliases module and profile lazy-loading functions." -Scope Global -Force
     Set-Alias -Name updateenv -Value Update-EnvVars -Description "Updates or creates a user-level environment variable persistently." -Scope Global -Force
     Write-Verbose "Successfully set aliases."
 }
@@ -39,7 +41,7 @@ catch {
 }
 
 # Export all public functions and their aliases from this module
-Export-ModuleMember -Function Get-AliasHelp, Get-FileTree, Get-SecretKey, Invoke-UpdateAliasesModule, Set-ProjectRoot, Update-EnvVars `
-    -Alias aliashelp, filetree, gensecret, updatealiases, projectroot, updateenv
+Export-ModuleMember -Function Get-AliasHelp, Get-FileTree, Get-SecretKey, Invoke-UpdateAliasesModule, Set-ProjectRoot, Update-AliasesModuleFunction, Update-EnvVars `
+    -Alias aliashelp, filetree, gensecret, updatealiases, projectroot, aliasesmodulefunction, updateenv
 
 Write-Verbose "Aliases module loaded successfully."
