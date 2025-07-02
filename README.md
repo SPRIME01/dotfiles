@@ -5,7 +5,7 @@ Welcome to a portable developer cockpit. This setup brings together PowerShell 7
 - Cross-shell aliases and environment variables
 - Machine-specific behavior
 - Oh My Posh + PSReadLine UX polish
-- Dynamic module auto-loading
+- **Lazy-loaded** PowerShell modules for faster startup
 - VS Code extension control
 - Bootstrap scripts for full setup and provisioning
 
@@ -24,6 +24,7 @@ dotfiles/
 ├── PowerShell/
 │   ├── Microsoft.PowerShell_profile.ps1   # PowerShell profile
 │   ├── powershell.config.json             # Enables unrestricted script execution
+│   ├── Update-LazyLoaders.ps1       # Script to update lazy-loaders
 │   └── Modules/
 │       └── Aliases/
 │           └── Aliases.psm1               # Custom PS aliases
@@ -66,7 +67,7 @@ Used in PowerShell only — configures:
 - `.bashrc` and `.zshrc` source `.shell_common` and `.shell_theme_common`
 - PowerShell loads `Microsoft.PowerShell_profile.ps1`, which:
   - Sources `.shell_theme_common.ps1`
-  - Auto-imports all modules in `PowerShell/Modules/`
+  - **Lazy-loads** modules in `PowerShell/Modules/` for faster startup
   - Applies machine-specific logic via `$env:COMPUTERNAME`
 
 ---
@@ -79,7 +80,6 @@ Used in PowerShell only — configures:
 - Installs: Oh My Posh, PSReadLine, Terminal-Icons
 - Ensures PowerShell directory exists
 - Logs what it links or installs
-- Auto-imports all `.psm1` modules
 
 #### 🟢 `bootstrap.sh` (Bash/Zsh)
 
@@ -110,7 +110,7 @@ Used in PowerShell only — configures:
 1. Clone this repo:
 
    ```bash
-   git clone https://github.com/YOUR_USERNAME/dotfiles ~/dotfiles
+   git clone https://github.com/SPRIME01/dotfiles ~/dotfiles
    ```
 
 2. Run one of:
@@ -132,8 +132,9 @@ Done. It will link your configs, install tools, and load your custom environment
 - **Tweak Oh My Posh or colors?**
   Edit `.shell_theme_common.ps1` and reload shell
 
-- **Add more modules?**
-  Drop `YourModule/YourModule.psm1` into `PowerShell/Modules/`
+- **Add a new PowerShell function?**
+  1. Add a new `.ps1` file to `PowerShell/Modules/Aliases`
+  2. Run `PowerShell/Update-LazyLoaders.ps1` to update your profile
 
 - **Want project-specific VS Code extensions?**
   Use `.vscode/extensions.json` in each repo and enable workspace recommendations

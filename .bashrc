@@ -1,4 +1,6 @@
 #!/bin/bash
 
-[ -f ~/.shell_common ] && . ~/.shell_common
-[ -f ~/.shell_theme_common ] && . ~/.shell_theme_common
+# In ~/.bashrc or ~/.zshrc (on Linux)
+if [ -f "$HOME/dotfiles/.shell_common.sh" ]; then
+  . "$HOME/dotfiles/.shell_common.sh"
+fi
