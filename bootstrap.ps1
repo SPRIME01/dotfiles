@@ -1,3 +1,5 @@
+$dotfiles = "$PSScriptRoot"
+
 Write-Host "🔧 Setting up PowerShell environment..."
 
 $dotfiles = "$HOME\dotfiles"

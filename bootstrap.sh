@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+set -e
+
+# Automatically determine the dotfiles directory based on where this script lives
+DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+: "${DOTFILES:=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 
 echo "⚙️ Setting up Unix shell..."
 
