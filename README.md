@@ -99,7 +99,7 @@ The PowerShell aliases are **automatically managed** with a streamlined workflow
 - `gc` → Add all changes and commit with message
 
 **🔧 Development Tools:**
-- `projects` → Find and list all Node.js projects (package.json)
+- `projects` → Find and list all Node.js (package.json) and Python (pyproject.toml) projects
 - `grep` → Search for text in files with colored output
 - `json` → Pretty-print JSON files
 - `killport` → Kill processes running on specific ports
@@ -151,7 +151,7 @@ gs                      # What's the git status? Quick check
 #### **File & Project Management:**
 ```powershell
 finddir "my-project"    # Can't remember where you put that project?
-projects                # Show all Node.js projects in this directory tree
+projects                # Show all Node.js and Python projects in this directory tree
 grep "TODO"             # Find all your TODO comments
 sizes                   # Which files are taking up space?
 ```
