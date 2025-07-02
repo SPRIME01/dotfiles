@@ -8,6 +8,8 @@ Welcome to a portable developer cockpit. This setup brings together PowerShell 7
 - **Lazy-loaded** PowerShell modules for faster startup
 - **Auto-generated** PowerShell aliases with intelligent naming
 - **Unified workflow** - one command to regenerate all aliases
+- **20+ developer-focused PowerShell functions** for git, file management, system monitoring
+- **Novice-friendly shortcuts** for common development tasks
 - VS Code extension control
 - Bootstrap scripts for full setup and provisioning
 
@@ -84,8 +86,30 @@ Used in PowerShell only — configures:
 The PowerShell aliases are **automatically managed** with a streamlined workflow:
 
 #### **Built-in Aliases Available:**
+
+**🗂️ Navigation & File Management:**
 - `aliashelp` → Lists all aliases with descriptions
 - `filetree` → Displays directory tree structure
+- `finddir` → Find directories by partial name
+- `explore` → Open current directory in Windows Explorer
+- `sizes` → Show file sizes in human-readable format
+
+**⚡ Git Workflow:**
+- `gs` → Quick git status with branch info
+- `gc` → Add all changes and commit with message
+
+**🔧 Development Tools:**
+- `projects` → Find and list all Node.js projects (package.json)
+- `grep` → Search for text in files with colored output
+- `json` → Pretty-print JSON files
+- `killport` → Kill processes running on specific ports
+- `testport` → Test if a port is open
+
+**📊 System Monitoring:**
+- `sysinfo` → Show CPU, memory, disk usage and uptime
+- `netstat` → Display active network connections
+
+**🛠️ Environment:**
 - `projectroot` → Navigate to project directories
 - `gensecret` → Generate secure keys
 - `updateenv` → Update environment variables
@@ -109,6 +133,43 @@ The PowerShell aliases are **automatically managed** with a streamlined workflow
    - Create intelligent aliases (e.g., `Get-MyData` → `mydata`)
 
 **That's it!** The system handles dot-sourcing, alias creation, and lazy-loading automatically.
+
+---
+
+### 🎯 Novice-Friendly Development Shortcuts
+
+These aliases transform complex development tasks into simple commands:
+
+#### **Quick Problem Solving:**
+```powershell
+killport 3000           # Development server won't start? Kill what's on the port
+testport 8080           # Check if your app is running
+sysinfo                 # Computer running slow? Check resources
+gs                      # What's the git status? Quick check
+```
+
+#### **File & Project Management:**
+```powershell
+finddir "my-project"    # Can't remember where you put that project?
+projects                # Show all Node.js projects in this directory tree
+grep "TODO"             # Find all your TODO comments
+sizes                   # Which files are taking up space?
+```
+
+#### **One-Command Workflows:**
+```powershell
+gc "Fixed the bug"      # Add all changes and commit in one command
+explore                 # Open current folder in Windows Explorer
+json "package.json"     # Pretty-print any JSON file
+```
+
+#### **System Monitoring Made Easy:**
+```powershell
+netstat                 # See what's connected to your computer
+sysinfo                 # CPU, memory, disk usage at a glance
+```
+
+**Perfect for beginners** - no need to remember complex command syntax or multiple steps!
 
 ---
 
@@ -226,8 +287,29 @@ irm https://raw.githubusercontent.com/SPRIME01/dotfiles/main/update.ps1 | iex
 
 ### PowerShell Aliases (Available after setup)
 ```powershell
+# System & Navigation
 aliashelp          # Show all available aliases
+sysinfo            # System resources (CPU, memory, disk, uptime)
+explore            # Open current directory in Explorer
+finddir "pattern"  # Find directories by partial name
+sizes              # Show file sizes in human-readable format
+
+# Development Workflow
 updatealiases      # Regenerate aliases module (after adding new functions)
+projects           # Find and list all Node.js projects
+grep "text"        # Search for text in files
+json "file.json"   # Pretty-print JSON files
+
+# Git Operations
+gs                 # Quick git status
+gc "message"       # Add all and commit
+
+# Network & Processes
+killport 3000      # Kill process on specific port
+testport 8080      # Test if port is open
+netstat            # Show active network connections
+
+# Project Navigation
 filetree           # Display directory tree
 projectroot        # Navigate to projects
 gensecret          # Generate secure keys
