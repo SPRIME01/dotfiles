@@ -1,4 +1,3 @@
-
 # 🛠️ Dotfiles — Unified Shell Config & Dev Environment
 
 Welcome to a portable developer cockpit. This setup brings together PowerShell 7, Zsh, and Bash into a unified, DRY, Git-synchronized environment that you can deploy anywhere, with:
@@ -16,21 +15,21 @@ Welcome to a portable developer cockpit. This setup brings together PowerShell 7
 
 ```text
 dotfiles/
-├── .shell_common               # Shared variables & aliases (bash + zsh)
-├── .shell_theme_common        # Theme config (used in POSH only)
-├── .bashrc                    # Bash startup → loads .shell_common
-├── .zshrc                     # Zsh startup → loads .shell_common
-├── bootstrap.sh               # Shell bootstrap (symlinks & installs oh-my-posh)
-├── bootstrap.ps1              # PowerShell bootstrap (symlinks, installs modules, etc.)
+├── .shell_common                # Shared variables & aliases (bash + zsh)
+├── .shell_theme_common          # Theme config (used in POSH only)
+├── .bashrc                      # Bash startup → loads .shell_common
+├── .zshrc                       # Zsh startup → loads .shell_common
+├── bootstrap.sh                 # Shell bootstrap (symlinks & installs oh-my-posh)
+├── bootstrap.ps1                # PowerShell bootstrap (symlinks, installs modules, etc.)
 ├── PowerShell/
-│   ├── Microsoft.PowerShell_profile.ps1  # PowerShell profile
-│   ├── powershell.config.json            # Enables unrestricted script execution
+│   ├── Microsoft.PowerShell_profile.ps1   # PowerShell profile
+│   ├── powershell.config.json             # Enables unrestricted script execution
 │   └── Modules/
 │       └── Aliases/
-│           └── Aliases.psm1              # Custom PS aliases
-├── .vscode/                   # (optional) VS Code settings
+│           └── Aliases.psm1               # Custom PS aliases
+├── .vscode/                    # (optional) VS Code settings
 │   └── settings.json
-├── vscode-extensions.txt     # (optional) list of extensions to auto-install
+├── vscode-extensions.txt       # (optional) list of extensions to auto-install
 └── README.md
 ```
 
@@ -93,10 +92,13 @@ Used in PowerShell only — configures:
 
 - Store your `settings.json` in `.vscode/`
 - Save extensions:
+
   ```bash
   code --list-extensions > vscode-extensions.txt
   ```
+
 - Restore on a new machine:
+
   ```bash
   cat vscode-extensions.txt | xargs -n 1 code --install-extension
   ```
@@ -106,11 +108,13 @@ Used in PowerShell only — configures:
 ## 🧪 Provisioning a New Machine
 
 1. Clone this repo:
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/dotfiles ~/dotfiles
    ```
 
 2. Run one of:
+
    ```bash
    ./bootstrap.sh      # Bash/Zsh
    ./bootstrap.ps1     # PowerShell
@@ -140,3 +144,34 @@ Done. It will link your configs, install tools, and load your custom environment
 
 - `powershell.config.json` allows profiles & bootstraps to run even with restricted execution policies
 - Scripts use `-Force`, fallback checks, and install verification to prevent errors
+
+## 📦 One-Line Install
+
+**PowerShell (Windows):**
+```powershell
+irm https://raw.githubusercontent.com/SPRIME01/dotfiles/main/install.ps1 | iex
+```
+**Bash/Zsh (Linux/Mac):**
+```bash
+curl -sSL https://raw.githubusercontent.com/SPRIME01/dotfiles/main/install.sh | bash
+```
+
+---
+
+### 🔒 Safety Tip
+
+Only include `bootstrap.ps1` / `bootstrap.sh` logic in those bootstraps — never run arbitrary scripts from unverified repos in the wild (but this one’s yours, so go wild 🚀)
+
+---
+
+## How to use remotely
+
+**From any terminal:**
+```bash
+bash <(curl -s https://raw.githubusercontent.com/SPRIME01/dotfiles/main/update.sh)
+```
+
+**From PowerShell:**
+```powershell
+irm https://raw.githubusercontent.com/SPRIME01/dotfiles/main/update.ps1 | iex
+```
