@@ -17,32 +17,25 @@ switch ($env:COMPUTERNAME) {
 # Lazy-load the Aliases module by creating proxy functions.
 # The module will be imported only when one of its commands is run for the first time.
 $aliasesModulePath = "$HOME\dotfiles\PowerShell\Modules\Aliases\Aliases.psm1"
-
-function filetree {
-    Import-Module $aliasesModulePath -Force
-    Get-FileTree @args
-}
-function projectroot {
-    Import-Module $aliasesModulePath -Force
-    Set-ProjectRoot @args
-}
-function updateenv {
-    Import-Module $aliasesModulePath -Force
-    Update-EnvVars @args
-}
-function gensecret {
-    Import-Module $aliasesModulePath -Force
-    Get-SecretKey @args
-}
 function aliashelp {
     Import-Module $aliasesModulePath -Force
     Get-AliasHelp @args
-}
-function updatealiases {
+}function filetree {
     Import-Module $aliasesModulePath -Force
-    Update-Aliases @args
+    Get-FileTree @args
+}function gensecret {
+    Import-Module $aliasesModulePath -Force
+    Get-SecretKey @args
+}function projectroot {
+    Import-Module $aliasesModulePath -Force
+    Set-ProjectRoot @args
+}function testnewfunction {
+    Import-Module $aliasesModulePath -Force
+    Test-NewFunction @args
+}function updateenv {
+    Import-Module $aliasesModulePath -Force
+    Update-EnvVars @args
 }
-
 # Remaining PNPM and function definitions...
 $env:PNPM_HOME = "$HOME\.pnpm-global" # Can also be relative to $HOME
 $env:Path = "$env:PNPM_HOME;$env:Path"
@@ -50,3 +43,7 @@ $env:Path = "$env:PNPM_HOME;$env:Path"
 function projects {
     Set-Location -Path "$HOME\Projects"
 }
+
+
+
+

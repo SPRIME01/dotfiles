@@ -8,7 +8,7 @@ DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "⚙️ Setting up Unix shell..."
 
-DOTFILES=~/dotfiles
+DOTFILES=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 ln -sf "$DOTFILES/.bashrc" ~/.bashrc
 ln -sf "$DOTFILES/.zshrc" ~/.zshrc

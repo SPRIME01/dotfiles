@@ -3,7 +3,12 @@ $dotfiles = "$PSScriptRoot"
 Write-Host "🔧 Setting up PowerShell environment..."
 
 $dotfiles = "$HOME\dotfiles"
-$profileDir = "$HOME\Documents\PowerShell"
+if ($IsWindows) {
+    $profileDir = "$HOME\Documents\PowerShell"
+}
+else {
+    $profileDir = "$HOME/.config/powershell"
+}
 $configFileTarget = Join-Path $profileDir "powershell.config.json"
 $configFileSource = Join-Path $dotfiles "PowerShell\powershell.config.json"
 
