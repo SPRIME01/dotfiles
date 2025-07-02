@@ -1,0 +1,180 @@
+########## Get-FileTree function
+function Get-FileTree {
+    [CmdletBinding()]
+    param (
+        [Parameter(Position = 0)]
+        [string]$Path = '.',
+        [int]$Depth,
+        [switch]$ShowFiles
+    )
+
+    # Normalize the path
+    $Path = (Resolve-Path $Path).Path
+
+    $params = @{
+        Path    = $Path
+        Recurse = $true
+    }
+
+    # Get items with depth filter if specified
+    if ($Depth) {
+        $items = Get-ChildItem @params | Where-Object {
+            ($_.FullName.Split([IO.Path]::DirectorySeparatorChar).Count - $Path.Split([IO.Path]::DirectorySeparatorChar).Count) -le $Depth
+        }
+    }
+    else {
+        $items = Get-ChildItem @params
+    }
+
+    # Exclude any items under a .venv directory
+    $items = $items | Where-Object { $_.FullName -notmatch '(\\|/)\.venv(\\|$)' }
+
+    # Create a hashtable to store parent-child relationships
+    $tree = @{}
+    $root = $Path
+
+    # Build tree structure
+    foreach ($item in $items) {
+        $parent = [System.IO.Path]::GetDirectoryName($item.FullName)
+        if (-not $tree.ContainsKey($parent)) {
+            $tree[$parent] = @()
+        }
+        $tree[$parent] += $item
+    }
+
+    # Helper function to write tree
+    function Write-TreeLevel {
+        param($dir, $prefix = '')
+
+        if (-not $tree.ContainsKey($dir)) { return }
+
+        # Sort items (directories first, then files)
+        $sortedItems = $tree[$dir] | Sort-Object -Property @{ Expression = { $_.PSIsContainer }; Descending = $true }, { $_.Name }
+
+        for ($i = 0; $i -lt $sortedItems.Count; $i++) {
+            $item = $sortedItems[$i]
+            $isLast = ($i -eq $sortedItems.Count - 1)
+            $connector = if ($isLast) { "└── " } else { "├── " }
+            $icon = if ($item.PSIsContainer) { "📁" } else { "📄" }
+
+            Write-Output "$prefix$connector$icon $($item.Name)"
+
+            if ($item.PSIsContainer) {
+                $newPrefix = $prefix + $(if ($isLast) { "    " } else { "│   " })
+                Write-TreeLevel -dir $item.FullName -prefix $newPrefix
+            }
+        }
+    }
+
+    # Start printing from root
+    $rootItems = $tree[$root] | Sort-Object -Property @{ Expression = { $_.PSIsContainer }; Descending = $true }, { $_.Name }
+    foreach ($item in $rootItems) {
+        $icon = if ($item.PSIsContainer) { "📁" } else { "📄" }
+        Write-Output "├── $icon $($item.Name)"
+        if ($item.PSIsContainer) {
+            Write-TreeLevel -dir $item.FullName -prefix "│   "
+        }
+    }
+}
+
+Export-ModuleMember -Function Get-FileTree -Alias filetree
+
+########## Set-ProjectRoot function
+function Set-ProjectRoot {
+    param (
+        [string]$Path
+    )
+    Set-Location -Path $Path
+    Write-Output "Project root set to $Path"
+}
+Export-ModuleMember -Function Set-ProjectRoot -Alias projectroot
+
+
+########## Update-EnvVars function
+<#
+.SYNOPSIS
+Updates Windows environment variables at the user level.
+
+.DESCRIPTION
+The Update-EnvVars function allows you to modify Windows environment variables. It persists changes at the user level and immediately updates the current PowerShell session with the
+new value.
+
+.PARAMETER Name
+The name of the environment variable to update.
+
+.PARAMETER Value
+The new value to set for the specified environment variable.
+
+.EXAMPLE
+Update-EnvVars -Name "PATH" -Value "C:\NewPath"
+# Updates the PATH environment variable with a new value
+
+.EXAMPLE
+updateenv "JAVA_HOME" "C:\Program Files\Java\jdk-17"
+# Uses the alias to update JAVA_HOME environment variable
+
+.NOTES
+The function implements ShouldProcess to support -WhatIf and -Confirm parameters.
+Changes are persisted at the user level and will survive system restarts.
+The current PowerShell session is updated immediately to reflect the changes.
+
+.LINK
+[Environment]::SetEnvironmentVariable()
+Set-Item
+
+#>
+function Update-EnvVars {
+    [CmdletBinding(SupportsShouldProcess)]
+    param (
+        [Parameter(Mandatory, Position = 0)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Name,
+
+        [Parameter(Mandatory, Position = 1)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Value
+    )
+
+    if ($PSCmdlet.ShouldProcess("Environment Variable: $Name", "Set to: $Value")) {
+        [System.Environment]::SetEnvironmentVariable($Name, $Value, [System.EnvironmentVariableTarget]::User)
+        # Refresh current session
+        Set-Item -Path "env:$Name" -Value $Value
+    }
+}
+
+# Add alias
+Set-Alias -Name updateenv -Value Update-EnvVars
+
+# Export both function and alias
+Export-ModuleMember -Function Update-EnvVars -Alias updateenv
+
+########### Get-Aliases function
+function Get-Aliases {
+    Get-Command -Module Aliases -CommandType Alias |
+    Select-Object Name, Definition |
+    Format-Table -AutoSize
+}
+Export-ModuleMember -Function Get-Aliases -Alias getaliases
+
+########### Get-SecretKey function
+function Get-SecretKey {
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [int]$Length = 32
+    )
+
+    $result = python -c "import secrets; print(secrets.token_urlsafe($Length))"
+    if ($?) {
+        Write-Output $result
+    }
+    else {
+        Write-Error "Failed to generate secret. Make sure Python is installed and in PATH."
+    }
+}
+
+# Add alias
+Set-Alias -Name gensecret -Value Get-SecretKey
+
+# Export both function and alias
+Export-ModuleMember -Function Get-SecretKey -Alias gensecret
