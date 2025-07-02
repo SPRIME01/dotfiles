@@ -6,6 +6,8 @@ Welcome to a portable developer cockpit. This setup brings together PowerShell 7
 - Machine-specific behavior
 - Oh My Posh + PSReadLine UX polish
 - **Lazy-loaded** PowerShell modules for faster startup
+- **Auto-generated** PowerShell aliases with intelligent naming
+- **Unified workflow** - one command to regenerate all aliases
 - VS Code extension control
 - Bootstrap scripts for full setup and provisioning
 
@@ -24,10 +26,15 @@ dotfiles/
 ├── PowerShell/
 │   ├── Microsoft.PowerShell_profile.ps1   # PowerShell profile
 │   ├── powershell.config.json             # Enables unrestricted script execution
-│   ├── Update-LazyLoaders.ps1       # Script to update lazy-loaders
 │   └── Modules/
 │       └── Aliases/
-│           └── Aliases.psm1               # Custom PS aliases
+│           ├── Aliases.psm1                    # Auto-generated custom PS aliases
+│           ├── Update-AliasesModule.ps1        # Unified script to regenerate module
+│           ├── Invoke-UpdateAliasesModule.ps1  # Wrapper function for updatealiases
+│           ├── Get-AliasHelp.ps1               # Individual function files...
+│           ├── Get-FileTree.ps1
+│           ├── Set-ProjectRoot.ps1
+│           └── *.ps1                           # Additional PowerShell functions
 ├── .vscode/                    # (optional) VS Code settings
 │   └── settings.json
 ├── vscode-extensions.txt       # (optional) list of extensions to auto-install
@@ -69,6 +76,39 @@ Used in PowerShell only — configures:
   - Sources `.shell_theme_common.ps1`
   - **Lazy-loads** modules in `PowerShell/Modules/` for faster startup
   - Applies machine-specific logic via `$env:COMPUTERNAME`
+
+---
+
+### ⚡ PowerShell Aliases System
+
+The PowerShell aliases are **automatically managed** with a streamlined workflow:
+
+#### **Built-in Aliases Available:**
+- `aliashelp` → Lists all aliases with descriptions
+- `filetree` → Displays directory tree structure
+- `projectroot` → Navigate to project directories
+- `gensecret` → Generate secure keys
+- `updateenv` → Update environment variables
+- `updatealiases` → **Regenerate the entire aliases system**
+
+#### **Adding New Functions:**
+1. Create a new `.ps1` file in `PowerShell/Modules/Aliases/`
+2. Write your function with proper comment-based help:
+   ```powershell
+   <#
+   .SYNOPSIS
+   Brief description of what the function does.
+   #>
+   function My-NewFunction {
+       # Your code here
+   }
+   ```
+3. Run `updatealiases` to automatically:
+   - Regenerate `Aliases.psm1` with proper exports
+   - Update the profile with lazy-loading functions
+   - Create intelligent aliases (e.g., `Get-MyData` → `mydata`)
+
+**That's it!** The system handles dot-sourcing, alias creation, and lazy-loading automatically.
 
 ---
 
@@ -134,7 +174,10 @@ Done. It will link your configs, install tools, and load your custom environment
 
 - **Add a new PowerShell function?**
   1. Add a new `.ps1` file to `PowerShell/Modules/Aliases`
-  2. Run `PowerShell/Update-LazyLoaders.ps1` to update your profile
+  2. Run `updatealiases` to automatically regenerate the module and profile
+
+- **Need to see all available aliases?**
+  Run `aliashelp` to display all aliases with descriptions
 
 - **Want project-specific VS Code extensions?**
   Use `.vscode/extensions.json` in each repo and enable workspace recommendations
@@ -175,4 +218,25 @@ bash <(curl -s https://raw.githubusercontent.com/SPRIME01/dotfiles/main/update.s
 **From PowerShell:**
 ```powershell
 irm https://raw.githubusercontent.com/SPRIME01/dotfiles/main/update.ps1 | iex
+```
+
+---
+
+## 🚀 Quick Reference
+
+### PowerShell Aliases (Available after setup)
+```powershell
+aliashelp          # Show all available aliases
+updatealiases      # Regenerate aliases module (after adding new functions)
+filetree           # Display directory tree
+projectroot        # Navigate to projects
+gensecret          # Generate secure keys
+updateenv          # Update environment variables
+```
+
+### Adding New PowerShell Functions
+```powershell
+# 1. Create YourFunction.ps1 in PowerShell/Modules/Aliases/
+# 2. Run this to regenerate everything:
+updatealiases
 ```

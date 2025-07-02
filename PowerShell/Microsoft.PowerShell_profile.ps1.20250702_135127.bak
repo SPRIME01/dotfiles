@@ -32,6 +32,9 @@ function aliashelp {
 }function projectroot {
     Import-Module $aliasesModulePath -Force
     Set-ProjectRoot @args
+}function aliasesmodulefunction {
+    Import-Module $aliasesModulePath -Force
+    Update-AliasesModuleFunction @args
 }function updateenv {
     Import-Module $aliasesModulePath -Force
     Update-EnvVars @args
@@ -43,8 +46,6 @@ $env:Path = "$env:PNPM_HOME;$env:Path"
 function projects {
     Set-Location -Path "$HOME\Projects"
 }
-
-
 
 
 
