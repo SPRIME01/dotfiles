@@ -112,6 +112,18 @@ function Get-FunctionInfo {
         'Get-AliasHelp'             = 'aliashelp'
         'Test-NewFunction'          = 'testnewfunction'
         'Invoke-UpdateAliasesModule' = 'updatealiases'
+        'Find-Directory'            = 'finddir'
+        'Open-Explorer'             = 'explore'
+        'Get-GitStatus'             = 'gs'
+        'New-GitCommit'             = 'gc'
+        'Get-ProjectList'           = 'projects'
+        'Stop-ProcessByPort'        = 'killport'
+        'Find-Text'                 = 'grep'
+        'Get-FileSize'              = 'sizes'
+        'Get-SystemInfo'            = 'sysinfo'
+        'Test-Port'                 = 'testport'
+        'Get-NetworkConnections'    = 'netstat'
+        'Show-Json'                 = 'json'
     }
 
     $aliasName = if ($aliasMapping.ContainsKey($functionName)) {
