@@ -58,3 +58,26 @@ if (-not (Get-Module Terminal-Icons -ListAvailable)) {
 if (-not (Get-Module PSReadLine -ListAvailable)) {
     Install-Module -Name PSReadLine -Force -Scope CurrentUser
 }
+
+# Install pyenv-win (Python version manager for Windows)
+Write-Host "🐍 Installing pyenv-win (Python version manager)..."
+$pyenvPath = "$env:USERPROFILE\.pyenv"
+if (-not (Test-Path "$pyenvPath\pyenv-win\bin\pyenv.ps1")) {
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+        try {
+            git clone https://github.com/pyenv-win/pyenv-win.git "$pyenvPath"
+            Write-Host "✅ pyenv-win installed successfully"
+        }
+        catch {
+            Write-Warning "Failed to install pyenv-win: $_"
+            Write-Host "💡 You can install it manually: git clone https://github.com/pyenv-win/pyenv-win.git %USERPROFILE%\.pyenv"
+        }
+    }
+    else {
+        Write-Warning "Git not found. Please install Git and run this script again, or install pyenv-win manually."
+        Write-Host "💡 Manual install: git clone https://github.com/pyenv-win/pyenv-win.git %USERPROFILE%\.pyenv"
+    }
+}
+else {
+    Write-Host "✅ pyenv-win already installed"
+}

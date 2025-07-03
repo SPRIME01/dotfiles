@@ -21,13 +21,17 @@ try {
     . "$ModulePath\Get-ProjectList.ps1"
     . "$ModulePath\Get-SecretKey.ps1"
     . "$ModulePath\Get-SystemInfo.ps1"
+    . "$ModulePath\Initialize-PyEnv.ps1"
     . "$ModulePath\Invoke-UpdateAliasesModule.ps1"
     . "$ModulePath\New-GitCommit.ps1"
     . "$ModulePath\Open-Explorer.ps1"
     . "$ModulePath\Set-ProjectRoot.ps1"
     . "$ModulePath\Show-Json.ps1"
     . "$ModulePath\Stop-ProcessByPort.ps1"
+    . "$ModulePath\Test-NewFunction.ps1"
     . "$ModulePath\Test-Port.ps1"
+    . "$ModulePath\Update-AliasesModule-Function.ps1"
+    . "$ModulePath\Update-AliasesModuleFunction.ps1"
     . "$ModulePath\Update-EnvVars.ps1"
     Write-Verbose "Successfully dot-sourced function files."
 }
@@ -48,13 +52,17 @@ try {
     Set-Alias -Name projects -Value Get-ProjectList -Description "Find all package.json and pyproject.toml files and show project structure." -Scope Global -Force
     Set-Alias -Name gensecret -Value Get-SecretKey -Description "Generates a cryptographically secure URL-safe string." -Scope Global -Force
     Set-Alias -Name sysinfo -Value Get-SystemInfo -Description "Show system resources and running processes." -Scope Global -Force
+    Set-Alias -Name initializepyenv -Value Initialize-PyEnv -Description "Initialize pyenv-win for Python version management on Windows." -Scope Global -Force
     Set-Alias -Name updatealiases -Value Invoke-UpdateAliasesModule -Description "Completely regenerates the Aliases module and profile lazy-loading functions." -Scope Global -Force
     Set-Alias -Name gc -Value New-GitCommit -Description "Quick commit with message prompt." -Scope Global -Force
     Set-Alias -Name explore -Value Open-Explorer -Description "Open current directory in Windows Explorer." -Scope Global -Force
     Set-Alias -Name projectroot -Value Set-ProjectRoot -Description "Changes the current location to a specified project directory." -Scope Global -Force
     Set-Alias -Name json -Value Show-Json -Description "Pretty print JSON files with syntax highlighting." -Scope Global -Force
     Set-Alias -Name killport -Value Stop-ProcessByPort -Description "Kill processes by port number." -Scope Global -Force
+    Set-Alias -Name testnewfunction -Value Test-NewFunction -Description "Alias for Test-NewFunction" -Scope Global -Force
     Set-Alias -Name testport -Value Test-Port -Description "Test if a port is open on localhost or remote host." -Scope Global -Force
+    Set-Alias -Name aliasesmodule-function -Value Update-AliasesModule-Function -Description "Alias for Update-AliasesModule-Function" -Scope Global -Force
+    Set-Alias -Name aliasesmodulefunction -Value Update-AliasesModuleFunction -Description "Alias for Update-AliasesModuleFunction" -Scope Global -Force
     Set-Alias -Name updateenv -Value Update-EnvVars -Description "Updates or creates a user-level environment variable persistently." -Scope Global -Force
     Write-Verbose "Successfully set aliases."
 }
@@ -63,7 +71,7 @@ catch {
 }
 
 # Export all public functions and their aliases from this module
-Export-ModuleMember -Function Find-Directory, Find-Text, Get-AliasHelp, Get-FileSize, Get-FileTree, Get-GitStatus, Get-NetworkConnections, Get-ProjectList, Get-SecretKey, Get-SystemInfo, Invoke-UpdateAliasesModule, New-GitCommit, Open-Explorer, Set-ProjectRoot, Show-Json, Stop-ProcessByPort, Test-Port, Update-EnvVars `
-    -Alias finddir, grep, aliashelp, sizes, filetree, gs, netstat, projects, gensecret, sysinfo, updatealiases, gc, explore, projectroot, json, killport, testport, updateenv
+Export-ModuleMember -Function Find-Directory, Find-Text, Get-AliasHelp, Get-FileSize, Get-FileTree, Get-GitStatus, Get-NetworkConnections, Get-ProjectList, Get-SecretKey, Get-SystemInfo, Initialize-PyEnv, Invoke-UpdateAliasesModule, New-GitCommit, Open-Explorer, Set-ProjectRoot, Show-Json, Stop-ProcessByPort, Test-NewFunction, Test-Port, Update-AliasesModule-Function, Update-AliasesModuleFunction, Update-EnvVars `
+    -Alias finddir, grep, aliashelp, sizes, filetree, gs, netstat, projects, gensecret, sysinfo, initializepyenv, updatealiases, gc, explore, projectroot, json, killport, testnewfunction, testport, aliasesmodule-function, aliasesmodulefunction, updateenv
 
 Write-Verbose "Aliases module loaded successfully."

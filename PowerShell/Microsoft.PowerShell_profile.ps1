@@ -3,6 +3,13 @@ if (Test-Path $sharedShellConfig) {
     . $sharedShellConfig
 }
 
+# Initialize Python environment management (pyenv-win)
+$pyenvInitScript = "$HOME\dotfiles\PowerShell\Modules\Aliases\Initialize-PyEnv.ps1"
+if (Test-Path $pyenvInitScript) {
+    . $pyenvInitScript
+    Initialize-PyEnv
+}
+
 switch ($env:COMPUTERNAME) {
     "WORKSTATION-NAME" {
         $env:SPECIAL_VAR = "true"
@@ -47,6 +54,9 @@ function finddir {
 }function sysinfo {
     Import-Module $aliasesModulePath -Force
     Get-SystemInfo @args
+}function initializepyenv {
+    Import-Module $aliasesModulePath -Force
+    Initialize-PyEnv @args
 }function updatealiases {
     Import-Module $aliasesModulePath -Force
     Invoke-UpdateAliasesModule @args
@@ -65,9 +75,18 @@ function finddir {
 }function killport {
     Import-Module $aliasesModulePath -Force
     Stop-ProcessByPort @args
+}function testnewfunction {
+    Import-Module $aliasesModulePath -Force
+    Test-NewFunction @args
 }function testport {
     Import-Module $aliasesModulePath -Force
     Test-Port @args
+}function aliasesmodule-function {
+    Import-Module $aliasesModulePath -Force
+    Update-AliasesModule-Function @args
+}function aliasesmodulefunction {
+    Import-Module $aliasesModulePath -Force
+    Update-AliasesModuleFunction @args
 }function updateenv {
     Import-Module $aliasesModulePath -Force
     Update-EnvVars @args
@@ -79,6 +98,7 @@ $env:Path = "$env:PNPM_HOME;$env:Path"
 function projects {
     Set-Location -Path "$HOME\Projects"
 }
+
 
 
 
