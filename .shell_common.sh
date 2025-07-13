@@ -1,9 +1,13 @@
-# .shell_common.sh
-
 # --- Global Pathing Configuration ---
 # Set root paths based on the home directory for portability
 export PROJECTS_ROOT="$HOME/Projects"
 export DOTFILES_ROOT="$HOME/dotfiles"
+
+# --- Node.js Version Management (Volta) ---
+if [ -d "$HOME/.volta" ]; then
+    export VOLTA_HOME="$HOME/.volta"
+    export PATH="$VOLTA_HOME/bin:$PATH"
+fi
 
 # --- Aliases ---
 alias projects='cd "$PROJECTS_ROOT"'
@@ -42,5 +46,3 @@ esac
 if [ -f "$DOTFILES_ROOT/.shell_pyenv_init" ]; then
   . "$DOTFILES_ROOT/.shell_pyenv_init"
 fi
-
-# Add other common configurations here (e.g., custom functions, common

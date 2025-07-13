@@ -6,23 +6,6 @@
 # This should resolve to "$HOME\dotfiles\PowerShell"
 $shellConfigDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
-# --- Oh My Posh Configuration ---
-try {
-    # Assuming 'emodipt-extend.omp.json' is located in dotfiles/PowerShell/Themes
-    $ompConfig = Join-Path $shellConfigDir "Themes\emodipt-extend.omp.json"
-
-    if (Test-Path $ompConfig) {
-        Write-Verbose "Initializing Oh My Posh with local config: $ompConfig"
-        oh-my-posh init pwsh --config $ompConfig | Invoke-Expression
-    }
-    else {
-        Write-Warning "Oh My Posh theme not found at $ompConfig. Skipping Oh My Posh initialization."
-    }
-}
-catch {
-    Write-Warning "Failed to initialize Oh My Posh: $_"
-}
-
 # --- Module Imports (PowerShell Specific) ---
 Write-Verbose "Importing PowerShell modules..."
 try {
