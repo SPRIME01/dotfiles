@@ -27,7 +27,7 @@ function gs { Import-Module $aliasesModulePath -Force; Get-GitStatus @args }
 function netstat { Import-Module $aliasesModulePath -Force; Get-NetworkConnections @args }
 function gensecret { Import-Module $aliasesModulePath -Force; Get-SecretKey @args }
 function sysinfo { Import-Module $aliasesModulePath -Force; Get-SystemInfo @args }
-function initializepyenv { Import-Module $aliasesModulePath -Force; Initialize-PyEnv @args }
+
 function updatealiases { Import-Module $aliasesModulePath -Force; Invoke-UpdateAliasesModule @args }
 function gc { Import-Module $aliasesModulePath -Force; New-GitCommit @args }
 function explore { Import-Module $aliasesModulePath -Force; Open-Explorer @args }

@@ -41,8 +41,4 @@ case "$(hostname | tr '[:upper:]' '[:lower:]')" in
     ;;
 esac
 
-# --- Python Environment Management (pyenv) ---
-# Initialize pyenv if the init script exists
-if [ -f "$DOTFILES_ROOT/.shell_pyenv_init" ]; then
-  . "$DOTFILES_ROOT/.shell_pyenv_init"
-fi
+
