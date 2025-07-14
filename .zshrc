@@ -45,9 +45,16 @@ esac
 # Start relay
 ~/.local/bin/wsl-ssh-agent-relay start
 
-# Define socket and npiperelay path
+# Define socket and npiperelay path using USERPROFILE for portability
 export SSH_AUTH_SOCK="$HOME/.ssh/wsl-ssh-agent.sock"
-NPIPERELAY="/mnt/c/Users/sprim/scoop/apps/npiperelay/0.1.0/npiperelay.exe"
+
+# Get Windows USERPROFILE and convert to WSL path
+get_npiperelay_path() {
+  local userprofile=$(cmd.exe /c "echo %USERPROFILE%" 2>/dev/null | tr -d '\r')
+  echo "$(wslpath "$userprofile")/scoop/apps/npiperelay/0.1.0/npiperelay.exe"
+}
+
+NPIPERELAY=$(get_npiperelay_path)
 
 # Check if socket is active
 is_socket_active() {
@@ -62,4 +69,5 @@ if ! is_socket_active; then
     EXEC:"$NPIPERELAY //./pipe/openssh-ssh-agent" \
     >/dev/null 2>&1 &
 fi
+
 
