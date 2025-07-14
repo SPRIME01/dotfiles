@@ -39,3 +39,5 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # === PNPM end ===
+
+export SSH_AUTH_SOCK="$HOME/.ssh/agent.socket"
