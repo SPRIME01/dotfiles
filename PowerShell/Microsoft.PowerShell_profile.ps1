@@ -43,3 +43,5 @@ function updateenv { Import-Module $aliasesModulePath -Force; Update-EnvVars @ar
 function projects {
     Set-Location -Path $env:PROJECTS_ROOT
 }
+
+if ($env:TERM_PROGRAM -eq "kiro") { . "$(kiro --locate-shell-integration-path pwsh)" }

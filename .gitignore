@@ -1,2 +1,8 @@
 .bash_history
 *.log
+
+# MCP Configuration - Protect sensitive files
+mcp/.env
+mcp/backups/
+mcp/*.backup
+mcp/secrets/

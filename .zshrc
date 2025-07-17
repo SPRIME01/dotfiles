@@ -70,4 +70,4 @@ if ! is_socket_active; then
     >/dev/null 2>&1 &
 fi
 
-
+. "$HOME/.local/bin/env"

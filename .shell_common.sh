@@ -1,7 +1,18 @@
+#!/bin/bash
 # --- Global Pathing Configuration ---
 # Set root paths based on the home directory for portability
 export PROJECTS_ROOT="$HOME/Projects"
 export DOTFILES_ROOT="$HOME/dotfiles"
+
+# --- MCP (Model Context Protocol) Configuration ---
+export MCP_ENV_PATH="$DOTFILES_ROOT/mcp/.env"
+if [ -f "$MCP_ENV_PATH" ]; then
+    # Source MCP environment variables
+    # shellcheck source=mcp/.env
+    set -a  # Automatically export all variables
+    source "$MCP_ENV_PATH"
+    set +a  # Disable automatic export
+fi
 
 # --- Node.js Version Management (Volta) ---
 if [ -d "$HOME/.volta" ]; then
