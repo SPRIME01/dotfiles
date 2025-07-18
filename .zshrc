@@ -78,3 +78,16 @@ fi
 if [[ -f "$HOME/.local/bin/env" ]]; then
     . "$HOME/.local/bin/env"
 fi
+export MCPGATEWAY_BEARER_TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNwcmltZTAxIiwiZXhwIjoxNzUzMTQ0ODQyfQ.jz_q_Klwtz8O2UYeJwfrOKvnDO0XNUzEThmUUtpFkO4"
+export WSL_DISTRO_NAME="Ubuntu-24.04"
+# Load MCP environment variables
+if [ -f ~/Projects/MCPContextForge/.env ]; then
+    export $(grep -v "^#" ~/Projects/MCPContextForge/.env | xargs)
+fi
+# Load specific MCP environment variables
+if [ -f ~/Projects/MCPContextForge/.env ]; then
+    export MCPGATEWAY_BEARER_TOKEN=$(grep "^MCPGATEWAY_BEARER_TOKEN=" ~/Projects/MCPContextForge/.env | cut -d"=" -f2)
+    export WSL_DISTRO_NAME="Ubuntu-24.04"
+fi
+# Load MCP token for Gemini CLI
+export MCP_JWT_TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNwcmltZTAxIiwiZXhwIjoxNzUzMTQ0ODQyfQ.jz_q_Klwtz8O2UYeJwfrOKvnDO0XNUzEThmUUtpFkO4"
