@@ -15,11 +15,26 @@ ln -sf "$DOTFILES/.bashrc" ~/.bashrc
 ln -sf "$DOTFILES/.zshrc" ~/.zshrc
 ln -sf "$DOTFILES/.shell_common.sh" ~/.shell_common
 ln -sf "$DOTFILES/.shell_theme_common.ps1" ~/.shell_theme_common
+ln -sf "$DOTFILES/.shell_functions.sh" ~/.shell_functions
 
 # Install oh-my-posh if not present
 if ! command -v oh-my-posh &> /dev/null; then
     echo "📦 Installing oh-my-posh..."
     curl -s https://ohmyposh.dev/install.sh | bash -s
+fi
+
+# Install Oh My Zsh for Linux/WSL2 environments
+if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ -n "$WSL_DISTRO_NAME" ]]; then
+    echo "🐧 Detected Linux/WSL2 environment"
+
+    # Make install_zsh.sh executable and run it
+    if [ -f "$DOTFILES/install_zsh.sh" ]; then
+        chmod +x "$DOTFILES/install_zsh.sh"
+        echo "🐚 Installing Oh My Zsh..."
+        "$DOTFILES/install_zsh.sh"
+    else
+        echo "⚠️  install_zsh.sh not found, skipping Zsh setup"
+    fi
 fi
 
 # Setup MCP configuration

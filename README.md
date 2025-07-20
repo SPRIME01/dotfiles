@@ -3,14 +3,15 @@
 Welcome to a portable developer cockpit. This setup brings together PowerShell 7, Zsh, and Bash into a unified, DRY, Git-synchronized environment that you can deploy anywhere, with:
 
 - **Cross-shell aliases and environment variables**
-
 - **Machine-specific behavior**
-- Oh My Posh + PSReadLine UX polish
+- **Oh My Posh** (PowerShell) + **Oh My Zsh** (Linux/WSL2) for rich terminal experiences
+- **PSReadLine** UX polish for PowerShell
+- **Powerlevel10k** theme for Zsh with beautiful prompts
 - **Lazy-loaded** PowerShell modules for faster startup
 - **Auto-generated** PowerShell aliases with intelligent naming
 - **Unified workflow** - one command to regenerate all aliases
-
 - **20+ developer-focused PowerShell functions** for git, file management, system monitoring
+- **Shared shell functions** for both bash and zsh
 - **Novice-friendly shortcuts** for common development tasks
 - VS Code extension control
 - Bootstrap scripts for full setup and provisioning
@@ -22,21 +23,29 @@ Welcome to a portable developer cockpit. This setup brings together PowerShell 7
 ```text
 dotfiles/
 ├── .shell_common.sh             # Shared variables & aliases (bash + zsh)
-
+├── .shell_functions.sh          # Shared shell functions (bash + zsh)
 ├── .shell_theme_common.ps1      # Theme config (used in PowerShell only)
 ├── .bashrc                      # Bash startup → loads .shell_common
-├── .zshrc                       # Zsh startup → loads .shell_common
-├── bootstrap.sh                 # Shell bootstrap (symlinks & installs oh-my-posh)
+├── .zshrc                       # Zsh startup → loads .shell_common + Oh My Zsh
+├── .p10k.zsh                    # Powerlevel10k configuration template
+├── bootstrap.sh                 # Shell bootstrap (symlinks & installs oh-my-posh/zsh)
 ├── bootstrap.ps1                # PowerShell bootstrap (symlinks, installs modules)
+├── install_zsh.sh               # Oh My Zsh installation script for Linux/WSL2
 ├── PowerShell/
 │   ├── Microsoft.PowerShell_profile.ps1   # PowerShell profile
 │   ├── powershell.config.json             # Enables unrestricted script execution
+│   ├── Themes/
+│   │   ├── powerlevel10k_classic.omp.json  # Official Powerlevel10k classic theme
+│   │   ├── powerlevel10k_modern.omp.json   # Official Powerlevel10k modern theme
+│   │   ├── powerlevel10k_lean.omp.json     # Official Powerlevel10k lean theme
+│   │   ├── minimal-clean.omp.json          # Clean minimalist theme
+│   │   └── emodipt-extend.omp.json         # Original extended theme
 │   └── Modules/
 │       └── Aliases/
 │           ├── Aliases.psm1                    # Auto-generated custom PS aliases
 │           ├── Update-AliasesModule.ps1        # Unified script to regenerate module
 │           ├── Invoke-UpdateAliasesModule.ps1  # Wrapper function for updatealiases
-
+│           ├── Set-OhMyPoshTheme.ps1           # Theme management functions
 │           ├── Get-AliasHelp.ps1               # Individual function files...
 │           ├── Get-FileTree.ps1
 │           ├── Set-ProjectRoot.ps1
@@ -76,6 +85,44 @@ Used in PowerShell only — configures:
 - Terminal-Icons
 - Optional prompt tweaks
 
+#### **Oh My Posh Theme Management:**
+
+The PowerShell setup now includes **official Powerlevel10k themes** that match your Zsh experience perfectly:
+
+**Available Themes:**
+- `powerlevel10k_classic` - Official Powerlevel10k classic theme (default)
+- `powerlevel10k_modern` - Official Powerlevel10k modern theme
+- `powerlevel10k_lean` - Official Powerlevel10k lean theme
+- `minimal-clean` - Clean, minimalist theme with essential info
+- `emodipt-extend` - Your original extended theme
+
+**Theme Commands:**
+```powershell
+# Switch themes
+settheme powerlevel10k_classic     # Official Powerlevel10k classic
+settheme powerlevel10k_modern      # Official Powerlevel10k modern
+settheme powerlevel10k_lean        # Official Powerlevel10k lean
+settheme minimal-clean             # Switch to minimal theme
+
+# Manage themes
+gettheme                          # Show current theme
+listthemes                        # List all available themes
+
+# Environment variable override
+$env:OMP_THEME = "powerlevel10k_modern.omp.json"   # Set theme for session
+```
+
+**Features of Official Powerlevel10k themes:**
+- **Authentic Powerlevel10k look** - Direct ports from the original Zsh theme
+- **Proper icon rendering** - Uses correct Nerd Font icons and Unicode symbols
+- **Multi-line prompts** with clean separation (classic/modern)
+- **Context-aware segments**: OS icon, directory, git status, user@host
+- **Right-side information**: Execution time, status indicators
+- **Dynamic colors**: Git status changes colors based on repo state
+- **Multiple variants**: Choose between classic, modern, or lean layouts
+
+The theme preference is automatically saved and persists across PowerShell sessions.
+
 ---
 
 ### 🧠 Shell Startup Files
@@ -83,7 +130,7 @@ Used in PowerShell only — configures:
 
 - PowerShell loads `Microsoft.PowerShell_profile.ps1`, which:
   - Sources `.shell_theme_common.ps1`
-  
+
   - **Lazy-loads** modules in `PowerShell/Modules/` for faster startup
   - Applies machine-specific logic via `$env:COMPUTERNAME`
 
@@ -181,6 +228,141 @@ sysinfo                 # CPU, memory, disk usage at a glance
 **Perfect for beginners** - no need to remember complex command syntax or multiple steps!
 
 
+
+---
+
+## 🐚 Zsh Setup (Linux/WSL2)
+
+For Linux/WSL2 environments, this dotfiles setup includes a complete Oh My Zsh configuration with modern terminal enhancements:
+
+### **What's Included:**
+- **Oh My Zsh**: Feature-rich Zsh framework with extensive plugin ecosystem
+- **Powerlevel10k**: Fast, beautiful, and customizable prompt theme (similar to Oh My Posh)
+- **Smart Plugins**:
+  - `zsh-autosuggestions` - Fish-like autosuggestions
+  - `zsh-syntax-highlighting` - Command syntax highlighting
+  - `history-substring-search` - Enhanced history search
+  - `git`, `docker`, `kubectl`, `node`, `python` - Context-aware completions
+- **MesloLGS NF Fonts**: Automatically downloaded and installed for optimal display
+- **Shared Functions**: All the convenience functions from `.shell_functions.sh`
+
+### **Installation:**
+The Zsh setup is automatically included when running `./bootstrap.sh` on Linux/WSL2:
+
+```bash
+# Full setup (includes Zsh)
+git clone https://github.com/SPRIME01/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+./bootstrap.sh
+```
+
+### **Manual Zsh Installation:**
+```bash
+# Install just the Zsh components
+./install_zsh.sh
+
+# Configure the beautiful Powerlevel10k theme
+p10k configure
+```
+
+### **Zsh-Specific Features:**
+
+#### **Enhanced Aliases:**
+```bash
+# Quick directory listings
+ll                      # Detailed list with hidden files
+la                      # All files including hidden
+l                       # Simple list
+
+# Git shortcuts (in addition to shared ones)
+gst                     # git status
+gco                     # git checkout
+gcb <branch>            # git checkout -b (create new branch)
+gaa                     # git add --all
+gcm "message"           # git commit -m
+gp                      # git push
+gl                      # git pull
+glog                    # git log --oneline --graph --decorate
+```
+
+#### **Powerful Functions:**
+```bash
+# Project & Directory Management
+take myproject          # Create directory and cd into it
+proj                    # Go to projects root, or proj <name> for specific project
+backup myfile.txt       # Create timestamped backup
+
+# Development Helpers
+qcommit "fix bug"       # Quick add all + commit
+killport 3000           # Kill process on port 3000
+extract archive.zip     # Universal archive extractor
+
+# System Utilities
+myip                    # Get your public IP
+weather                 # Current weather (or weather <city>)
+dirsize                 # Size of current directory
+findlarge 100M          # Find files larger than 100MB
+sysinfo                 # Comprehensive system information
+
+# Docker shortcuts
+dps                     # Pretty docker ps
+dlogs <container>       # Follow logs for container
+dexec <container>       # Execute bash in container
+
+# Git utilities
+gclean                  # Clean up merged branches and optimize repo
+gundo                   # Undo last commit (soft reset)
+
+# Node.js/NPM helpers
+npmglobal               # List global npm packages
+nodecheck               # Show Node, NPM, Yarn, PNPM versions
+
+# MCP integration
+mcpstatus               # Show MCP servers configuration
+mcpenv                  # Show MCP environment variables
+
+# Quick notes
+note "Remember to..."   # Add timestamped note to daily file
+note                    # Open today's note file in editor
+```
+
+#### **Smart History & Navigation:**
+- **Substring Search**: Use ↑/↓ arrows to search through command history
+- **Auto-suggestions**: Type the beginning of a command to see suggestions
+- **Smart Completions**: Tab completion for git branches, docker containers, etc.
+- **Syntax Highlighting**: Commands turn green when valid, red when invalid
+
+### **Customization:**
+
+#### **Theme Configuration:**
+The Powerlevel10k theme can be reconfigured anytime:
+```bash
+p10k configure          # Interactive theme configuration wizard
+```
+
+#### **Adding Plugins:**
+Edit `.zshrc` and add plugins to the `plugins` array:
+```bash
+plugins=(
+    git
+    zsh-autosuggestions
+    # Add your plugins here
+    new-plugin-name
+)
+```
+
+#### **Custom Functions:**
+Add your own functions to `.shell_functions.sh` - they'll be available in both bash and zsh.
+
+### **Tips & Tricks:**
+- **Font Setup**: Set your terminal font to "MesloLGS NF" for best visual experience
+- **Key Bindings**:
+  - `Ctrl+Space`: Menu complete
+  - `Ctrl+R`: Search command history
+  - `Ctrl+A`: Beginning of line
+  - `Ctrl+E`: End of line
+- **Quick Navigation**: Use `take` instead of `mkdir && cd`
+- **Git Workflow**: Use `gst` → `gaa` → `gcm "message"` → `gp` for common git operations
 
 ---
 

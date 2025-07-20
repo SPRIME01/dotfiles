@@ -59,4 +59,17 @@ if (-not (Get-Module PSReadLine -ListAvailable)) {
     Install-Module -Name PSReadLine -Force -Scope CurrentUser
 }
 
+# Setup themes
+Write-Host "🎨 Setting up Oh My Posh themes..."
+& "$dotfiles\setup-themes.ps1" -ConfigurePowerShell
+
+Write-Host "✅ PowerShell environment setup complete!"
+Write-Host "💡 Available theme commands:"
+Write-Host "   settheme powerlevel10k_classic   # Official Powerlevel10k classic theme"
+Write-Host "   settheme powerlevel10k_modern    # Official Powerlevel10k modern theme"
+Write-Host "   settheme powerlevel10k_lean      # Official Powerlevel10k lean theme"
+Write-Host "   settheme minimal-clean           # Clean minimalist theme"
+Write-Host "   gettheme                         # Show current theme"
+Write-Host "   listthemes                       # List all available themes"
+
 

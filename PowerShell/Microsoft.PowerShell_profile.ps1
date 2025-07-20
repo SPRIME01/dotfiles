@@ -1,5 +1,16 @@
 # Basic PowerShell setup - must come first
-oh-my-posh init pwsh --config "$HOME\dotfiles\PowerShell\Themes\emodipt-extend.omp.json" | Invoke-Expression
+# Oh My Posh Theme Selection - can be overridden by environment variable
+$defaultTheme = "powerlevel10k_classic.omp.json"
+$ompTheme = if ($env:OMP_THEME) { $env:OMP_THEME } else { $defaultTheme }
+$themePath = "$HOME\dotfiles\PowerShell\Themes\$ompTheme"
+
+# Fallback to emodipt-extend if the theme doesn't exist
+if (-not (Test-Path $themePath)) {
+    Write-Warning "Theme '$ompTheme' not found, falling back to emodipt-extend.omp.json"
+    $themePath = "$HOME\dotfiles\PowerShell\Themes\emodipt-extend.omp.json"
+}
+
+oh-my-posh init pwsh --config "$themePath" | Invoke-Expression
 Import-Module -Name Terminal-Icons -ErrorAction SilentlyContinue
 Import-Module PSReadLine -ErrorAction SilentlyContinue
 Set-PSReadLineOption -PredictionSource History
@@ -38,6 +49,12 @@ function testnewfunction { Import-Module $aliasesModulePath -Force; Test-NewFunc
 function testport { Import-Module $aliasesModulePath -Force; Test-Port @args }
 function aliasesmodulefunction { Import-Module $aliasesModulePath -Force; Update-AliasesModuleFunction @args }
 function updateenv { Import-Module $aliasesModulePath -Force; Update-EnvVars @args }
+
+# Theme management functions
+. "$HOME\dotfiles\PowerShell\Modules\Aliases\Set-OhMyPoshTheme.ps1"
+function settheme { Set-OhMyPoshTheme @args }
+function gettheme { Get-OhMyPoshTheme @args }
+function listthemes { Set-OhMyPoshTheme -List @args }
 
 # Single projects function that uses environment variable
 function projects {
