@@ -1,0 +1,17 @@
+{
+    "terminal.integrated.defaultProfile.linux": "zsh",
+    "terminal.integrated.profiles.linux": {
+        "zsh": {
+            "path": "zsh",
+            "icon": "terminal"
+        },
+        "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+        },
+        "fish": {
+            "path": "fish",
+            "icon": "terminal"
+        }
+    }
+}

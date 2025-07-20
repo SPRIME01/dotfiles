@@ -35,6 +35,15 @@ else
     fi
 fi
 
+# Setup VS Code configuration
+echo "💻 Setting up VS Code configuration..."
+if [ -f "$DOTFILES/install/vscode.sh" ]; then
+    echo "🔧 Installing VS Code settings..."
+    "$DOTFILES/install/vscode.sh"
+else
+    echo "⚠️  VS Code installation script not found"
+fi
+
 echo "🎉 Bootstrap complete!"
 echo "💡 To use MCP helper tools, run:"
 echo "   $DOTFILES/mcp/mcp-helper.sh env      # Show MCP environment"

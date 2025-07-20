@@ -1,0 +1,198 @@
+{
+    "workbench.colorTheme": "Default Dark+",
+    "workbench.iconTheme": "vs-seti",
+    "workbench.startupEditor": "none",
+    "workbench.list.smoothScrolling": true,
+    "workbench.editor.highlightModifiedTabs": true,
+    "workbench.tree.indent": 10,
+    "editor.fontSize": 18,
+    "editor.fontFamily": "'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'Courier New', monospace",
+    "editor.tabSize": 4,
+    "editor.wordWrap": "on",
+    "editor.smoothScrolling": true,
+    "editor.cursorSmoothCaretAnimation": "on",
+    "editor.suggestSelection": "first",
+    "editor.acceptSuggestionOnEnter": "smart",
+    "editor.quickSuggestionsDelay": 0,
+    "editor.tabCompletion": "on",
+    "editor.linkedEditing": true,
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": "active",
+    "editor.renderWhitespace": "boundary",
+    "editor.rulers": [
+        88,
+        120
+    ],
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.codeActionsOnSave": {
+        "source.formatDocument": "explicit",
+        "source.fixAll": "explicit",
+        "source.organizeImports": "explicit"
+    },
+    "editor.accessibilitySupport": "off",
+    "diffEditor.codeLens": true,
+    "diffEditor.ignoreTrimWhitespace": false,
+    "diffEditor.maxComputationTime": 0,
+    "pandoc.htmlOptString": "-s -f gfm -t html5 --css=css/style.css",
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.exclude": {
+        "**/.git": false,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/.pytest_cache": true,
+        "**/.ruff_cache": true,
+        "**/.mypy_cache": true,
+        "**/.venv": false,
+        "**/node_modules": false,
+        "**/dist": true,
+        "**/build": true
+    },
+    "search.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/.pytest_cache": true,
+        "**/.ruff_cache": true,
+        "**/.mypy_cache": true,
+        "**/.venv": true,
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/build": true,
+        "**/bower_components": true,
+        "**/*.lock": true
+    },
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/*/**": true,
+        "**/.venv/**": true,
+        "**/__pycache__/**": true,
+        "**/.ruff_cache/**": true,
+        "**/.mypy_cache/**": true,
+        "**/.pytest_cache/**": true
+    },
+    "terminal.integrated.fontFamily": "'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'CaskaydiaCove NF', 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace",
+    "terminal.integrated.fontSize": 14,
+    "terminal.integrated.gpuAcceleration": "on",
+    "terminal.integrated.enableVisualBell": true,
+    "terminal.integrated.cursorBlinking": true,
+    "terminal.integrated.smoothScrolling": true,
+    "accessibility.signals.terminalBell": {
+        "sound": "on"
+    },
+    "python.languageServer": "Pylance",
+    "python.analysis.typeCheckingMode": "strict",
+    "python.terminal.activateEnvironment": true,
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "[python]": {
+        "editor.formatOnType": true,
+        "editor.defaultFormatter": null,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+        }
+    },
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "[typescript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[powershell]": {
+        "editor.defaultFormatter": null
+    },
+    "notebook.cellToolbarLocation": {
+        "default": "right",
+        "jupyter-notebook": "left"
+    },
+    "notebook.formatOnSave.enabled": true,
+    "workbench.editorAssociations": {
+        "*.ipynb": "jupyter-notebook"
+    },
+    "git.autofetch": true,
+    "git.enableSmartCommit": true,
+    "git.confirmSync": false,
+    "git.decorations.enabled": true,
+    "github.copilot.enable": {
+        "*": true,
+        "plaintext": false,
+        "markdown": true,
+        "scminput": false
+    },
+    "github.copilot.advanced": {
+        "authProvider": "github"
+    },
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "github.copilot.chat.codesearch.enabled": true,
+    "github.copilot.chat.editor.temporalContext.enabled": true,
+    "github.copilot.chat.edits.temporalContext.enabled": true,
+    "github.copilot.chat.search.semanticTextResults": true,
+    "github.copilot.chat.agent.thinkingTool": true,
+    "vsicons.dontShowNewVersionMessage": true,
+    "makefile.configureOnOpen": true,
+    "snyk.folderConfigs": [],
+    "snyk.yesWelcomeNotification": false,
+    "snyk.trustedFolders": [],
+    "remote.SSH.useLocalServer": true,
+    "remote.SSH.enableDynamicForwarding": true,
+    "remote.SSH.showLoginTerminal": true,
+    "remote.SSH.logLevel": "trace",
+    "security.workspace.trust.untrustedFiles": "open",
+    "accessibility.voice.keywordActivation": "inlineChat",
+    "chat.agent.enabled": true,
+    "settingsSync.ignoredExtensions": [],
+    "redhat.telemetry.enabled": false,
+    "roo-cline.allowedCommands": [
+        "npm test",
+        "npm install",
+        "tsc",
+        "git log",
+        "git diff",
+        "git show",
+        "uv add"
+    ],
+    "@azure.argTenant": "",
+    "markdown.extension.print.theme": "dark",
+    "markdown.extension.showActionButtons": true,
+    "[markdown]": {
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
+        "editor.defaultFormatter": "vscode.markdown-language-features"
+    },
+    "svelte.enable-ts-plugin": true,
+    "[yaml]": {
+        "editor.defaultFormatter": null
+    },
+    "[svelte]": {
+        "editor.defaultFormatter": null
+    },
+    "yaml.maxItemsComputed": 4000,
+    "docker.extension.enableComposeLanguageServer": false,
+    "security.allowedUNCHosts": [
+        "wsl$",
+        "wsl.localhost"
+    ],
+    "roo-cline.deniedCommands": []
+}
