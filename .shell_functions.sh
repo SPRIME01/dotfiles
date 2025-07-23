@@ -108,6 +108,8 @@ qgrep() {
 }
 
 # Docker helper functions
+# Unalias dps if it exists (from Oh My Zsh docker plugin)
+unalias dps 2>/dev/null
 dps() {
     docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 }
