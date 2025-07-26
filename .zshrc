@@ -190,3 +190,5 @@ if [ -f ~/Projects/MCPContextForge/.env ]; then
 fi
 # Load MCP token for Gemini CLI
 export MCP_JWT_TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNwcmltZTAxIiwiZXhwIjoxNzUzMTQ0ODQyfQ.jz_q_Klwtz8O2UYeJwfrOKvnDO0XNUzEThmUUtpFkO4"
+
+export PATH="/snap/bin:$PATH"
