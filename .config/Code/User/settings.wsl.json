@@ -1,0 +1,28 @@
+{
+    "terminal.integrated.defaultProfile.linux": "zsh",
+    "terminal.integrated.profiles.linux": {
+        "zsh": {
+            "path": "/usr/bin/zsh",
+            "icon": "terminal"
+        },
+        "bash": {
+            "path": "/bin/bash",
+            "icon": "terminal-bash"
+        }
+    },
+    "files.watcherExclude": {
+        "**/node_modules/**": true,
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/target/**": true,
+        "**/build/**": true,
+        "**/dist/**": true,
+        "**/.venv/**": true,
+        "**/__pycache__/**": true,
+        "**/.ruff_cache/**": true,
+        "**/.mypy_cache/**": true,
+        "**/.pytest_cache/**": true
+    },
+    "remote.WSL.fileWatcher.polling": true,
+    "remote.WSL.useShellEnvironment": true
+}

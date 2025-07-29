@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "mcp-gateway": {
+      "command": "node",
+      "args": ["$MCP_BRIDGE_SCRIPT_PATH"],
+      "env": {
+        "MCP_GATEWAY_URL": "$MCP_GATEWAY_URL",
+        "MCP_ADMIN_USERNAME": "$MCP_ADMIN_USERNAME",
+        "MCP_ADMIN_PASSWORD": "$MCP_ADMIN_PASSWORD"
+      }
+    }
+  }
+}

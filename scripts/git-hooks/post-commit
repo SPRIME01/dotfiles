@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# Post-commit hook to regenerate the PowerShell Aliases module after changes.
+#
+# This script is not installed automatically. To enable automatic alias
+# regeneration, copy this file to your local repository's `.git/hooks`
+# directory and make it executable:
+#
+#   cp scripts/git-hooks/post-commit .git/hooks/post-commit
+#   chmod +x .git/hooks/post-commit
+#
+# Whenever you commit a change that adds, removes, or modifies a function
+# under `PowerShell/Modules/Aliases`, this hook will run `Invoke-UpdateAliasesModule`
+# via PowerShell to rebuild the `Aliases.psm1` file.  If PowerShell is not
+# available, a warning will be printed.
+
+set -euo pipefail
+
+# Derive the root of the dotfiles repository.  This hook lives in
+# scripts/git-hooks, so its grandparent is the root.
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_ROOT="$(cd "$HOOK_DIR/../.." && pwd)"
+
+# Only attempt to regenerate the aliases module if pwsh is available.
+if command -v pwsh >/dev/null 2>&1; then
+  pwsh -NoProfile -ExecutionPolicy Bypass -Command "& {
+    Import-Module '$DOTFILES_ROOT/PowerShell/Modules/Aliases/Invoke-UpdateAliasesModule.ps1' -Force;
+    Invoke-UpdateAliasesModule -Verbose
+  }"
+else
+  echo "[post-commit] pwsh not found; skipping alias regeneration." >&2
+fi

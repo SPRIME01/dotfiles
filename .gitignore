@@ -1,0 +1,11 @@
+# Ignore environment files containing secrets
+.env
+mcp/.env
+
+# Ignore backup and temporary files created by scripts
+*.bak
+*~
+.DS_Store
+__pycache__/
+node_modules/
+.vscode-server/
