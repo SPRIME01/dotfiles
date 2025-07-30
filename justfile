@@ -219,21 +219,47 @@ setup-windows-integration:
     @echo "   • Projects directory with Windows access"
     @echo "   • PowerShell 7 profile with dotfiles integration"
     @echo "   • WSL-Windows symlinks and functions"
+    @echo "   • Fixed shell configuration (no startup errors)"
+    @echo ""
+    @echo "⚠️  SSH agent is disabled by default (npiperelay required)"
+    @echo "💡 To enable SSH agent: install npiperelay, then run 'just enable-ssh-agent'"
 
 # Fix PowerShell 7 profile if it's not working correctly
 fix-pwsh7:
     @echo "🔧 Diagnosing and fixing PowerShell 7 profile issues..."
     @just setup-pwsh7
 
-# Set up Windows SSH Agent to start automatically
+# Diagnose shell startup issues
+diagnose-shell:
+    @bash -c 'echo "🔍 Diagnosing shell configuration issues..."; echo ""; echo "📋 Environment variable loading test:"; if source /home/sprime01/dotfiles/scripts/load_env.sh && load_env_file /home/sprime01/dotfiles/mcp/.env; then echo "✅ MCP .env loads successfully"; else echo "❌ MCP .env has issues"; fi; echo ""; echo "📋 Shell common configuration test:"; if P10K_INSTANT_PROMPT=1 source /home/sprime01/dotfiles/.shell_common.sh; then echo "✅ Shell common loads successfully"; else echo "❌ Shell common has issues"; fi; echo ""; echo "📋 SSH agent configuration:"; if grep -q "^# if \[ -f \"\$HOME/dotfiles/zsh/ssh-agent.zsh\" \]; then" /home/sprime01/dotfiles/.zshrc; then echo "⏸️  SSH agent is disabled (npiperelay not available)"; echo "💡 Run \"just enable-ssh-agent\" after installing npiperelay"; elif grep -q "if \[ -f \"\$HOME/dotfiles/zsh/ssh-agent.zsh\" \]; then" /home/sprime01/dotfiles/.zshrc; then echo "✅ SSH agent is enabled"; else echo "❓ SSH agent configuration status unclear"; fi; echo ""; echo "📋 PowerShell profile status:"; WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d "\r" 2>/dev/null || echo "unknown"); PWSH7_PROFILE="/mnt/c/Users/$WIN_USER/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"; if [[ -f "$PWSH7_PROFILE" ]]; then echo "✅ PowerShell 7 profile exists"; else echo "❌ PowerShell 7 profile missing"; echo "💡 Run \"just setup-pwsh7\" to create it"; fi'
+
+# Fix environment loading issues
+fix-env-loading:
+    @bash -c 'echo "🔧 Fixing environment loading issues..."; if [[ ! -f "/home/sprime01/dotfiles/scripts/load_env.sh" ]]; then echo "❌ load_env.sh missing"; exit 1; fi; echo "🧪 Testing environment loading..."; if source /home/sprime01/dotfiles/scripts/load_env.sh && load_env_file /home/sprime01/dotfiles/mcp/.env 2>/dev/null; then echo "✅ Environment loading works correctly"; else echo "❌ Environment loading has issues"; echo "💡 The load_env.sh script or MCP .env file may need attention"; exit 1; fi; echo "🎉 Environment loading is working correctly!"'
+
+# Set up Windows SSH Agent to start automatically (requires npiperelay)
 setup-ssh-agent-windows:
     #!/usr/bin/env bash
     echo "🔐 Setting up Windows SSH Agent auto-start..."
+    echo "⚠️  Note: SSH agent is currently disabled in .zshrc due to missing npiperelay"
+    echo "💡 To enable SSH agent, first install npiperelay via Scoop:"
+    echo "   scoop install npiperelay"
+    echo "💡 Then uncomment SSH agent setup in .zshrc"
 
     # Check if we're in WSL
     if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
         echo "❌ This command is designed for WSL2 environments"
         echo "💡 Run this from WSL2 to configure Windows SSH Agent"
+        exit 1
+    fi
+
+    # Check if npiperelay is installed
+    WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r' 2>/dev/null)
+    NPIPERELAY_PATH="/mnt/c/Users/$WIN_USER/scoop/apps/npiperelay/0.1.0/npiperelay.exe"
+
+    if [[ ! -x "$NPIPERELAY_PATH" ]]; then
+        echo "❌ npiperelay not found at $NPIPERELAY_PATH"
+        echo "💡 Install npiperelay first: scoop install npiperelay"
         exit 1
     fi
 
@@ -249,6 +275,11 @@ setup-ssh-agent-windows:
     echo ""
     echo "🎉 Windows SSH Agent setup complete!"
     echo "💡 Your SSH keys should now load automatically when you start PowerShell"
+    echo "💡 To enable in zsh, uncomment SSH agent setup in .zshrc"
+
+# Enable SSH agent in zsh (after installing npiperelay)
+enable-ssh-agent:
+    @bash -c 'echo "🔐 Enabling SSH agent in zsh configuration..."; WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d "\r" 2>/dev/null); NPIPERELAY_PATH="/mnt/c/Users/$WIN_USER/scoop/apps/npiperelay/0.1.0/npiperelay.exe"; if [[ ! -x "$NPIPERELAY_PATH" ]]; then echo "❌ npiperelay not found at $NPIPERELAY_PATH"; echo "💡 Install npiperelay first: scoop install npiperelay"; echo "💡 Then run: just enable-ssh-agent"; exit 1; fi; if grep -q "^# if \[ -f \"\$HOME/dotfiles/zsh/ssh-agent.zsh\" \]; then" /home/sprime01/dotfiles/.zshrc; then sed -i "s/^# if \[ -f \"\$HOME\/dotfiles\/zsh\/ssh-agent\.zsh\" \]; then$/if [ -f \"\$HOME\/dotfiles\/zsh\/ssh-agent.zsh\" ]; then/" /home/sprime01/dotfiles/.zshrc; sed -i "s/^#     \. \"\$HOME\/dotfiles\/zsh\/ssh-agent\.zsh\"$/    . \"\$HOME\/dotfiles\/zsh\/ssh-agent.zsh\"/" /home/sprime01/dotfiles/.zshrc; sed -i "s/^# fi$/fi/" /home/sprime01/dotfiles/.zshrc; echo "✅ SSH agent enabled in .zshrc"; echo "💡 Restart your terminal or run \"source ~/.zshrc\" to activate"; else echo "⚠️  SSH agent setup not found in commented form in .zshrc"; echo "💡 Manual edit may be required"; fi'
 
 # Set up WSL2 for remote access via SSH and VS Code
 setup-wsl2-remote:
