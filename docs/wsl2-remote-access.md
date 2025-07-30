@@ -15,7 +15,7 @@ This guide shows how to access your WSL2 environment from another computer on yo
    ```bash
    # Update packages
    sudo apt update
-   
+
    # Install OpenSSH server
    sudo apt install openssh-server -y
    ```
@@ -24,7 +24,7 @@ This guide shows how to access your WSL2 environment from another computer on yo
    ```bash
    # Edit SSH config
    sudo nano /etc/ssh/sshd_config
-   
+
    # Ensure these settings:
    Port 2222
    PasswordAuthentication no
@@ -36,7 +36,7 @@ This guide shows how to access your WSL2 environment from another computer on yo
    ```bash
    # Start SSH service
    sudo service ssh start
-   
+
    # Enable auto-start (optional)
    sudo systemctl enable ssh
    ```
@@ -46,7 +46,7 @@ This guide shows how to access your WSL2 environment from another computer on yo
    # Create .ssh directory if it doesn't exist
    mkdir -p ~/.ssh
    chmod 700 ~/.ssh
-   
+
    # Add your public key from the remote computer
    echo "your-public-key-here" >> ~/.ssh/authorized_keys
    chmod 600 ~/.ssh/authorized_keys
@@ -64,10 +64,10 @@ This guide shows how to access your WSL2 environment from another computer on yo
    ```powershell
    # Get WSL2 IP address
    $wslIP = (wsl hostname -I).Trim()
-   
+
    # Create port proxy
    netsh interface portproxy add v4tov4 listenport=2222 listenaddress=0.0.0.0 connectport=2222 connectaddress=$wslIP
-   
+
    # Verify the rule
    netsh interface portproxy show v4tov4
    ```
@@ -99,7 +99,7 @@ This guide shows how to access your WSL2 environment from another computer on yo
    ```powershell
    # Install OpenSSH Server (Windows 10/11)
    Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
-   
+
    # Start and enable the service
    Start-Service sshd
    Set-Service -Name sshd -StartupType 'Automatic'
@@ -148,7 +148,7 @@ echo "WSL2 IP: $WSL_IP"
    ```bash
    # Check if SSH is running in WSL2
    sudo service ssh status
-   
+
    # Check if port is listening
    sudo netstat -tlnp | grep :2222
    ```
@@ -157,7 +157,7 @@ echo "WSL2 IP: $WSL_IP"
    ```powershell
    # Remove existing rules
    netsh interface portproxy delete v4tov4 listenport=2222 listenaddress=0.0.0.0
-   
+
    # Re-add with current WSL IP
    $wslIP = (wsl hostname -I).Trim()
    netsh interface portproxy add v4tov4 listenport=2222 listenaddress=0.0.0.0 connectport=2222 connectaddress=$wslIP

@@ -21,22 +21,22 @@ if (-not $isAdmin) {
 try {
     # Step 1: Get WSL2 IP Address
     Write-Host "📋 Step 1: Getting WSL2 IP Address..." -ForegroundColor Green
-    
+
     $wslIP = (wsl hostname -I 2>$null)
     if (-not $wslIP) {
         Write-Error "Could not get WSL2 IP address. Make sure WSL2 is running."
         exit 1
     }
-    
+
     $wslIP = $wslIP.Trim()
     Write-Host "✅ WSL2 IP Address: $wslIP" -ForegroundColor Green
 
     # Step 2: Configure Windows Firewall
     Write-Host "📋 Step 2: Configuring Windows Firewall..." -ForegroundColor Green
-    
+
     $ruleName = "WSL2 SSH Access"
     $existingRule = Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
-    
+
     if ($existingRule) {
         if ($Force) {
             Remove-NetFirewallRule -DisplayName $ruleName
@@ -46,7 +46,7 @@ try {
             Write-Host "💡 Use -Force to recreate the rule" -ForegroundColor Yellow
         }
     }
-    
+
     if (-not $existingRule -or $Force) {
         New-NetFirewallRule -DisplayName $ruleName -Direction Inbound -Protocol TCP -LocalPort $SSHPort -Action Allow | Out-Null
         Write-Host "✅ Created firewall rule for port $SSHPort" -ForegroundColor Green
@@ -54,10 +54,10 @@ try {
 
     # Step 3: Configure Port Forwarding
     Write-Host "📋 Step 3: Configuring Port Forwarding..." -ForegroundColor Green
-    
+
     # Remove existing port proxy rules for this port
     $existingProxy = netsh interface portproxy show v4tov4 | Select-String -Pattern "0.0.0.0.*$SSHPort"
-    
+
     if ($existingProxy) {
         if ($Force) {
             netsh interface portproxy delete v4tov4 listenport=$SSHPort listenaddress=0.0.0.0 | Out-Null
@@ -67,7 +67,7 @@ try {
             Write-Host "💡 Use -Force to recreate the rule" -ForegroundColor Yellow
         }
     }
-    
+
     if (-not $existingProxy -or $Force) {
         netsh interface portproxy add v4tov4 listenport=$SSHPort listenaddress=0.0.0.0 connectport=$SSHPort connectaddress=$wslIP | Out-Null
         Write-Host "✅ Created port proxy rule: 0.0.0.0:$SSHPort -> $wslIP:$SSHPort" -ForegroundColor Green
@@ -75,7 +75,7 @@ try {
 
     # Step 4: Verify Configuration
     Write-Host "📋 Step 4: Verifying Configuration..." -ForegroundColor Green
-    
+
     # Check firewall rule
     $firewallRule = Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
     if ($firewallRule -and $firewallRule.Enabled -eq "True") {
@@ -83,7 +83,7 @@ try {
     } else {
         Write-Warning "Firewall rule may not be active"
     }
-    
+
     # Check port proxy
     $portProxy = netsh interface portproxy show v4tov4 | Select-String -Pattern "$SSHPort"
     if ($portProxy) {
@@ -96,9 +96,9 @@ try {
 
     # Step 5: Get Network Information
     Write-Host "📋 Step 5: Network Information..." -ForegroundColor Green
-    
+
     $windowsIP = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -notmatch "Loopback" -and $_.InterfaceAlias -notmatch "WSL" } | Select-Object -First 1).IPAddress
-    
+
     Write-Host "🌐 Network Configuration:" -ForegroundColor Cyan
     Write-Host "   Windows IP: $windowsIP" -ForegroundColor White
     Write-Host "   WSL2 IP: $wslIP" -ForegroundColor White
@@ -106,9 +106,9 @@ try {
 
     # Step 6: Generate Client Configuration
     Write-Host "📋 Step 6: Client SSH Configuration..." -ForegroundColor Green
-    
+
     $computerName = $env:COMPUTERNAME.ToLower()
-    
+
     Write-Host ""
     Write-Host "📝 Add this to your client's ~/.ssh/config:" -ForegroundColor Yellow
     Write-Host ""
@@ -123,10 +123,10 @@ try {
 
     # Step 7: Test Connectivity
     Write-Host "📋 Step 7: Testing Connectivity..." -ForegroundColor Green
-    
+
     # Test if WSL SSH is responding
     $testResult = Test-NetConnection -ComputerName $wslIP -Port $SSHPort -WarningAction SilentlyContinue
-    
+
     if ($testResult.TcpTestSucceeded) {
         Write-Host "✅ WSL2 SSH server is reachable" -ForegroundColor Green
     } else {
@@ -135,7 +135,7 @@ try {
 
     # Step 8: Generate Maintenance Commands
     Write-Host "📋 Step 8: Maintenance Commands..." -ForegroundColor Green
-    
+
     Write-Host ""
     Write-Host "🔧 Useful maintenance commands:" -ForegroundColor Yellow
     Write-Host ""

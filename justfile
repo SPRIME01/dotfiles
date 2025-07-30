@@ -254,17 +254,17 @@ setup-ssh-agent-windows:
 setup-wsl2-remote:
     #!/usr/bin/env bash
     echo "🌐 Setting up WSL2 for remote access..."
-    
+
     # Check if we're in WSL2
     if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
         echo "❌ This command must be run from WSL2"
         echo "💡 This sets up SSH server in WSL2 for remote access"
         exit 1
     fi
-    
+
     # Run the WSL2 setup script
     ./scripts/setup-wsl2-remote-access.sh
-    
+
     echo ""
     echo "🎉 WSL2 remote access setup complete!"
     echo "💡 Don't forget to run the Windows configuration script as Administrator"
@@ -273,23 +273,23 @@ setup-wsl2-remote:
 setup-wsl2-remote-windows:
     #!/usr/bin/env bash
     echo "🪟 Configuring Windows for WSL2 remote access..."
-    
+
     # Check if we're in WSL2
     if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
         echo "❌ This command is designed for WSL2 environments"
         exit 1
     fi
-    
+
     # Check if PowerShell is available
     if ! command -v powershell.exe >/dev/null 2>&1; then
         echo "❌ PowerShell not found on Windows"
         exit 1
     fi
-    
+
     echo "▶️  Running Windows configuration script..."
     echo "⚠️  This requires Administrator privileges on Windows"
     powershell.exe -ExecutionPolicy Bypass -File "$PWD/scripts/setup-wsl2-remote-windows.ps1"
-    
+
     echo ""
     echo "🎉 Windows WSL2 remote configuration complete!"
 
