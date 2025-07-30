@@ -94,6 +94,18 @@ if [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v cmd.exe >/dev/null 2>&1; then
   fi
 fi
 
+# Ask about Windows SSH Agent setup (WSL2 only)
+setup_ssh_agent_windows=0
+if [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v cmd.exe >/dev/null 2>&1; then
+  if command -v powershell.exe >/dev/null 2>&1; then
+    if prompt_yes_no "Set up Windows SSH Agent for automatic startup?" "y"; then
+      setup_ssh_agent_windows=1
+    fi
+  else
+    echo "ℹ️  PowerShell not detected on Windows; skipping SSH Agent setup."
+  fi
+fi
+
 echo
 echo "🔧 Applying your selections..."
 
@@ -271,6 +283,20 @@ EOF
     else
       echo "⚠️  Could not determine Windows username"
     fi
+  fi
+fi
+
+# Set up Windows SSH Agent
+if [ "$setup_ssh_agent_windows" -eq 1 ]; then
+  echo "▶️  Setting up Windows SSH Agent..."
+  
+  # Use the just command for consistency
+  if command -v just >/dev/null 2>&1; then
+    just setup-ssh-agent-windows
+  else
+    # Fallback to direct PowerShell execution
+    echo "ℹ️  'just' command not found, using direct setup..."
+    powershell.exe -ExecutionPolicy Bypass -File "$PWD/scripts/setup-ssh-agent-windows.ps1" 2>/dev/null || echo "⚠️  Could not set up SSH Agent automatically"
   fi
 fi
 

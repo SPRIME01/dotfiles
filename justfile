@@ -224,3 +224,28 @@ setup-windows-integration:
 fix-pwsh7:
     @echo "🔧 Diagnosing and fixing PowerShell 7 profile issues..."
     @just setup-pwsh7
+
+# Set up Windows SSH Agent to start automatically
+setup-ssh-agent-windows:
+    #!/usr/bin/env bash
+    echo "🔐 Setting up Windows SSH Agent auto-start..."
+    
+    # Check if we're in WSL
+    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
+        echo "❌ This command is designed for WSL2 environments"
+        echo "💡 Run this from WSL2 to configure Windows SSH Agent"
+        exit 1
+    fi
+    
+    # Check if PowerShell is available
+    if ! command -v powershell.exe >/dev/null 2>&1; then
+        echo "❌ PowerShell not found on Windows"
+        exit 1
+    fi
+    
+    echo "▶️  Running Windows SSH Agent setup..."
+    powershell.exe -ExecutionPolicy Bypass -File "$PWD/scripts/setup-ssh-agent-windows.ps1"
+    
+    echo ""
+    echo "🎉 Windows SSH Agent setup complete!"
+    echo "💡 Your SSH keys should now load automatically when you start PowerShell"
