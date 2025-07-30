@@ -49,6 +49,12 @@ if [ -d "$HOME/.volta" ]; then
     export PATH="$VOLTA_HOME/bin:$PATH"
 fi
 
+# --- Snap Package Manager ---
+# Add snap binaries to PATH if snap directory exists
+if [ -d "/snap/bin" ]; then
+    export PATH="$PATH:/snap/bin"
+fi
+
 # --- Aliases ---
 alias projects='cd "$PROJECTS_ROOT"'
 # Clarified dotfiles alias for a standard repo in $HOME/dotfiles
@@ -61,7 +67,7 @@ fi
 
 # --- Shell-Specific Greetings ---
 # Only show greetings in interactive sessions and not during instant prompt
-if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]]; then
+if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]] && [[ -z "${POWERLEVEL9K_INSTANT_PROMPT:-}" ]]; then
   # Auto-navigate to home if starting in Windows user directory (common WSL issue)
   if [[ "$PWD" == "/mnt/c/Users/"* ]] && [[ "$PWD" != "$HOME" ]]; then
     cd "$HOME" 2>/dev/null
@@ -79,18 +85,18 @@ fi
 case "$(hostname | tr '[:upper:]' '[:lower:]')" in
   workstation-name)
     export SPECIAL_VAR="true"
-    if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]]; then
+    if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]] && [[ -z "${POWERLEVEL9K_INSTANT_PROMPT:-}" ]]; then
       echo "🔒 Loaded workstation-specific config for $(hostname)"
     fi
     ;;
   dev-laptop)
     export SPECIAL_VAR="false"
-    if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]]; then
+    if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]] && [[ -z "${POWERLEVEL9K_INSTANT_PROMPT:-}" ]]; then
       echo "🔒 Loaded dev laptop config for $(hostname)"
     fi
     ;;
   *)
-    if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]]; then
+    if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]] && [[ -z "${POWERLEVEL9K_INSTANT_PROMPT:-}" ]]; then
       echo "ℹ️  No specific config for $(hostname), loading defaults."
     fi
     ;;

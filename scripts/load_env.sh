@@ -13,15 +13,17 @@ load_env_file() {
     [[ -z "$env_file" || ! -f "$env_file" ]] && return 0
 
     while IFS='=' read -r key value || [ -n "$key" ]; do
-        # Trim whitespace from key and value
-        key="${key%%*( )}"
-        key="${key##*( )}"
-        value="${value%%*( )}"
-        value="${value##*( )}"
+        # Skip blank lines and comments early
+        [[ -z "$key" || "$key" =~ ^[[:space:]]*# ]] && continue
 
-        # Skip blank lines and comments
+        # Trim whitespace from key and value
+        key="${key##*( )}"
+        key="${key%%*( )}"
+        value="${value##*( )}"
+        value="${value%%*( )}"
+
+        # Skip if key is empty after trimming
         [[ -z "$key" ]] && continue
-        [[ "$key" == \#* ]] && continue
 
         # Remove surrounding quotes if present
         if [[ "$value" =~ ^\"(.*)\"$ ]]; then
