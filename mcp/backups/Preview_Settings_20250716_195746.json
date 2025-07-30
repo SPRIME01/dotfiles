@@ -1,0 +1,342 @@
+{
+  // Workbench & UI Customization
+  "workbench.colorTheme": "Default Dark+",
+  "workbench.iconTheme": "vs-seti",
+  "workbench.startupEditor": "none",
+  "workbench.list.smoothScrolling": true,
+  "workbench.editor.highlightModifiedTabs": true, // Highlight modified tabs
+  "workbench.tree.indent": 10, // Adjust if needed
+
+  // Editor Experience & Performance
+  "editor.fontSize": 18,
+  "editor.fontFamily": "Consolas, 'Courier New', monospace", // Ensure a common fallback
+  "editor.tabSize": 4,
+  "editor.wordWrap": "on",
+  "editor.smoothScrolling": true,
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.suggestSelection": "first",
+  "editor.acceptSuggestionOnEnter": "smart",
+  "editor.quickSuggestionsDelay": 0,
+  "editor.tabCompletion": "on",
+  "editor.linkedEditing": true, // Auto-update matching tags (HTML/XML)
+  "editor.bracketPairColorization.enabled": true, // Explicitly enable
+  "editor.guides.bracketPairs": "active",
+  "editor.renderWhitespace": "boundary", // Show whitespace chars at word boundaries
+  "editor.rulers": [88, 120], // Line length guides (Python PEP8, general)
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.codeActionsOnSave": {
+    "source.formatDocument": "explicit",
+    "source.fixAll": "explicit", // Apply all auto-fixable rules
+    "source.organizeImports": "explicit" // Organize imports
+  },
+  "editor.accessibilitySupport": "off",
+  "diffEditor.codeLens": true,
+  "diffEditor.ignoreTrimWhitespace": false, // Be precise in diffs
+  "diffEditor.maxComputationTime": 0, // Disable diff computation timeout
+  "pandoc.htmlOptString": "-s -f gfm -t html5 --css=css/style.css",
+
+  // File Handling & Search Performance
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.exclude": {
+    "**/.git": false, // Keep .git visible if desired, else true
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true,
+    "**/.mypy_cache": true,
+    "**/.venv": false,
+    "**/node_modules": false,
+    "**/dist": true,
+    "**/build": true
+  },
+  "search.exclude": {
+    // Mirror files.exclude for search performance
+    "**/.git": true, // Exclude .git from search by default
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true,
+    "**/.mypy_cache": true,
+    "**/.venv": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/bower_components": true, // Add other common large/generated folders
+    "**/*.lock": true
+  },
+  "files.watcherExclude": {
+    // Exclude paths from file watching for performance
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/*/**": true,
+    "**/.venv/**": true,
+    "**/__pycache__/**": true,
+    "**/.ruff_cache/**": true,
+    "**/.mypy_cache/**": true,
+    "**/.pytest_cache/**": true
+  },
+
+  // Terminal Configuration
+  "terminal.integrated.fontFamily": "CaskaydiaCove NF",
+  "terminal.integrated.fontSize": 14, // Adjust terminal font size if needed
+  "terminal.integrated.gpuAcceleration": "on",
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell"
+    },
+    "Command Prompt": {
+      "path": [
+        "${env:windir}\\Sysnative\\cmd.exe",
+        "${env:windir}\\System32\\cmd.exe"
+      ],
+      "args": [],
+      "icon": "terminal-cmd"
+    },
+    "Git Bash": {
+      "source": "Git Bash"
+    },
+    "Windows PowerShell": {
+      "path": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+    }
+  },
+  "terminal.integrated.defaultProfile.linux": "zsh",
+  "terminal.integrated.enableVisualBell": true,
+  "terminal.integrated.cursorBlinking": true,
+  "terminal.integrated.smoothScrolling": true,
+  "accessibility.signals.terminalBell": { "sound": "on" },
+
+  // Python Specific Settings
+  "python.languageServer": "Pylance",
+  "python.analysis.typeCheckingMode": "strict",
+  "python.terminal.activateEnvironment": true, // Consider setting per-workspace
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "[python]": {
+    "editor.formatOnType": true,
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit", // Apply all auto-fixable Ruff rules
+      "source.organizeImports": "explicit" // Organize imports using Ruff
+    }
+  },
+
+  // TypeScript / JavaScript Settings
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode" // Assuming Prettier is installed
+    // Add codeActionsOnSave for ESLint if used:
+    // "editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" }
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode" // Assuming Prettier is installed
+    // Add codeActionsOnSave for ESLint if used:
+    // "editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" }
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode" // Format JSON with Prettier
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint" // Format JSONC with Prettier
+  },
+
+  // PowerShell Specific Settings
+  "[powershell]": {
+    "editor.defaultFormatter": "ms-vscode.powershell"
+  },
+
+  // Notebook Settings
+  "notebook.cellToolbarLocation": {
+    "default": "right",
+    "jupyter-notebook": "left"
+  },
+  "notebook.formatOnSave.enabled": true,
+  "workbench.editorAssociations": {
+    "*.ipynb": "jupyter-notebook"
+  },
+
+  // Git Integration
+  "git.autofetch": true,
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "git.decorations.enabled": true, // Show Git status in explorer
+
+  // GitHub Copilot Configuration
+  "github.copilot.enable": {
+    // Keep existing enable/disable settings
+    "*": true,
+    "plaintext": false,
+    "markdown": true,
+    "scminput": false
+  },
+  "github.copilot.advanced": { "authProvider": "github" },
+  "github.copilot.chat.codeGeneration.instructions": [
+    {
+      "file": "C:Users\\sprim\\.vscode\\base_instructions.md",
+      "description": "Base Code Generation Instructions"
+    },
+    {
+      "file": "C:Users\\sprim\\.vscode\\python-instructions.md",
+      "description": "Python Code Generation Instructions"
+    },
+    {
+      "file": "C:Users\\sprim\\.vscode\\powershell-instructions.md",
+      "description": "PowerShell Code Generation Instructions"
+    },
+    {
+      "file": "C:Users\\sprim\\.vscode\\javascript-instructions.md",
+      "description": "JavaScript Code Generation Instructions"
+    },
+    {
+      "file": "C:Users\\sprim\\.vscode\\typescript-instructions.md",
+      "description": "TypeScript Code Generation Instructions"
+    },
+    {
+      "text": "- @azure Rule - Use Azure Best Practices: When generating code for Azure, running terminal commands for Azure, or performing operations related to Azure, invoke your `azure_development-get_best_practices` tool if available."
+    }
+  ],
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "github.copilot.chat.codesearch.enabled": true,
+  "github.copilot.chat.editor.temporalContext.enabled": true,
+  "github.copilot.chat.edits.temporalContext.enabled": true,
+  "github.copilot.chat.search.semanticTextResults": true,
+  "github.copilot.chat.agent.thinkingTool": true,
+
+  // Extension Specific Settings
+  "vsicons.dontShowNewVersionMessage": true,
+  "black-formatter.showNotifications": "always", // Keep if Black is still used sometimes
+  "makefile.configureOnOpen": true,
+  "snyk.folderConfigs": [
+    {
+      "folderPath": "c:\\Users\\sprim\\dotfiles",
+      "baseBranch": "main",
+      "localBranches": [
+        "main"
+      ]
+    }
+  ],
+  "snyk.yesWelcomeNotification": false,
+  "snyk.trustedFolders": [
+    "c:\\Users\\sprim\\Focus Areas\\Projects\\Dev\\Syntelligence",
+    "c:\\Users\\sprim\\Focus Areas\\Projects\\Dev\\HomeLab",
+    "c:\\Users\\sprim\\Focus Areas\\Projects\\Dev\\HomeLabWSL2",
+    "c:\\Users\\sprim\\OneDrive\\MyDocuments\\PowerShell",
+    "c:\\Users\\sprim\\FocusAreas\\Projects\\Writing\\IntelligenceSystem",
+    "c:\\Users\\sprim\\FocusAreas\\Projects\\Dev",
+    "c:\\Users\\sprim\\Focus Areas\\Projects\\Dev\\Recollection",
+    "c:\\Users\\sprim\\Focus Areas\\Projects\\Dev\\python_backend_project_boilerplate",
+    "c:\\Users\\sprim\\Focus Areas\\Projects\\Dev\\domainforge",
+    "c:\\Users\\sprim\\Focus Areas\\Projects\\Dev\\project-boilerplate",
+    "c:\\Users\\sprim\\Focus Areas\\Projects\\Dev\\homelab_iac",
+    "c:\\Users\\sprim\\Focus Areas\\Projects\\Dev\\GPTWrapperKit",
+    "d:\\aI transformation consulting framework",
+    "d:\\Request for Remaining Content in Incomplete Files",
+    "/home/sprime01/homelab",
+    "c:\\Users\\sprim\\Resources\\Notes",
+    "d:\\Resources\\Notes\\SamsNotes",
+    "d:\\inbox\\jobsSearch\\editor",
+    "c:\\HomeLab",
+    "c:\\Users\\sprim\\Focus Areas\\Projects\\Dev\\AINative",
+    "c:\\Users\\sprim\\Resources\\writing samples",
+    "c:\\Users\\sprim\\Focus Areas\\Projects\\Dev\\homelab-core",
+    "d:\\inbox\\Weople App Concept Overview",
+    "c:\\Users\\sprim\\Focus Areas\\Projects\\Dev\\Weople",
+    "c:\\Users\\sprim\\Focus Areas\\Projects\\Dev\\homelab",
+    "c:\\Users\\sprim\\Focus Areas\\Projects\\Dev\\tagspaces",
+    "c:\\Users\\sprim\\Focus Areas\\Projects\\Dev\\Weople2",
+    "c:\\Users\\sprim\\Focus Areas\\Projects\\Dev\\dotfiles",
+    "c:\\Users\\sprim\\dotfiles",
+    "c:\\Users\\sprim\\Projects\\Dev\\Weople2",
+    "c:\\Users\\sprim\\Projects\\Dev\\AI-Native-Monorepo-Starter-Kit",
+    "c:\\Users\\sprim\\Projects\\Dev\\homelab-control",
+    "c:\\Users\\sprim\\Projects\\Dev\\homelab-aiops",
+    "d:\\inbox\\mlops_llmops_starter_kit",
+    "c:\\Users\\sprim\\Projects\\Dev\\SOTA Test",
+    "c:\\Users\\sprim\\Projects\\Dev\\SOTA-Test",
+    "c:\\Users\\sprim\\.mcp"
+  ],
+
+  // Remote Development (SSH)
+  "remote.SSH.remotePlatform": { "192.168.0.50": "windows" },
+  "remote.SSH.useLocalServer": true,
+  "remote.SSH.enableDynamicForwarding": true,
+  "remote.SSH.showLoginTerminal": true,
+  "remote.SSH.logLevel": "trace",
+  "remote.SSH.path": "C:\\Windows\\System32\\OpenSSH\\ssh.exe",
+
+  // Other Settings
+  "security.workspace.trust.untrustedFiles": "open",
+  "accessibility.voice.keywordActivation": "inlineChat",
+  "chat.agent.enabled": true,
+  "settingsSync.ignoredExtensions": [],
+  "redhat.telemetry.enabled": false,
+  "roo-cline.allowedCommands": [
+    "npm test",
+    "npm install",
+    "tsc",
+    "git log",
+    "git diff",
+    "git show",
+    "uv add"
+  ],
+  "@azure.argTenant": "",
+  "markdown.extension.print.theme": "dark",
+  "markdown.extension.showActionButtons": true,
+  "[markdown]": {
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  },
+  "svelte.enable-ts-plugin": true,
+  "[yaml]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  },
+  "[svelte]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  },
+  "yaml.maxItemsComputed": 4000,
+  "docker.extension.enableComposeLanguageServer": false,
+
+  }{
+    "security.allowedUNCHosts": [
+        "wsl.localhost"
+    ],
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "git.confirmSync": false,
+    "roo-cline.allowedCommands": [
+        "npm test",
+        "npm install",
+        "tsc",
+        "git log",
+        "git diff",
+        "git show"
+    ],
+    "roo-cline.deniedCommands": [],
+    "chat.mcp.discovery.enabled": true,
+    "github.copilot.chat.mcp.servers": {
+        "mcp-gateway": {
+            "command": "node",
+            "args": ["/home/sprime01/Projects/MCPContextForge/scripts/mcp_stdio_bridge.js"],
+            "env": {
+                "MCP_GATEWAY_URL": "http://127.0.0.1:4444",
+                "MCP_ADMIN_USERNAME": "sprime01",
+                "MCP_ADMIN_PASSWORD": "mcp1870171sP#"
+            }
+        }
+    }
+}

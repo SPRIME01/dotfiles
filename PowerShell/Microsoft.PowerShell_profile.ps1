@@ -75,10 +75,19 @@ function aliasesmodulefunction { Import-Module $aliasesModulePath -Force; Update
 function updateenv { Import-Module $aliasesModulePath -Force; Update-EnvVars @args }
 
 # Theme management functions
-. (Join-Path $env:DOTFILES_ROOT 'PowerShell/Modules/Aliases/Set-OhMyPoshTheme.ps1')
-function settheme { Set-OhMyPoshTheme @args }
-function gettheme { Get-OhMyPoshTheme @args }
-function listthemes { Set-OhMyPoshTheme -List @args }
+$setThemeScript = Join-Path $env:DOTFILES_ROOT 'PowerShell/Modules/Aliases/Set-OhMyPoshTheme.ps1'
+if (Test-Path $setThemeScript) {
+    . $setThemeScript
+    function settheme { Set-OhMyPoshTheme @args }
+    function gettheme { Get-OhMyPoshTheme @args }
+    function listthemes { Set-OhMyPoshTheme -List @args }
+} else {
+    Write-Warning "Theme management script not found at: $setThemeScript"
+    # Create basic fallback functions
+    function settheme { Write-Host "Theme management not available - Set-OhMyPoshTheme.ps1 not found" -ForegroundColor Yellow }
+    function gettheme { Write-Host "Theme management not available - Set-OhMyPoshTheme.ps1 not found" -ForegroundColor Yellow }
+    function listthemes { Write-Host "Theme management not available - Set-OhMyPoshTheme.ps1 not found" -ForegroundColor Yellow }
+}
 
 # Single projects function that uses environment variable
 function projects {

@@ -1,0 +1,24 @@
+{
+    "security.allowedUNCHosts": [
+        "wsl.localhost"
+    ],
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "git.confirmSync": false,
+    "roo-cline.allowedCommands": [
+        "npm test",
+        "npm install",
+        "tsc",
+        "git log",
+        "git diff",
+        "git show"
+    ],
+    "roo-cline.deniedCommands": [],
+    "chat.mcp.discovery.enabled": true,
+    "snyk.advanced.cliPath": "C:\\Users\\sprim\\AppData\\Local\\snyk\\vscode-cli\\snyk-win.exe",
+    "snyk.folderConfigs": [
+        {
+            "folderPath": "c:\\Users\\sprim",
+            "baseBranch": ""
+        }
+    ]
+}

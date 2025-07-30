@@ -29,7 +29,7 @@ setup_ssh_agent_bridge() {
     local npiperelay="${NPIPERELAY:-$userprofile/scoop/apps/npiperelay/0.1.0/npiperelay.exe}"
     if [[ ! -x "$npiperelay" ]]; then
         # Only show error message in interactive mode and not during instant prompt
-        if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]]; then
+        if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]] && [[ -z "${POWERLEVEL9K_INSTANT_PROMPT:-}" ]]; then
             echo "[setup-ssh-agent-bridge] npiperelay not found at $npiperelay" >&2
         fi
         return 0
