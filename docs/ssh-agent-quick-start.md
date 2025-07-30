@@ -22,10 +22,10 @@ just setup
    ```
 
 ## What It Does
-✅ Enables Windows SSH Agent service for automatic startup  
-✅ Adds your SSH key to the agent  
-✅ Configures PowerShell to auto-load keys on startup  
-✅ Tests GitHub SSH connection  
+✅ Enables Windows SSH Agent service for automatic startup
+✅ Adds your SSH key to the agent
+✅ Configures PowerShell to auto-load keys on startup
+✅ Tests GitHub SSH connection
 
 ## Manual Commands (if needed)
 ```powershell

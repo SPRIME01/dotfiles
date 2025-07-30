@@ -289,7 +289,7 @@ fi
 # Set up Windows SSH Agent
 if [ "$setup_ssh_agent_windows" -eq 1 ]; then
   echo "▶️  Setting up Windows SSH Agent..."
-  
+
   # Use the just command for consistency
   if command -v just >/dev/null 2>&1; then
     just setup-ssh-agent-windows

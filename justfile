@@ -229,11 +229,54 @@ fix-pwsh7:
 setup-ssh-agent-windows:
     #!/usr/bin/env bash
     echo "🔐 Setting up Windows SSH Agent auto-start..."
-    
+
     # Check if we're in WSL
     if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
         echo "❌ This command is designed for WSL2 environments"
         echo "💡 Run this from WSL2 to configure Windows SSH Agent"
+        exit 1
+    fi
+
+    # Check if PowerShell is available
+    if ! command -v powershell.exe >/dev/null 2>&1; then
+        echo "❌ PowerShell not found on Windows"
+        exit 1
+    fi
+
+    echo "▶️  Running Windows SSH Agent setup..."
+    powershell.exe -ExecutionPolicy Bypass -File "$PWD/scripts/setup-ssh-agent-windows-simple.ps1"
+
+    echo ""
+    echo "🎉 Windows SSH Agent setup complete!"
+    echo "💡 Your SSH keys should now load automatically when you start PowerShell"
+
+# Set up WSL2 for remote access via SSH and VS Code
+setup-wsl2-remote:
+    #!/usr/bin/env bash
+    echo "🌐 Setting up WSL2 for remote access..."
+    
+    # Check if we're in WSL2
+    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
+        echo "❌ This command must be run from WSL2"
+        echo "💡 This sets up SSH server in WSL2 for remote access"
+        exit 1
+    fi
+    
+    # Run the WSL2 setup script
+    ./scripts/setup-wsl2-remote-access.sh
+    
+    echo ""
+    echo "🎉 WSL2 remote access setup complete!"
+    echo "💡 Don't forget to run the Windows configuration script as Administrator"
+
+# Configure Windows for WSL2 remote access (run the PowerShell script)
+setup-wsl2-remote-windows:
+    #!/usr/bin/env bash
+    echo "🪟 Configuring Windows for WSL2 remote access..."
+    
+    # Check if we're in WSL2
+    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
+        echo "❌ This command is designed for WSL2 environments"
         exit 1
     fi
     
@@ -243,9 +286,16 @@ setup-ssh-agent-windows:
         exit 1
     fi
     
-    echo "▶️  Running Windows SSH Agent setup..."
-    powershell.exe -ExecutionPolicy Bypass -File "$PWD/scripts/setup-ssh-agent-windows.ps1"
+    echo "▶️  Running Windows configuration script..."
+    echo "⚠️  This requires Administrator privileges on Windows"
+    powershell.exe -ExecutionPolicy Bypass -File "$PWD/scripts/setup-wsl2-remote-windows.ps1"
     
     echo ""
-    echo "🎉 Windows SSH Agent setup complete!"
-    echo "💡 Your SSH keys should now load automatically when you start PowerShell"
+    echo "🎉 Windows WSL2 remote configuration complete!"
+
+# Complete WSL2 remote setup (guided setup with all configuration)
+setup-wsl2-complete:
+    @bash scripts/setup-remote-development.sh
+
+# Guided remote development setup (alias for setup-wsl2-complete)
+setup-remote-dev: setup-wsl2-complete

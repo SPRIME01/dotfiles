@@ -19,7 +19,7 @@ if %errorlevel% neq 0 (
 echo PowerShell detected
 echo.
 
-REM Run the PowerShell setup script  
+REM Run the PowerShell setup script
 echo Running SSH Agent setup...
 powershell.exe -ExecutionPolicy Bypass -File "%~dp0setup-ssh-agent-windows.ps1"
 
