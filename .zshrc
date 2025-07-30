@@ -47,9 +47,9 @@ fi
 
 # Set up SSH agent bridge in WSL2
 # SSH agent setup (uncomment to enable)
-# if [ -f "$HOME/dotfiles/zsh/ssh-agent.zsh" ]; then
-#     . "$HOME/dotfiles/zsh/ssh-agent.zsh"
-# fi
+if [ -f "$HOME/dotfiles/zsh/ssh-agent.zsh" ]; then
+    . "$HOME/dotfiles/zsh/ssh-agent.zsh"
+fi
 
 # Configure the prompt and theme
 if [ -f "$HOME/dotfiles/zsh/prompt.zsh" ]; then

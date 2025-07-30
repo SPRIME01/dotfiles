@@ -132,6 +132,8 @@ dexec() {
 }
 
 # Git helper functions
+# Unalias gclean if it exists (from Oh My Zsh git plugin)
+unalias gclean 2>/dev/null
 gclean() {
     echo "Cleaning up Git repository..."
     git fetch --prune
