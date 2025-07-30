@@ -11,15 +11,15 @@ echo.
 REM Check if PowerShell is available
 powershell -Command "Write-Host 'PowerShell available'" >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ❌ PowerShell not found
+    echo ERROR: PowerShell not found
     pause
     exit /b 1
 )
 
-echo ✅ PowerShell detected
+echo PowerShell detected
 echo.
 
-REM Run the PowerShell setup script
+REM Run the PowerShell setup script  
 echo Running SSH Agent setup...
 powershell.exe -ExecutionPolicy Bypass -File "%~dp0setup-ssh-agent-windows.ps1"
 
