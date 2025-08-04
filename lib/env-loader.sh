@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 # lib/env-loader.sh - Consolidated environment loader with security
 
-# Source dependencies - use more reliable path resolution
+# Source dependencies with safe error handling
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 if [[ ! -f "$SCRIPT_DIR/error-handling.sh" ]]; then
     # Fallback: assume we're in dotfiles/lib/
     SCRIPT_DIR="$DOTFILES_ROOT/lib"
 fi
 
-source "$SCRIPT_DIR/error-handling.sh"
-source "$SCRIPT_DIR/platform-detection.sh"
-source "$SCRIPT_DIR/validation.sh"
+# Source dependencies safely
+. "$SCRIPT_DIR/error-handling.sh" 2>/dev/null || true
+. "$SCRIPT_DIR/platform-detection.sh" 2>/dev/null || true
+. "$SCRIPT_DIR/validation.sh" 2>/dev/null || true
 
 # Secure environment file loader
 load_env_file_secure() {
@@ -53,10 +54,25 @@ load_env_file_secure() {
         fi
 
         # Remove surrounding quotes if present
+        # Handle both bash and zsh regex matching
         if [[ "$value" =~ ^\"(.*)\"$ ]]; then
-            value="${BASH_REMATCH[1]}"
+            if [[ -n "${BASH_REMATCH:-}" ]]; then
+                # Bash
+                value="${BASH_REMATCH[1]}"
+            else
+                # Zsh - use different approach
+                value="${value#\"}"
+                value="${value%\"}"
+            fi
         elif [[ "$value" =~ ^\'(.*)\'$ ]]; then
-            value="${BASH_REMATCH[1]}"
+            if [[ -n "${BASH_REMATCH:-}" ]]; then
+                # Bash
+                value="${BASH_REMATCH[1]}"
+            else
+                # Zsh - use different approach
+                value="${value#\'}"
+                value="${value%\'}"
+            fi
         fi
 
         # Export the variable

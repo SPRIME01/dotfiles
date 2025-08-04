@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # lib/error-handling.sh - Comprehensive error handling for dotfiles
 
-# Global error handling setup
-set -euo pipefail
+# Disable strict error handling for shell configuration compatibility
+# Shell configs need to handle unset variables and conditional commands gracefully
+# set -eo pipefail  # Disabled for shell configuration compatibility
 
 # Error trap function
 error_trap() {
@@ -27,9 +28,14 @@ error_trap() {
     return $exit_code
 }
 
-# Set up error trapping
+# Set up error trapping (disabled for shell configuration compatibility)
 setup_error_handling() {
-    trap 'error_trap $LINENO $BASH_LINENO "$BASH_COMMAND" "${FUNCNAME[@]}"' ERR
+    # Disabled: Error trapping is too aggressive for shell startup scripts
+    # Uncomment only for debugging specific issues
+    # if [[ "${DOTFILES_STRICT_ERRORS:-}" == "true" ]]; then
+    #     trap 'error_trap $LINENO $BASH_LINENO "$BASH_COMMAND" "${FUNCNAME[@]}"' ERR
+    # fi
+    return 0
 }
 
 # Safe source function with error handling
