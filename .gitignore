@@ -83,6 +83,9 @@ parts/
 sdist/
 var/
 wheels/
+
+# Allow our dotfiles lib directory
+!lib/
 *.egg-info/
 .installed.cfg
 *.egg
