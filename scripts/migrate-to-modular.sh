@@ -23,23 +23,34 @@ echo
 # Check for old system usage
 echo -e "${YELLOW}Checking for old system usage...${NC}"
 
-# Search for references to old files
+# Search for references to old files (targeted search)
 OLD_REFERENCES=()
 
-# Check for source commands pointing to old files
-if grep -r "source.*scripts/load_env.sh" "$HOME" 2>/dev/null | grep -v "$DOTFILES_ROOT" | head -5; then
-    OLD_REFERENCES+=("Found references to scripts/load_env.sh in home directory")
-fi
+# Function to safely search with timeout
+safe_search() {
+    local pattern="$1"
+    local search_paths="$2"
+    local description="$3"
+    
+    echo "  Searching for $description..."
+    
+    # Use timeout and limit search to common shell config files
+    if timeout 10s grep -r "$pattern" $search_paths 2>/dev/null | grep -v "$DOTFILES_ROOT" | head -3 >/dev/null 2>&1; then
+        OLD_REFERENCES+=("Found $description")
+    fi
+}
 
-# Check for old function calls
-if grep -r "load_env_file" "$HOME" 2>/dev/null | grep -v "$DOTFILES_ROOT" | grep -v ".git" | head -5; then
-    OLD_REFERENCES+=("Found usage of deprecated load_env_file function")
-fi
+# Check common shell configuration files only (much faster)
+SHELL_CONFIG_PATHS="$HOME/.bashrc $HOME/.zshrc $HOME/.profile $HOME/.bash_profile"
+
+# Check for source commands pointing to old files
+safe_search "source.*scripts/load_env.sh" "$SHELL_CONFIG_PATHS" "references to scripts/load_env.sh"
+
+# Check for old function calls  
+safe_search "load_env_file" "$SHELL_CONFIG_PATHS" "usage of deprecated load_env_file function"
 
 # Check for old directory structure references
-if grep -r "\\.shell_common" "$HOME" 2>/dev/null | grep -v "$DOTFILES_ROOT" | head -5; then
-    OLD_REFERENCES+=("Found references to .shell_common.sh outside dotfiles")
-fi
+safe_search "\\.shell_common" "$SHELL_CONFIG_PATHS" "references to .shell_common.sh"
 
 if [[ ${#OLD_REFERENCES[@]} -gt 0 ]]; then
     echo -e "${YELLOW}Found potential migration items:${NC}"

@@ -50,11 +50,11 @@ function Test-Port {
         [int]$Port,
         [int]$Timeout = 5000
     )
-    
+
     $tcpClient = New-Object System.Net.Sockets.TcpClient
     $connect = $tcpClient.BeginConnect($ComputerName, $Port, $null, $null)
     $wait = $connect.AsyncWaitHandle.WaitOne($Timeout, $false)
-    
+
     if ($wait) {
         try {
             $tcpClient.EndConnect($connect)
@@ -65,7 +65,7 @@ function Test-Port {
     } else {
         $result = $false
     }
-    
+
     $tcpClient.Close()
     return $result
 }
@@ -103,7 +103,7 @@ foreach ($WinPath in $WindowsPaths) {
 if (Get-Command wsl -ErrorAction SilentlyContinue) {
     function Enter-WSL {
         param([string]$Distribution = $null)
-        
+
         if ($Distribution) {
             wsl -d $Distribution
         } else {
@@ -111,7 +111,7 @@ if (Get-Command wsl -ErrorAction SilentlyContinue) {
         }
     }
     Set-Alias -Name wsl-enter -Value Enter-WSL
-    
+
     function Get-WSLDistributions {
         wsl --list --verbose
     }
