@@ -3,6 +3,9 @@
 # Test script for VS Code settings integration
 # This script verifies that the VS Code settings integration works correctly
 
+# Source the test framework for summary functionality
+source "$(dirname "${BASH_SOURCE[0]}")/framework.sh"
+
 set -euo pipefail
 
 # Colors for output
@@ -191,22 +194,14 @@ main() {
     run_test "Bootstrap script includes VS Code setup" "test_bootstrap_integration"
     run_test "Base settings have no Windows-specific paths" "test_no_windows_paths"
 
-    # Print results
-    echo
-    log_info "Test Results:"
-    echo -e "  Total tests run: ${BLUE}$TESTS_RUN${NC}"
-    echo -e "  Tests passed: ${GREEN}$TESTS_PASSED${NC}"
-    echo -e "  Tests failed: ${RED}$TESTS_FAILED${NC}"
+    # Use the framework's summary function
+    # Map our counters to the framework's variables
+    TESTS_RUN=$TESTS_RUN
+    TESTS_PASSED=$TESTS_PASSED
+    TESTS_FAILED=$TESTS_FAILED
 
-    if [[ $TESTS_FAILED -eq 0 ]]; then
-        echo
-        log_success "All tests passed! VS Code settings integration is working correctly."
-        return 0
-    else
-        echo
-        log_error "Some tests failed. Please check the output above."
-        return 1
-    fi
+    test_summary
+    exit $?
 }
 
 # Run main function

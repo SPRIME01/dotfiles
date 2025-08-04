@@ -181,6 +181,11 @@ htmlcov/
 .pytest_cache/
 .cache
 
+# Test files that might contain sensitive data
+**/test/*-with-secrets.*
+**/test/*-real-*
+test/**/*-private.*
+
 # --- Miscellaneous ---
 # Local configuration overrides
 local.config.*

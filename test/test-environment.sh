@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# test/test-environment-loading.sh - Test environment loading functionality
+# test/test-environment.sh - Environment loading tests
 
 # Source the test framework
 source "$(dirname "${BASH_SOURCE[0]}")/framework.sh"
 
 test_environment_loading() {
-    echo "🧪 Testing Environment Loading System"
-    echo "======================================"
+    echo -e "${BLUE}🧪 Testing Environment Loading${NC}"
+    echo "=============================="
 
     # Test DOTFILES_ROOT is set correctly
-    test_assert "DOTFILES_ROOT is set to correct path" \
+    test_assert "DOTFILES_ROOT is set" \
                 'echo "$DOTFILES_ROOT"' \
                 '/home/sprime01/dotfiles'
 
@@ -34,7 +34,7 @@ test_environment_loading() {
                 'SET'
 }
 
-# Run tests
+# Run tests if script is executed directly
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # Ensure we're in the dotfiles directory and environment is loaded
     cd "$(dirname "$0")/.."
