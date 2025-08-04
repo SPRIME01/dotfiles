@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 
 # --- Determine Dotfiles Root ---
-# If DOTFILES_ROOT isn't already defined, derive it based on the location of this file.
-# This allows the repository to live anywhere on the filesystem (e.g., $HOME/dotfiles or ~/code/dotfiles).
-if [[ -z "$DOTFILES_ROOT" ]]; then
-  DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  export DOTFILES_ROOT
+# Always derive DOTFILES_ROOT from the location of this file to ensure accuracy.
+# This allows the repository to live anywhere on the filesystem and fixes issues
+# where DOTFILES_ROOT might be incorrectly set from previous sessions.
+DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export DOTFILES_ROOT
+
+# Debug output if requested
+if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
+  echo "DOTFILES_ROOT set to: $DOTFILES_ROOT" >&2
 fi
 
 # --- Global Pathing Configuration ---
@@ -40,6 +44,14 @@ if [ -f "$DOTFILES_ROOT/lib/env-loader.sh" ]; then
   load_dotfiles_environment "$DOTFILES_ROOT"
 fi
 
+# --- Modular Shell Configuration ---
+# Load the new modular configuration system that organizes shell settings
+# into common, platform-specific, and shell-specific modules for better maintainability
+if [ -f "$DOTFILES_ROOT/shell/loader.sh" ]; then
+  # shellcheck source=dotfiles-main/shell/loader.sh
+  . "$DOTFILES_ROOT/shell/loader.sh"
+fi
+
 # --- Node.js Version Management (Volta) ---
 if [ -d "$HOME/.volta" ]; then
     export VOLTA_HOME="$HOME/.volta"
@@ -52,7 +64,7 @@ if [ -d "/snap/bin" ]; then
     export PATH="$PATH:/snap/bin"
 fi
 
-# --- Aliases ---
+# --- Legacy Aliases (being migrated to modular system) ---
 alias projects='cd "$PROJECTS_ROOT"'
 # Clarified dotfiles alias for a standard repo in $HOME/dotfiles
 alias dotfiles='git --git-dir="$DOTFILES_ROOT/.git" --work-tree="$DOTFILES_ROOT"'

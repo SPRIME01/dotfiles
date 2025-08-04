@@ -17,15 +17,15 @@ test_assert() {
     local description="$1"
     local command="$2"
     local expected="$3"
-    
+
     ((TESTS_RUN++))
-    
+
     echo -n "Testing: $description... "
-    
+
     local actual
     actual=$(eval "$command" 2>/dev/null)
     local exit_code=$?
-    
+
     if [[ "$actual" == "$expected" && $exit_code -eq 0 ]]; then
         echo -e "${GREEN}✅ PASS${NC}"
         ((TESTS_PASSED++))
@@ -41,35 +41,35 @@ test_assert() {
 test_environment_loading() {
     echo "🧪 Testing Environment Loading System"
     echo "======================================"
-    
+
     # Test DOTFILES_ROOT is set correctly
     test_assert "DOTFILES_ROOT is set to correct path" \
                 'echo "$DOTFILES_ROOT"' \
                 '/home/sprime01/dotfiles'
-    
+
     # Test GEMINI_API_KEY is loaded
     test_assert "GEMINI_API_KEY is loaded" \
                 '[[ -n "$GEMINI_API_KEY" ]] && echo "SET" || echo "UNSET"' \
                 'SET'
-    
+
     # Test PROJECTS_ROOT has default value
     test_assert "PROJECTS_ROOT has default value" \
                 'echo "$PROJECTS_ROOT"' \
                 "$HOME/projects"
-    
+
     # Test platform detection
     test_assert "Platform detection works" \
                 '[[ -n "$DOTFILES_PLATFORM" ]] && echo "SET" || echo "UNSET"' \
                 'SET'
-    
+
     # Test shell detection
     test_assert "Shell detection works" \
                 '[[ -n "$DOTFILES_SHELL" ]] && echo "SET" || echo "UNSET"' \
                 'SET'
-    
+
     echo
     echo "📊 Test Results: $TESTS_PASSED/$TESTS_RUN tests passed"
-    
+
     if [[ $TESTS_PASSED -eq $TESTS_RUN ]]; then
         echo -e "${GREEN}🎉 All tests passed!${NC}"
         return 0
@@ -84,6 +84,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # Ensure we're in the dotfiles directory and environment is loaded
     cd "$(dirname "$0")/.."
     source .shell_common.sh
-    
+
     test_environment_loading
 fi
