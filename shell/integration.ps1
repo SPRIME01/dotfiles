@@ -16,28 +16,28 @@ $ModularLoaderPath = Join-Path $DotfilesRoot "shell/loader.ps1"
 
 if (Test-Path $ModularLoaderPath) {
     Write-Host "Loading modular PowerShell configuration..." -ForegroundColor Cyan
-    
+
     # Load the modular system
     & $ModularLoaderPath -Verbose:$false
-    
+
     Write-Host "Modular PowerShell configuration loaded successfully" -ForegroundColor Green
 } else {
     Write-Warning "Modular PowerShell system not found at: $ModularLoaderPath"
     Write-Host "Falling back to legacy PowerShell configuration" -ForegroundColor Yellow
-    
+
     # Fallback to some basic configurations if the modular system isn't available
     # This ensures the profile still works during transition
-    
+
     # Basic environment variables
     if (-not $env:EDITOR) { $env:EDITOR = "code" }
     if (-not $env:PROJECTS_ROOT) { $env:PROJECTS_ROOT = Join-Path $env:USERPROFILE "Projects" }
-    
+
     # Basic aliases
     function ll { Get-ChildItem @args }
     function .. { Set-Location .. }
     function projects { Set-Location $env:PROJECTS_ROOT }
     function dotfiles { Set-Location $env:DOTFILES_ROOT }
-    
+
     Write-Host "Basic PowerShell configuration loaded" -ForegroundColor Yellow
 }
 

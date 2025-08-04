@@ -16,13 +16,13 @@ $PSDefaultParameterValues = @{
 # PSReadLine configuration (if available)
 if (Get-Module -ListAvailable PSReadLine) {
     Import-Module PSReadLine -ErrorAction SilentlyContinue
-    
+
     if (Get-Command Set-PSReadLineOption -ErrorAction SilentlyContinue) {
         Set-PSReadLineOption -PredictionSource History
         Set-PSReadLineOption -PredictionViewStyle ListView
         Set-PSReadLineOption -EditMode Windows
         Set-PSReadLineOption -BellStyle None
-        
+
         # Key bindings
         Set-PSReadLineKeyHandler -Key Tab -Function Complete
         Set-PSReadLineKeyHandler -Key Ctrl+d -Function DeleteChar
@@ -52,7 +52,7 @@ function Get-CommandSource {
         [Parameter(Mandatory)]
         [string]$CommandName
     )
-    
+
     $command = Get-Command $CommandName -ErrorAction SilentlyContinue
     if ($command) {
         [PSCustomObject]@{
@@ -109,7 +109,7 @@ function Get-ModuleCommands {
         [Parameter(Mandatory)]
         [string]$ModuleName
     )
-    
+
     if (Get-Module $ModuleName -ErrorAction SilentlyContinue) {
         Get-Command -Module $ModuleName | Sort-Object Name
     } else {
@@ -122,7 +122,7 @@ function Find-Module {
         [Parameter(Mandatory)]
         [string]$Pattern
     )
-    
+
     Get-Module -ListAvailable | Where-Object Name -like "*$Pattern*"
 }
 
