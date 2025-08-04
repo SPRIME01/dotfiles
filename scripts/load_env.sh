@@ -1,49 +1,41 @@
 #!/usr/bin/env bash
-# Load environment variables from a dotenv-style file.
+# DEPRECATED: This file is deprecated and will be removed in a future version.
+# Please use lib/env-loader.sh instead.
 #
-# This script defines a function `load_env_file` that reads key=value pairs
-# from a file and exports them into the current shell.  It supports simple
-# unquoted values as well as values enclosed in single or double quotes.  It
-# ignores empty lines and lines beginning with '#'.  Complex shell syntax
-# (e.g. variable interpolation, command substitution) is not executed.
+# This compatibility bridge provides backward compatibility while transitioning
+# to the new modular environment loading system.
 
-load_env_file() {
-    local env_file="$1"
-    # If no file is specified or file does not exist, return silently
-    [[ -z "$env_file" || ! -f "$env_file" ]] && return 0
+# Print deprecation warning
+echo "Warning: scripts/load_env.sh is deprecated. Please use lib/env-loader.sh instead." >&2
+echo "This compatibility bridge will be removed in a future version." >&2
 
-    while IFS='=' read -r key value || [ -n "$key" ]; do
-        # Skip blank lines and comments early
-        [[ -z "$key" || "$key" =~ ^[[:space:]]*# ]] && continue
+# Determine the location of the new environment loader
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+NEW_ENV_LOADER="$PROJECT_ROOT/lib/env-loader.sh"
 
-        # Trim whitespace from key and value
-        key="${key##*( )}"
-        key="${key%%*( )}"
-        value="${value##*( )}"
-        value="${value%%*( )}"
+# Check if the new loader exists and delegate to it
+if [[ -f "$NEW_ENV_LOADER" ]]; then
+    # Source the new loader
+    source "$NEW_ENV_LOADER"
 
-        # Skip if key is empty after trimming
-        [[ -z "$key" ]] && continue
+    # Provide backward compatibility for the old function name
+    load_env_file() {
+        echo "Warning: load_env_file() is deprecated. Use the new lib/env-loader.sh system." >&2
+        local env_file="$1"
+        [[ -z "$env_file" || ! -f "$env_file" ]] && return 0
 
-        # Remove surrounding quotes if present
-        if [[ "$value" =~ ^\"(.*)\"$ ]]; then
-            value="${BASH_REMATCH[1]}"
-        elif [[ "$value" =~ ^\'(.*)\'$ ]]; then
-            value="${BASH_REMATCH[1]}"
-        fi
+        # Use the new secure loading function
+        load_env_file_secure "$env_file"
+    }
 
-        # Export the variable
-        export "$key"="$value"
-    done < "$env_file"
-}
-
-# If this script is executed directly, load .env from repository root
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-    # Derive project root relative to this script
-    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    project_root="$(cd "$script_dir/.." && pwd)"
-    env_file="$project_root/.env"
-    if [[ -f "$env_file" ]]; then
-        load_env_file "$env_file"
+    # If script is executed directly, use new system
+    if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+        load_dotfiles_environment "$PROJECT_ROOT"
     fi
+else
+    # Fallback to original implementation if new system not available
+    echo "Error: New environment loading system not found at $NEW_ENV_LOADER" >&2
+    echo "Please ensure lib/env-loader.sh exists and is properly configured." >&2
+    exit 1
 fi

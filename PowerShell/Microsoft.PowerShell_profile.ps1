@@ -10,6 +10,12 @@ if (-not $env:PROJECTS_ROOT) {
     $env:PROJECTS_ROOT = Join-Path $HOME 'Projects'
 }
 
+# Load the new modular PowerShell configuration system
+$modularIntegration = Join-Path $env:DOTFILES_ROOT 'shell/integration.ps1'
+if (Test-Path $modularIntegration) {
+    . $modularIntegration
+}
+
 # Load environment variables from .env files if the loader exists
 $envLoader = Join-Path $env:DOTFILES_ROOT 'PowerShell/Utils/Load-Env.ps1'
 if (Test-Path $envLoader) {
