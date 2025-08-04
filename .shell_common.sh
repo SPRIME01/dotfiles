@@ -31,16 +31,13 @@ if [[ -z "$WSL_DISTRO" ]] && [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
 fi
 
 # --- Environment Variable Loading ---
-# Source the environment loader and import variables from both the repository's .env file
-# and the MCP .env file.  This centralizes configuration and avoids repeating parsing logic
-# in individual shell startup files.
-if [ -f "$DOTFILES_ROOT/scripts/load_env.sh" ]; then
-  # shellcheck source=dotfiles-main/scripts/load_env.sh
-  . "$DOTFILES_ROOT/scripts/load_env.sh"
-  # Load variables from the project's .env if present
-  load_env_file "$DOTFILES_ROOT/.env"
-  # Load MCP-specific environment variables if present
-  load_env_file "$DOTFILES_ROOT/mcp/.env"
+# Use the new consolidated, secure environment loader that includes validation,
+# error handling, and security checks for all environment files.
+if [ -f "$DOTFILES_ROOT/lib/env-loader.sh" ]; then
+  # shellcheck source=dotfiles-main/lib/env-loader.sh
+  . "$DOTFILES_ROOT/lib/env-loader.sh"
+  # Load all environment variables with validation and security checks
+  load_dotfiles_environment "$DOTFILES_ROOT"
 fi
 
 # --- Node.js Version Management (Volta) ---
