@@ -60,14 +60,36 @@ if (-not (Test-Path \$env:PROJECTS_ROOT)) {
 \$mainProfile = Join-Path \$env:DOTFILES_ROOT "PowerShell\Microsoft.PowerShell_profile.ps1"
 if (Test-Path \$mainProfile) {
     try {
+        # Define common utility functions that might be missing
+        if (-not (Get-Command Add-ToPath -ErrorAction SilentlyContinue)) {
+            function Add-ToPath {
+                param([string]\$Path)
+                if (\$Path -and -not (\$env:PATH -split ';' | Where-Object { \$_ -eq \$Path })) {
+                    \$env:PATH = "\$Path;\$env:PATH"
+                }
+            }
+        }
+
         . \$mainProfile
         Write-Host "✅ Loaded dotfiles PowerShell profile" -ForegroundColor Green
     } catch {
         Write-Warning "❌ Error loading dotfiles PowerShell profile:"
         Write-Warning \$_.Exception.Message
+        Write-Host "💡 Falling back to basic configuration" -ForegroundColor Yellow
+
+        # Basic fallback configuration
+        if (-not \$env:PROJECTS_ROOT) { \$env:PROJECTS_ROOT = "C:\Users\\$WIN_USER\projects" }
+        function projects { Set-Location \$env:PROJECTS_ROOT }
+        Write-Host "📦 Created basic 'projects' function as fallback" -ForegroundColor Green
     }
 } else {
     Write-Warning "Dotfiles main profile not found at: \$mainProfile"
+    Write-Host "📦 Setting up basic configuration..." -ForegroundColor Yellow
+
+    # Basic configuration when main profile is not found
+    if (-not \$env:PROJECTS_ROOT) { \$env:PROJECTS_ROOT = "C:\Users\\$WIN_USER\projects" }
+    function projects { Set-Location \$env:PROJECTS_ROOT }
+    Write-Host "📦 Created basic 'projects' function" -ForegroundColor Green
 }
 EOF
 

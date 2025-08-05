@@ -159,6 +159,27 @@ function Add-ToPath {
     }
 }
 
+# Add directory to PATH if not already present
+function Add-ToPath {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Directory
+    )
+
+    if (-not (Test-Path $Directory)) {
+        Write-Warning "Directory does not exist: $Directory"
+        return
+    }
+
+    $currentPath = $env:PATH -split ';'
+    if ($Directory -notin $currentPath) {
+        $env:PATH = "$Directory;$env:PATH"
+        Write-Host "Added $Directory to PATH" -ForegroundColor Green
+    } else {
+        Write-Host "$Directory is already in PATH" -ForegroundColor Yellow
+    }
+}
+
 function Remove-FromPath {
     param(
         [Parameter(Mandatory)]
