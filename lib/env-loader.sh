@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 # lib/env-loader.sh - Consolidated environment loader with security
+#
+# Environment Variables:
+#   DOTFILES_DEBUG=true - Enable verbose debug output to stderr
 
 # Source dependencies with safe error handling
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
@@ -26,62 +29,35 @@ load_env_file_secure() {
     # Skip if file doesn't exist and it's optional
     [[ -z "$env_file" || ! -f "$env_file" ]] && return 0
 
-    if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
-        echo "Loading environment from: $env_file" >&2
-    fi
+    # Read and process the file safely
+    while IFS= read -r line; do
+        # Skip blank lines and comments
+        [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
 
-    # Read and process the file
-    local line_num=0
-    while IFS='=' read -r key value || [ -n "$key" ]; do
-        ((line_num++))
+        # Split line into key and value
+        IFS='=' read -r key value <<< "$line"
 
-        # Skip blank lines and comments early
-        [[ -z "$key" || "$key" =~ ^[[:space:]]*# ]] && continue
-
-        # Trim whitespace from key and value
-        key="${key##*( )}"
-        key="${key%%*( )}"
-        value="${value##*( )}"
-        value="${value%%*( )}"
-
-        # Skip if key is empty after trimming
+        # Skip invalid lines
         [[ -z "$key" ]] && continue
+
+        # Trim whitespace
+        key="$(echo "$key" | xargs)"
+        value="$(echo "$value" | xargs)"
 
         # Validate the key=value pair
         if ! validate_env_pair "$key" "$value"; then
-            echo "Warning: Invalid environment pair at line $line_num in $env_file" >&2
+            echo "Warning: Invalid environment pair: $key=$value" >&2
             continue
         fi
 
         # Remove surrounding quotes if present
-        # Handle both bash and zsh regex matching
-        if [[ "$value" =~ ^\"(.*)\"$ ]]; then
-            if [[ -n "${BASH_REMATCH:-}" ]]; then
-                # Bash
-                value="${BASH_REMATCH[1]}"
-            else
-                # Zsh - use different approach
-                value="${value#\"}"
-                value="${value%\"}"
-            fi
-        elif [[ "$value" =~ ^\'(.*)\'$ ]]; then
-            if [[ -n "${BASH_REMATCH:-}" ]]; then
-                # Bash
-                value="${BASH_REMATCH[1]}"
-            else
-                # Zsh - use different approach
-                value="${value#\'}"
-                value="${value%\'}"
-            fi
+        if [[ "$value" =~ ^\".*\"$ || "$value" =~ ^\'.*\'$ ]]; then
+            value="${value:1:-1}"
         fi
 
         # Export the variable
         export "$key"="$value"
-
-        if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
-            echo "Exported: $key" >&2
-        fi
-    done < "$env_file"
+    done < <(grep -v '^[[:space:]]*#' "$env_file" | grep -v '^$')
 
     return 0
 }
@@ -142,10 +118,6 @@ load_dotfiles_environment() {
     if ! validate_required_environment; then
         echo "Warning: Environment validation failed" >&2
         return 1
-    fi
-
-    if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
-        echo "Environment loading completed successfully" >&2
     fi
 
     return 0

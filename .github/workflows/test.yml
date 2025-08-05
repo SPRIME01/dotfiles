@@ -1,0 +1,24 @@
+name: Test Dotfiles Configuration
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shell: [bash, zsh]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install ${{ matrix.shell }} and dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ${{ matrix.shell }} shellcheck
+
+    - name: Run tests with ${{ matrix.shell }}
+      shell: ${{ matrix.shell }}
+      run: |
+        export DOTFILES_ROOT="$PWD"
+        bash test/run-all-tests.sh

@@ -40,6 +40,14 @@ if [ -f "$HOME/dotfiles/zsh/plugins.zsh" ]; then
     . "$HOME/dotfiles/zsh/plugins.zsh"
 fi
 
+# Configure the prompt and theme
+if [ -f "$HOME/dotfiles/zsh/prompt.zsh" ]; then
+    . "$HOME/dotfiles/zsh/prompt.zsh"
+fi
+
+# Initialize Oh My Zsh (this was missing!)
+source $ZSH/oh-my-zsh.sh
+
 # Load functions that are shared across shells
 if [ -f "$HOME/dotfiles/.shell_functions.sh" ]; then
     . "$HOME/dotfiles/.shell_functions.sh"
@@ -51,26 +59,15 @@ if [ -f "$HOME/dotfiles/zsh/ssh-agent.zsh" ]; then
     . "$HOME/dotfiles/zsh/ssh-agent.zsh"
 fi
 
-# Configure the prompt and theme
-if [ -f "$HOME/dotfiles/zsh/prompt.zsh" ]; then
-    . "$HOME/dotfiles/zsh/prompt.zsh"
-fi
-
-# Load Oh My Zsh if installed
-if [ -d "$ZSH" ]; then
-    source "$ZSH/oh-my-zsh.sh"
-else
-    echo "⚠️  Oh My Zsh not found. Run install_zsh.sh to install it."
-    # Fallback configuration: enable completion and history settings
-    autoload -U compinit && compinit
-    setopt CORRECT
-    setopt EXTENDED_GLOB
-    HISTFILE=~/.zsh_history
-    HISTSIZE=10000
-    SAVEHIST=10000
-    setopt SHARE_HISTORY
-    setopt HIST_IGNORE_DUPS
-fi
+# Always set basic shell settings since we're lazy loading Oh My Zsh
+autoload -U compinit && compinit
+setopt CORRECT
+setopt EXTENDED_GLOB
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+setopt SHARE_HISTORY
+setopt HIST_IGNORE_DUPS
 
 # Enhanced history search for the history-substring-search plugin
 if [[ -n "${plugins[(r)history-substring-search]}" ]]; then

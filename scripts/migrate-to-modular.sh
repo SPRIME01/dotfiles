@@ -31,9 +31,9 @@ safe_search() {
     local pattern="$1"
     local search_paths="$2"
     local description="$3"
-    
+
     echo "  Searching for $description..."
-    
+
     # Use timeout and limit search to common shell config files
     if timeout 10s grep -r "$pattern" $search_paths 2>/dev/null | grep -v "$DOTFILES_ROOT" | head -3 >/dev/null 2>&1; then
         OLD_REFERENCES+=("Found $description")
@@ -46,7 +46,7 @@ SHELL_CONFIG_PATHS="$HOME/.bashrc $HOME/.zshrc $HOME/.profile $HOME/.bash_profil
 # Check for source commands pointing to old files
 safe_search "source.*scripts/load_env.sh" "$SHELL_CONFIG_PATHS" "references to scripts/load_env.sh"
 
-# Check for old function calls  
+# Check for old function calls
 safe_search "load_env_file" "$SHELL_CONFIG_PATHS" "usage of deprecated load_env_file function"
 
 # Check for old directory structure references

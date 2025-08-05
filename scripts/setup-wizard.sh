@@ -2,6 +2,50 @@
 set -euo pipefail
 
 # Interactive setup wizard for the dotfiles project.  This script helps you
+# configure your preferred shells, install optional components like VS Code
+# settings, and enable advanced features such as MCP integration and SSH
+# agent bridging.  It detects your environment and calls the appropriate
+# installation scripts.  Use this wizard instead of running bootstrap scripts
+# manually if you'd like guidance and a summary of actions taken.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Load state management functions
+source "$DOTFILES_ROOT/lib/state-management.sh"
+
+echo "📦 Welcome to the dotfiles setup wizard!"
+echo "This wizard will help you configure your development environment."
+echo
+
+# Show current installation status if any setup has been done
+if has_any_setup_been_done; then
+    echo "📋 Current installation status:"
+    show_installation_status
+    echo
+
+    # Check for failed components and offer to retry
+    failed_components=$(get_failed_components)
+    if [[ -n "$failed_components" ]]; then
+        echo "⚠️  Some components failed in previous runs:"
+        echo "$failed_components"
+        echo
+        if prompt_yes_no "Would you like to retry failed components only?" "n"; then
+            # Set flags to only retry failed components
+            RETRY_FAILED_ONLY=true
+        else
+            RETRY_FAILED_ONLY=false
+        fi
+    else
+        RETRY_FAILED_ONLY=false
+    fi
+else
+    echo "🚀 This appears to be your first time running the setup wizard."
+    RETRY_FAILED_ONLY=false
+fiash
+set -euo pipefail
+
+# Interactive setup wizard for the dotfiles project.  This script helps you
 # configure your preferred shells, install optional components like VS Code
 # settings, and enable advanced features such as MCP integration and SSH
 # agent bridging.  It detects your environment and calls the appropriate
@@ -39,23 +83,40 @@ if command -v pwsh >/dev/null 2>&1; then
   available_pwsh=1
 fi
 
-# Ask which shells to configure
+# Ask which shells to configure (using smart prompts)
 configure_bash=0
 configure_zsh=0
 configure_pwsh=0
 
-if prompt_yes_no "Do you want to configure Bash?" "y"; then
-  configure_bash=1
-fi
-if prompt_yes_no "Do you want to configure Zsh?" "y"; then
-  configure_zsh=1
-fi
-if [ "$available_pwsh" -eq 1 ]; then
-  if prompt_yes_no "Do you want to configure PowerShell?" "y"; then
-    configure_pwsh=1
-  fi
+# Only prompt for components that aren't installed or if retrying failed ones
+if [[ "$RETRY_FAILED_ONLY" == "true" ]]; then
+    echo "🔄 Retrying failed components only..."
+    # Check each component and set flags based on failure status
+    if grep -q "^bash_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+        configure_bash=1
+    fi
+    if grep -q "^zsh_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+        configure_zsh=1
+    fi
+    if grep -q "^pwsh_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+        configure_pwsh=1
+    fi
 else
-  echo "⚠️  PowerShell (pwsh) is not installed; skipping PowerShell configuration."
+    # Normal prompting with smart state checking
+    if smart_prompt_yes_no "bash_config" "Do you want to configure Bash?" "y"; then
+      configure_bash=1
+    fi
+    if smart_prompt_yes_no "zsh_config" "Do you want to configure Zsh?" "y"; then
+      configure_zsh=1
+    fi
+    if [ "$available_pwsh" -eq 1 ]; then
+      if smart_prompt_yes_no "pwsh_config" "Do you want to configure PowerShell?" "y"; then
+        configure_pwsh=1
+      fi
+    else
+      echo "⚠️  PowerShell (pwsh) is not installed; skipping PowerShell configuration."
+      mark_component_skipped "pwsh_config" "PowerShell not available"
+    fi
 fi
 
 # Ask about VS Code settings

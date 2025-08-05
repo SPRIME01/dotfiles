@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+echo "Running pre-commit checks..."
+
+# Shell script linting
+if command -v shellcheck >/dev/null 2>&1; then
+    echo "Running shellcheck..."
+    find . -name "*.sh" -type f -exec shellcheck {} +
+fi
+
+# Check for secrets
+if grep -r "api_key\|password\|secret" --include="*.sh" --include="*.zsh" .; then
+    echo "❌ Potential secrets found in code"
+    exit 1
+fi
+
+# Validate .env.example exists
+if [[ ! -f ".env.example" ]]; then
+    echo "❌ .env.example file missing"
+    exit 1
+fi
+
+echo "✅ Pre-commit checks passed"
