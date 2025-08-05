@@ -293,7 +293,7 @@ The system maintains a state file at `~/dotfiles/.dotfiles-state` that tracks:
 
 #### Smart Setup Behavior
 
-**First Run**: 
+**First Run**:
 - Prompts for all available components
 - Creates state file to track selections and results
 
@@ -337,10 +337,10 @@ setup_completed=2025-08-05T10:30:00Z
 
 #### Benefits
 
-✅ **Safe to re-run**: Never duplicates work or breaks existing config  
-✅ **Failure recovery**: Easily retry only what failed  
-✅ **Selective updates**: Install new components without affecting existing ones  
-✅ **Transparency**: Always shows what's installed and what's not  
+✅ **Safe to re-run**: Never duplicates work or breaks existing config
+✅ **Failure recovery**: Easily retry only what failed
+✅ **Selective updates**: Install new components without affecting existing ones
+✅ **Transparency**: Always shows what's installed and what's not
 ✅ **Time saving**: Skips already-completed work automatically
 
 ## Troubleshooting

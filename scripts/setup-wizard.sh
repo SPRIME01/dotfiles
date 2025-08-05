@@ -18,6 +18,24 @@ echo "📦 Welcome to the dotfiles setup wizard!"
 echo "This wizard will help you configure your development environment."
 echo
 
+# Helper to prompt with default value
+prompt_yes_no() {
+  local prompt="$1"
+  local default="$2"
+  local reply
+  if [ "$default" = "y" ]; then
+    prompt="$prompt [Y/n] "
+  else
+    prompt="$prompt [y/N] "
+  fi
+  read -r -p "$prompt" reply
+  reply="${reply:-$default}"
+  if [[ "$reply" =~ ^[Yy]$ ]]; then
+    return 0
+  fi
+  return 1
+}
+
 # Show current installation status if any setup has been done
 if has_any_setup_been_done; then
     echo "📋 Current installation status:"
@@ -42,40 +60,7 @@ if has_any_setup_been_done; then
 else
     echo "🚀 This appears to be your first time running the setup wizard."
     RETRY_FAILED_ONLY=false
-fiash
-set -euo pipefail
-
-# Interactive setup wizard for the dotfiles project.  This script helps you
-# configure your preferred shells, install optional components like VS Code
-# settings, and enable advanced features such as MCP integration and SSH
-# agent bridging.  It detects your environment and calls the appropriate
-# installation scripts.  Use this wizard instead of running bootstrap scripts
-# manually if you’d like guidance and a summary of actions taken.
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOTFILES_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-
-echo "📦 Welcome to the dotfiles setup wizard!"
-echo "This wizard will help you configure your development environment."
-echo
-
-# Helper to prompt with default value
-prompt_yes_no() {
-  local prompt="$1"
-  local default="$2"
-  local reply
-  if [ "$default" = "y" ]; then
-    prompt="$prompt [Y/n] "
-  else
-    prompt="$prompt [y/N] "
-  fi
-  read -r -p "$prompt" reply
-  reply="${reply:-$default}"
-  if [[ "$reply" =~ ^[Yy]$ ]]; then
-    return 0
-  fi
-  return 1
-}
+fi
 
 # Determine available shells
 available_pwsh=0
@@ -121,7 +106,7 @@ fi
 
 # Ask about VS Code settings
 install_vscode=0
-if prompt_yes_no "Install VS Code settings from dotfiles?" "y"; then
+if prompt_yes_no "Install VS Code settings from dotfiles?" "y"; then
   install_vscode=1
 fi
 
@@ -193,10 +178,10 @@ fi
 # Install VS Code settings if requested
 if [ "$install_vscode" -eq 1 ]; then
   if [ -f "$DOTFILES_ROOT/install/vscode.sh" ]; then
-    echo "▶️  Installing VS Code settings..."
+    echo "▶️  Installing VS Code settings..."
     bash "$DOTFILES_ROOT/install/vscode.sh"
   else
-    echo "⚠️  VS Code installer script not found; skipping."
+    echo "⚠️  VS Code installer script not found; skipping."
   fi
 fi
 
@@ -307,27 +292,27 @@ try {
         Write-Host "✅ Set PowerShell execution policy to RemoteSigned" -ForegroundColor Green
     }
 } catch {
-    Write-Warning "Could not set execution policy: \\$(\\$_.Exception.Message)"
+    Write-Warning "Could not set execution policy: \$(\$_.Exception.Message)"
 }
 
-\\$env:DOTFILES_ROOT = "\\\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\dotfiles"
-\\$env:PROJECTS_ROOT = "C:\\Users\\$WIN_USER\\projects"
+\$env:DOTFILES_ROOT = "\\\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\dotfiles"
+\$env:PROJECTS_ROOT = "C:\\Users\\$WIN_USER\\projects"
 
-if (-not (Test-Path \\$env:PROJECTS_ROOT)) {
-    New-Item -ItemType Directory -Path \\$env:PROJECTS_ROOT -Force | Out-Null
+if (-not (Test-Path \$env:PROJECTS_ROOT)) {
+    New-Item -ItemType Directory -Path \$env:PROJECTS_ROOT -Force | Out-Null
 }
 
-\\$mainProfile = Join-Path \\$env:DOTFILES_ROOT 'PowerShell\\Microsoft.PowerShell_profile.ps1'
-if (Test-Path \\$mainProfile) {
+\$mainProfile = Join-Path \$env:DOTFILES_ROOT 'PowerShell\\Microsoft.PowerShell_profile.ps1'
+if (Test-Path \$mainProfile) {
     try {
-        . \\$mainProfile
+        . \$mainProfile
         Write-Host "✅ Loaded dotfiles PowerShell profile" -ForegroundColor Green
     } catch {
-        function global:projects { Set-Location -Path \\$env:PROJECTS_ROOT }
+        function global:projects { Set-Location -Path \$env:PROJECTS_ROOT }
         Write-Host "📦 Created basic functions as fallback" -ForegroundColor Blue
     }
 } else {
-    function global:projects { Set-Location -Path \\$env:PROJECTS_ROOT }
+    function global:projects { Set-Location -Path \$env:PROJECTS_ROOT }
     Write-Host "📦 Created basic functions as fallback" -ForegroundColor Blue
 }
 EOF
