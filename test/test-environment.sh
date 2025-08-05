@@ -5,7 +5,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/framework.sh"
 
 test_environment_loading() {
-    echo -e "${BLUE}🧪 Testing Environment Loading${NC}"
+    echo "🧪 Testing Environment Loading"
     echo "=============================="
 
     # Test DOTFILES_ROOT is set correctly

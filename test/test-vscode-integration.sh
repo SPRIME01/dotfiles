@@ -1,60 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# test/test-vscode-integration.sh - Test VS Code settings integration
 
-# Test script for VS Code settings integration
-# This script verifies that the VS Code settings integration works correctly
-
-# Source the test framework for summary functionality
+# Source the test framework
 source "$(dirname "${BASH_SOURCE[0]}")/framework.sh"
-
-set -euo pipefail
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-log_info() {
-    echo -e "${BLUE}[TEST]${NC} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}[PASS]${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[FAIL]${NC} $1"
-}
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-
-# Test counter
-TESTS_RUN=0
-TESTS_PASSED=0
-TESTS_FAILED=0
-
-run_test() {
-    local test_name="$1"
-    local test_command="$2"
-
-    TESTS_RUN=$((TESTS_RUN + 1))
-    log_info "Running: $test_name"
-
-    if eval "$test_command"; then
-        log_success "$test_name"
-        TESTS_PASSED=$((TESTS_PASSED + 1))
-    else
-        log_error "$test_name"
-        TESTS_FAILED=$((TESTS_FAILED + 1))
-    fi
-}
 
 # Test 1: Check if base settings file exists
 test_base_settings() {
@@ -80,7 +32,7 @@ test_json_syntax_base() {
     if command -v jq &> /dev/null; then
         jq empty "$DOTFILES_DIR/.config/Code/User/settings.json" 2>/dev/null
     else
-        log_warning "jq not available, skipping JSON validation"
+        echo "⚠️ jq not available, skipping JSON validation"
         return 0
     fi
 }
@@ -91,13 +43,13 @@ test_json_syntax_platform() {
         local result=0
         for platform in linux windows darwin wsl; do
             if ! jq empty "$DOTFILES_DIR/.config/Code/User/settings.$platform.json" 2>/dev/null; then
-                log_error "Invalid JSON in settings.$platform.json"
+                echo "❌ Invalid JSON in settings.$platform.json"
                 result=1
             fi
         done
         return $result
     else
-        log_warning "jq not available, skipping JSON validation"
+        echo "⚠️ jq not available, skipping JSON validation"
         return 0
     fi
 }
@@ -157,7 +109,7 @@ test_json_merging() {
         rm -rf "$temp_dir"
         return $result
     else
-        log_warning "jq not available, skipping JSON merge test"
+        echo "⚠️ jq not available, skipping JSON merge test"
         return 0
     fi
 }
@@ -179,27 +131,22 @@ test_no_windows_paths() {
 
 # Main test runner
 main() {
-    log_info "Starting VS Code settings integration tests..."
+    echo "🧪 Starting VS Code settings integration tests..."
     echo
 
-    # Run all tests
-    run_test "Base settings file exists" "test_base_settings"
-    run_test "Platform-specific settings exist" "test_platform_settings"
-    run_test "Installation script is executable" "test_install_script"
-    run_test "Base settings JSON syntax is valid" "test_json_syntax_base"
-    run_test "Platform settings JSON syntax is valid" "test_json_syntax_platform"
-    run_test "Context detection works" "test_context_detection"
-    run_test "Dry-run installation works" "test_dry_run"
-    run_test "JSON merging functionality works" "test_json_merging"
-    run_test "Bootstrap script includes VS Code setup" "test_bootstrap_integration"
-    run_test "Base settings have no Windows-specific paths" "test_no_windows_paths"
+    # Run all tests using framework assertions
+    test_assert "Base settings file exists" "test_base_settings" "0"
+    test_assert "Platform-specific settings exist" "test_platform_settings" "0"
+    test_assert "Installation script is executable" "test_install_script" "0"
+    test_assert "Base settings JSON syntax is valid" "test_json_syntax_base" "0"
+    test_assert "Platform settings JSON syntax is valid" "test_json_syntax_platform" "0"
+    test_assert "Context detection works" "test_context_detection" "0"
+    test_assert "Dry-run installation works" "test_dry_run" "0"
+    test_assert "JSON merging functionality works" "test_json_merging" "0"
+    test_assert "Bootstrap script includes VS Code setup" "test_bootstrap_integration" "0"
+    test_assert "Base settings have no Windows-specific paths" "test_no_windows_paths" "0"
 
-    # Use the framework's summary function
-    # Map our counters to the framework's variables
-    TESTS_RUN=$TESTS_RUN
-    TESTS_PASSED=$TESTS_PASSED
-    TESTS_FAILED=$TESTS_FAILED
-
+    # Show test summary
     test_summary
     exit $?
 }

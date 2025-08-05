@@ -315,7 +315,7 @@ dotfiles/
 - ✅ Created `shell/loader.ps1` for PowerShell modular configuration
 - ✅ Implemented PowerShell equivalents of modular system:
   - `shell/common/environment.ps1`: PowerShell environment variables
-  - `shell/common/aliases.ps1`: PowerShell aliases and functions  
+  - `shell/common/aliases.ps1`: PowerShell aliases and functions
   - `shell/common/functions.ps1`: PowerShell utility functions
   - `shell/platform-specific/windows.ps1`: Windows-specific PowerShell config
   - `shell/powershell/config.ps1`: PowerShell-specific settings

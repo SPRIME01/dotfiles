@@ -44,7 +44,7 @@ bash_reload() {
 
 # Bash prompt customization (basic)
 # Note: More advanced prompts should be configured in the main bash configuration
-if [[ -z "$PS1" ]]; then
+if [[ -z "${PS1:-}" ]]; then
     # We're in a non-interactive shell, don't set prompt
     :
 elif [[ "$TERM" == "dumb" ]]; then

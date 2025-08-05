@@ -6,9 +6,4 @@
 
 export ZSH_THEME="powerlevel10k/powerlevel10k"
 
-# Load Powerlevel10k configuration if present
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# Powerlevel10k configuration is loaded at the end of .zshrc

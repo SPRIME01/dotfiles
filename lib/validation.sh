@@ -6,14 +6,28 @@ validate_env_file() {
     local env_file="$1"
     local required="${2:-false}"
 
+    if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
+        echo "Starting validate_env_file with env_file='$env_file', required='$required'" >&2
+    fi
+
     # Check if file exists
     if [[ ! -f "$env_file" ]]; then
+        if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
+            echo "File does not exist: $env_file" >&2
+        fi
         if [[ "$required" == "true" ]]; then
             echo "Error: Required environment file not found: $env_file" >&2
             return 1
         else
+            if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
+                echo "Optional file, skipping validation" >&2
+            fi
             return 0  # Optional file, skip validation
         fi
+    fi
+
+    if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
+        echo "File exists: $env_file" >&2
     fi
 
     # Check file permissions (should not be world-readable for security)
@@ -24,6 +38,10 @@ validate_env_file() {
         if [[ -z "$perms" ]]; then
             # macOS/BSD stat
             perms=$(stat -f %A "$env_file" 2>/dev/null)
+        fi
+
+        if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
+            echo "File permissions: $perms" >&2
         fi
 
         if [[ -n "$perms" && "$perms" != "600" && "$perms" != "400" ]]; then
