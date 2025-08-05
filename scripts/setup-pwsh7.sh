@@ -38,8 +38,8 @@ if [[ ! -d "$PWSH7_PROFILE_DIR" ]]; then
 fi
 
 # Use the correct WSL2 path for accessing the dotfiles from Windows
-DOTFILES_WIN_PATH="\\wsl.localhost\\${WSL_DISTRO_NAME}\\home\\${USER}\\dotfiles"
-PROJECTS_WIN_PATH="C:\\Users\\${WIN_USER}\\projects"
+DOTFILES_WIN_PATH="\\wsl.localhost\${WSL_DISTRO_NAME}\home\${USER}\dotfiles"
+PROJECTS_WIN_PATH="C:\Users\${WIN_USER}\projects"
 
 # Create the profile content using a heredoc for clarity.
 cat > "$PWSH7_PROFILE" <<EOF
@@ -57,7 +57,7 @@ if (-not (Test-Path \$env:PROJECTS_ROOT)) {
 }
 
 # Source the main dotfiles PowerShell profile
-\$mainProfile = Join-Path \$env:DOTFILES_ROOT "PowerShell\\Microsoft.PowerShell_profile.ps1"
+\$mainProfile = Join-Path \$env:DOTFILES_ROOT "PowerShell\Microsoft.PowerShell_profile.ps1"
 if (Test-Path \$mainProfile) {
     try {
         . \$mainProfile
@@ -79,13 +79,13 @@ echo "✅ Created PowerShell 7 profile."
 pwsh.exe -NoProfile -Command "
     Write-Host 'Setting PowerShell execution policy...'
     try {
-        Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force -ErrorAction Stop
-        Write-Host '✅ PowerShell execution policy set to RemoteSigned' -ForegroundColor Green
+        Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser -Force -ErrorAction Stop
+        Write-Host '✅ PowerShell execution policy set to Bypass' -ForegroundColor Green
     } catch {
         Write-Warning '⚠️  Could not set execution policy automatically.'
-        Write-Warning \"`\$_.Exception.Message\"
+        Write-Warning \$_.Exception.Message
         Write-Host '💡 To fix, run this in an Administrator PowerShell terminal:'
-        Write-Host '   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force'
+        Write-Host '   Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser -Force'
     }
 "
 

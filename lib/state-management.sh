@@ -120,6 +120,12 @@ get_failed_components() {
     grep "=failed" "$DOTFILES_STATE_FILE" 2>/dev/null | cut -d'=' -f1 || true
 }
 
+# Get list of failed components
+get_failed_components() {
+    init_state_file
+    grep "=failed" "$DOTFILES_STATE_FILE" 2>/dev/null | cut -d'=' -f1 || true
+}
+
 # Check if any setup has been done
 has_any_setup_been_done() {
     init_state_file
