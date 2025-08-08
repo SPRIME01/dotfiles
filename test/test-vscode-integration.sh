@@ -8,7 +8,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/framework.sh"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Test 1: Check if base settings file exists (in repo)
+# test_base_settings verifies that the base VS Code settings file exists in the dotfiles repository.
 test_base_settings() {
     [[ -f "$DOTFILES_DIR/.config/Code/User/settings.json" ]]
 }
@@ -129,7 +129,7 @@ test_no_windows_paths() {
     fi
 }
 
-# Main test runner
+# main runs the full suite of VS Code settings integration tests and outputs a summary before exiting with the appropriate status code.
 main() {
     echo "🧪 Starting VS Code settings integration tests..."
     echo
