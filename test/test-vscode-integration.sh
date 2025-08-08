@@ -8,7 +8,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/framework.sh"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Test 1: Check if base settings file exists
+# Test 1: Check if base settings file exists (in repo)
 test_base_settings() {
     [[ -f "$DOTFILES_DIR/.config/Code/User/settings.json" ]]
 }
@@ -134,19 +134,47 @@ main() {
     echo "🧪 Starting VS Code settings integration tests..."
     echo
 
-    # Run all tests using framework assertions
-    test_assert "Base settings file exists" "test_base_settings" "0"
-    test_assert "Platform-specific settings exist" "test_platform_settings" "0"
-    test_assert "Installation script is executable" "test_install_script" "0"
-    test_assert "Base settings JSON syntax is valid" "test_json_syntax_base" "0"
-    test_assert "Platform settings JSON syntax is valid" "test_json_syntax_platform" "0"
-    test_assert "Context detection works" "test_context_detection" "0"
-    test_assert "Dry-run installation works" "test_dry_run" "0"
-    test_assert "JSON merging functionality works" "test_json_merging" "0"
-    test_assert "Bootstrap script includes VS Code setup" "test_bootstrap_integration" "0"
-    test_assert "Base settings have no Windows-specific paths" "test_no_windows_paths" "0"
+    # Run full suite using numeric exit codes (echo $?) for framework compatibility
+    test_assert "Base settings file exists" \
+                '[[ -f "'$DOTFILES_DIR'/.config/Code/User/settings.json" ]]; echo $?' \
+                "0"
 
-    # Show test summary
+    test_assert "Platform-specific settings exist" \
+                '[[ -f "'$DOTFILES_DIR'/.config/Code/User/settings.linux.json" && -f "'$DOTFILES_DIR'/.config/Code/User/settings.windows.json" && -f "'$DOTFILES_DIR'/.config/Code/User/settings.darwin.json" && -f "'$DOTFILES_DIR'/.config/Code/User/settings.wsl.json" ]]; echo $?' \
+                "0"
+
+    test_assert "Installation script is executable" \
+                '[[ -x "'$DOTFILES_DIR'/install/vscode.sh" ]]; echo $?' \
+                "0"
+
+    test_assert "Base settings JSON syntax is valid" \
+                'if command -v jq >/dev/null 2>&1; then jq empty "'$DOTFILES_DIR'/.config/Code/User/settings.json" >/dev/null 2>&1; echo $?; else echo 0; fi' \
+                "0"
+
+    test_assert "Platform settings JSON syntax is valid" \
+                'if command -v jq >/dev/null 2>&1; then ok=0; for p in linux windows darwin wsl; do jq empty "'$DOTFILES_DIR'/.config/Code/User/settings.$p.json" >/dev/null 2>&1 || ok=1; done; if [[ $ok -eq 0 ]]; then echo 0; else echo 1; fi; else echo 0; fi' \
+                "0"
+
+    test_assert "Context detection works" \
+                'source "'$DOTFILES_DIR'/install/vscode.sh" >/dev/null 2>&1; c=$(detect_context); [[ -n "$c" && "$c" != "unknown" ]]; echo $?' \
+                "0"
+
+    test_assert "Dry-run installation works" \
+                'test_dry_run >/dev/null 2>&1; echo $?' \
+                "0"
+
+    test_assert "JSON merging functionality works" \
+                'test_json_merging >/dev/null 2>&1; echo $?' \
+                "0"
+
+    test_assert "Bootstrap script includes VS Code setup" \
+                'grep -q "vscode.sh" "'$DOTFILES_DIR'/bootstrap.sh" >/dev/null 2>&1; echo $?' \
+                "0"
+
+    test_assert "Base settings have no Windows-specific paths" \
+                '(! grep -q "C:\\\\" "'$DOTFILES_DIR'/.config/Code/User/settings.json" && ! grep -q "AppData" "'$DOTFILES_DIR'/.config/Code/User/settings.json"); echo $?' \
+                "0"
+
     test_summary
     exit $?
 }
