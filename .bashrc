@@ -17,3 +17,5 @@ if [ -f "$HOME/dotfiles/scripts/setup-ssh-agent-bridge.sh" ]; then
   # shellcheck source=dotfiles-main/scripts/setup-ssh-agent-bridge.sh
   . "$HOME/dotfiles/scripts/setup-ssh-agent-bridge.sh"
 fi
+export VOLTA_HOME="$HOME/.volta"
+export PATH="$VOLTA_HOME/bin:$PATH"
