@@ -5,7 +5,7 @@ set -euo pipefail
 echo "🔍 Diagnosing shell startup..."
 
 # Check for common files
-for f in ~/.bashrc ~/.zshrc ~/.shell_common.sh ~/.shell_functions.sh ~/.shell_theme_common.ps1; do
+for f in ~/.bashrc ~/.zshrc ~/.shell_common ~/.shell_functions ~/.shell_theme_common; do
   if [[ -f "$f" ]]; then
     echo "✅ Found $f"
   else
