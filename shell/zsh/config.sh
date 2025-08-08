@@ -72,12 +72,19 @@ dirsv() {
     fi
 }
 
-# Quick directory navigation
-1() { cd -1 }
-2() { cd -2 }
-3() { cd -3 }
-4() { cd -4 }
-5() { cd -5 }
+# Quick directory navigation (functions cannot start with a number in zsh)
+cd1() { cd -1 }
+cd2() { cd -2 }
+cd3() { cd -3 }
+cd4() { cd -4 }
+cd5() { cd -5 }
+
+# Backward-compatible numeric aliases
+alias 1='cd1'
+alias 2='cd2'
+alias 3='cd3'
+alias 4='cd4'
+alias 5='cd5'
 
 # Zsh-specific key bindings
 bindkey '^[[A' history-substring-search-up      # Up arrow

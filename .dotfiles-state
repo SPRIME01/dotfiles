@@ -1,5 +1,13 @@
 # Dotfiles installation state
 # Format: COMPONENT=STATUS (installed|skipped|failed)
 # Generated: 2025-08-04T22:08:57-04:00
-bash_config=skipped # user choice
-zsh_config=skipped # user choice
+projects_setup=skipped # user choice
+zsh_config=installed
+bash_config=installed
+pwsh_config=installed
+vscode_settings=installed
+git_hook=installed
+ssh_bridge=installed
+pwsh7_windows=installed
+ssh_agent_windows=installed
+setup_completed=2025-08-08T18:18:57-04:00
