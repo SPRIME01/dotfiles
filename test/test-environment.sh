@@ -4,6 +4,7 @@
 # Source the test framework
 source "$(dirname "${BASH_SOURCE[0]}")/framework.sh"
 
+# test_environment_loading runs assertions to verify that key environment variables related to the dotfiles setup are loaded and set as expected.
 test_environment_loading() {
     echo "🧪 Testing Environment Loading"
     echo "=============================="
