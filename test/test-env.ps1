@@ -4,8 +4,7 @@ Param(
 
 try {
     if (-not $DotfilesRoot) {
-        Write-Error "DotfilesRoot parameter must be provided"
-        exit 1
+        $DotfilesRoot = $PSScriptRoot
     }
     $loaderPath = Join-Path $DotfilesRoot 'PowerShell/Utils/Load-Env.ps1'
     if (-not (Test-Path $loaderPath)) {
@@ -26,7 +25,8 @@ try {
     }
     Write-Host "✅ Load-EnvFile successfully parsed sample .env file"
     Remove-Item $tempFile -ErrorAction SilentlyContinue
+    exit 0
 } catch {
-    Write-Error $_
+    Write-Error $_.Exception.Message
     exit 1
 }

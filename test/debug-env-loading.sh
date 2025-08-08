@@ -9,13 +9,15 @@ echo "Testing environment loading..."
 source ./lib/env-loader.sh
 
 echo "Loading .env file..."
-# Test with a simpler approach first
-echo "Testing simple read:"
-while read -r line; do
-    echo "Line: $line"
-done < ./.env
-
-echo "Now loading with load_env_file_secure:"
-load_env_file_secure "./.env" false
+if [[ -f ./.env ]]; then
+    echo "Testing simple read:"
+    while read -r line; do
+            echo "Line: $line"
+    done < ./.env
+    echo "Now loading with load_env_file_secure:"
+    load_env_file_secure "./.env" false
+else
+    echo "(no .env present, skipping)"
+fi
 
 echo "Done."

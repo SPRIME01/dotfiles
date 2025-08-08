@@ -45,14 +45,21 @@ The interactive setup wizard is the recommended way to install:
 just setup
 ```
 
-This command launches `scripts/setup-wizard-improved.sh` which provides:
-- **Idempotent state management**: Tracks installed components to avoid redundant operations
-- **Smart prompting**: Only asks about components not already installed
-- **Failure recovery**: Identifies and allows retry of failed installations
-- **Force reinstall option**: Option to reinstall all components
-- **Comprehensive error handling**: Detailed status tracking and reporting
+This command launches the standard wizard at `scripts/setup-wizard.sh`, which provides:
+- Idempotent state management (tracks component status in a state file)
+- Smart prompting (skips already-installed components)
+- Failure recovery (can retry only failed components)
+- Clear status output and safe, re-runnable operations
 
-The improved wizard will:
+Optional enhanced wizard (manual run):
+
+```bash
+bash scripts/setup-wizard-improved.sh
+```
+
+The enhanced wizard adds a “force reinstall all components” option and a more detailed summary.
+
+Both wizards will:
 - Detect your platform and shell
 - Show current installation status (if any previous setup exists)
 - Configure environment variables
@@ -111,7 +118,7 @@ The **improved idempotent version** provides:
 **What it creates**:
 - `~/projects` directory in WSL2 (always safe)
 - Windows symlink at `C:\Users\{username}\projects` (if possible)
-- Batch file fallback: `projects.bat` (if symlink requires admin)
+- Batch file fallback: `projects.bat` (created only when symlink creation fails)
 - PowerShell function integration (if available)
 
 **Status Reporting**:
@@ -135,16 +142,16 @@ The **improved idempotent version** provides:
 | Command | Description | Use Case |
 |---------|-------------|----------|
 | `just` | Show all available commands | Getting started |
-| `just setup` | Interactive setup wizard | First-time installation |
-| `just test` | Run all automated tests | Verify configuration |
+| `just setup` | Interactive setup wizard (standard) | First-time installation |
+| `just test` | Run all automated tests | Quick verification |
+| `just ci-test` | Run full test suite (CI parity) | Pre-PR checks |
 | `just update` | Update dotfiles and reapply config | Keep system current |
 
 ### Setup & Installation
 
 | Command | Platform | Description |
 |---------|----------|-------------|
-| `just setup` | Unix/Linux/macOS | **Improved** interactive setup wizard with state management |
-| `just setup-original` | Unix/Linux/macOS | Original setup wizard (fallback) |
+| `just setup` | Unix/Linux/macOS | Interactive setup wizard with state management |
 | `just setup-windows` | Windows | PowerShell setup wizard |
 | `just setup-windows-integration` | WSL2 | Complete Windows integration |
 | `just setup-projects` | WSL2 | **Idempotent** projects directory with Windows access |
@@ -250,7 +257,7 @@ For Windows-native PowerShell configuration:
 The system supports multiple environment files:
 
 - **Global**: `~/.env` (optional)
-- **MCP**: `~/dotfiles/mcp/.env` (created during setup)
+- **MCP**: `~/dotfiles/mcp/.env` (user-provided; create/manage this yourself)
 - **Custom**: Any `.env` file you specify
 
 ### Modular Architecture
@@ -267,10 +274,9 @@ shell/
 
 ### Security Features
 
-- **File Permission Validation**: Ensures `.env` files have secure permissions (600)
-- **Environment Variable Validation**: Checks for required variables
-- **Input Sanitization**: Validates environment variable content
-- **Pre-commit Hooks**: Prevents committing sensitive data
+- File permission validation for `.env` files (600)
+- Environment variable validation and basic input checks
+- Optional Git hook for PowerShell alias regeneration (post-commit)
 
 ### Debug Mode
 
@@ -282,14 +288,15 @@ export DOTFILES_DEBUG=true
 
 ### State Management & Idempotency
 
-The improved setup wizard includes sophisticated state management to make all operations idempotent and reliable:
+Both setup wizards are idempotent and track installation state to make operations safe to re-run. The enhanced wizard additionally supports force reinstall.
 
 #### State File
 
 The system maintains a state file at `~/dotfiles/.dotfiles-state` that tracks:
-- **Installed components**: Successfully completed installations
-- **Failed components**: Components that failed with error details
-- **Skipped components**: Components explicitly skipped by user or system
+- Installed components
+- Failed components (with error details)
+- Skipped components (with reason)
+- Optional `setup_completed` timestamp (written by the enhanced wizard)
 
 #### Smart Setup Behavior
 
@@ -301,19 +308,19 @@ The system maintains a state file at `~/dotfiles/.dotfiles-state` that tracks:
 - Shows current installation status
 - Only prompts for uninstalled or failed components
 - Offers to retry failed components only
-- Provides force reinstall option for all components
+- Force reinstall option is available in the enhanced wizard
 
 #### State Management Commands
 
 ```bash
-# View current installation status
-just setup  # Will show status if previous runs exist
+# View current installation status (standard wizard)
+just setup  # Shows status if previous runs exist
 
-# Force reinstall all components
-just setup  # Choose "force reinstall" when prompted
+# Force reinstall all components (enhanced wizard)
+bash scripts/setup-wizard-improved.sh  # Choose "force reinstall" when prompted
 
-# Retry only failed components
-just setup  # Choose "retry failed only" when prompted
+# Retry only failed components (both wizards)
+just setup  # Will offer to retry failed-only when failures exist
 ```
 
 #### State File Format
@@ -326,7 +333,7 @@ pwsh_config=skipped # PowerShell not available
 vscode_settings=failed # VS Code installer failed
 git_hook=installed
 projects_setup=installed
-setup_completed=2025-08-05T10:30:00Z
+setup_completed=2025-08-05T10:30:00Z  # Present when using the enhanced wizard
 ```
 
 #### Component States
@@ -396,11 +403,11 @@ chmod 600 ~/dotfiles/mcp/.env
 **Issue**: State file shows incorrect status
 **Solution**:
 ```bash
-# Reset specific component state
-rm ~/dotfiles/.dotfiles-state  # Remove entire state file
-just setup  # Re-run setup wizard
+# Reset entire state
+rm ~/dotfiles/.dotfiles-state
+just setup  # Re-run the standard wizard
 
-# Or manually edit state file
+# Or manually edit the state file
 nano ~/dotfiles/.dotfiles-state
 ```
 
@@ -415,9 +422,13 @@ just setup  # Will prompt for that component again
 **Issue**: Setup wizard shows "already installed" but component not working
 **Solution**:
 ```bash
-# Force reinstall all components
-just setup
+# Option 1: Use the enhanced wizard to force reinstall
+bash scripts/setup-wizard-improved.sh
 # Choose "force reinstall all components" when prompted
+
+# Option 2: Clear state and re-run
+rm ~/dotfiles/.dotfiles-state
+just setup
 ```
 
 ### Diagnostic Commands
@@ -492,16 +503,17 @@ If automatic fixes don't work:
 
 ### Running Tests
 
-Execute the full test suite:
+Execute the test suites:
 
 ```bash
-just test
+just test       # Standard quick test run
+just ci-test    # CI-parity comprehensive run
 ```
 
 This runs:
 - Shell configuration tests
 - Environment loading tests
-- PowerShell tests (if available)
+- PowerShell tests (auto-skipped if pwsh is not installed)
 - Integration tests
 
 ### Contributing

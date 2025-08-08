@@ -31,7 +31,12 @@ for test_script in "$SCRIPT_DIR"/*.ps1; do
     if command -v pwsh >/dev/null 2>&1; then
         echo
         echo "▶️ Running $(basename "$test_script")..."
-        pwsh -NoProfile -ExecutionPolicy Bypass -File "$test_script" -DotfilesRoot "$REPO_ROOT" || FAILED=1
+        pwsh -NoProfile -ExecutionPolicy Bypass -File "$test_script" -DotfilesRoot "$REPO_ROOT"
+        exit_code=$?
+        echo "  - exit code: $exit_code"
+        if [[ $exit_code -ne 0 ]]; then
+            FAILED=1
+        fi
     else
         echo "⚠️ Skipping $(basename "$test_script") (pwsh not available)"
     fi
