@@ -22,12 +22,12 @@ EMPTY=
 EOF
 
 # Source load_env.sh and call load_env_file on the sample file
-source "$DOTFILES_ROOT/scripts/load_env.sh"
+source "$DOTFILES_ROOT/lib/env-loader.sh"
 
 # Unset variables first to avoid false positives
 unset FOO BAR EMPTY || true
 
-load_env_file "$sample_env"
+load_env_file_secure "$sample_env" || true
 
 if [[ "$FOO" != "bar" ]]; then
   echo "Test failed: FOO expected 'bar' but got '${FOO:-}'" >&2
@@ -55,14 +55,14 @@ EOF
 
 unset PROJECTS_ROOT || true
 source "$DOTFILES_ROOT/.shell_common.sh" >/dev/null 2>&1
-if [[ "$PROJECTS_ROOT" != "$HOME/Projects" ]]; then
-  echo "Test failed: default PROJECTS_ROOT should be \$HOME/Projects" >&2
+if [[ "$PROJECTS_ROOT" != "$HOME/projects" ]]; then
+  echo "Test failed: default PROJECTS_ROOT should be \$HOME/projects" >&2
   exit 1
 fi
 
 # Source .shell_common.sh with custom .env loaded via load_env_file
-source "$DOTFILES_ROOT/scripts/load_env.sh"
-load_env_file "$sample_env2"
+source "$DOTFILES_ROOT/lib/env-loader.sh"
+load_env_file_secure "$sample_env2" || true
 
 source "$DOTFILES_ROOT/.shell_common.sh" >/dev/null 2>&1
 if [[ "$PROJECTS_ROOT" != "$tmp_dir/projects" ]]; then

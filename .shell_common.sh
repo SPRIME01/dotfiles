@@ -15,7 +15,7 @@ fi
 # --- Global Pathing Configuration ---
 # Set a default projects directory relative to the user's home if not defined.  Users can override
 # PROJECTS_ROOT in their personal .env file.
-if [[ -z "$PROJECTS_ROOT" ]]; then
+if [[ -z "${PROJECTS_ROOT:-}" ]]; then
     export PROJECTS_ROOT="$HOME/projects"
 fi
 
