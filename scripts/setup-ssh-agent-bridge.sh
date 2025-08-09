@@ -43,11 +43,23 @@ setup_ssh_agent_bridge() {
     # Only start socat if socket not alive
     if ! is_socket_active; then
         rm -f "$SSH_AUTH_SOCK"
-        # Use setsid and nohup to detach from the current process
-        setsid nohup socat \
-            UNIX-LISTEN:"$SSH_AUTH_SOCK",fork \
-            EXEC:"$npiperelay //./pipe/openssh-ssh-agent" \
-            >/dev/null 2>&1 &
+        # Use setsid and nohup to detach from the current process; disown to avoid job notifications
+        if [[ -n "${ZSH_VERSION:-}" ]]; then
+            # In zsh, &! starts a detached job that is not added to the job table
+            setsid nohup socat \
+                UNIX-LISTEN:"$SSH_AUTH_SOCK",fork \
+                EXEC:"$npiperelay //./pipe/openssh-ssh-agent" \
+                >/dev/null 2>&1 &!
+        else
+            # POSIX/bash fallback
+            setsid nohup socat \
+                UNIX-LISTEN:"$SSH_AUTH_SOCK",fork \
+                EXEC:"$npiperelay //./pipe/openssh-ssh-agent" \
+                >/dev/null 2>&1 &
+            # Best-effort: remove job from shell job table to suppress [n] done messages
+            bgpid=$!
+            { builtin disown "$bgpid" 2>/dev/null || disown "$bgpid" 2>/dev/null || true; }
+        fi
     fi
 }
 
