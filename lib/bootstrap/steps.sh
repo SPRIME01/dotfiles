@@ -18,7 +18,7 @@ bootstrap_link_shell_configs() {
 bootstrap_install_oh_my_posh() {
   local root="$1"
   if [ -f "$root/scripts/install-oh-my-posh.sh" ]; then
-    bash "$root/scripts/install-oh-my-posh.sh"
+    bash "$root/scripts/install-oh-my-posh.sh" || echo "⚠️  oh-my-posh installer reported a non-zero exit; continuing"
   else
     echo "⚠️  install-oh-my-posh.sh missing; skipping"
   fi
