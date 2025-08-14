@@ -10,6 +10,11 @@ if (-not $env:PROJECTS_ROOT) {
     $env:PROJECTS_ROOT = Join-Path $HOME 'Projects'
 }
 
+# Ensure USERPROFILE is set (Linux pwsh may not define it) to avoid Join-Path null errors in modules/tests
+if (-not $env:USERPROFILE -or $env:USERPROFILE -eq '') {
+    $env:USERPROFILE = $HOME
+}
+
 # Load the new modular PowerShell configuration system
 $modularIntegration = Join-Path $env:DOTFILES_ROOT 'shell/integration.ps1'
 if (Test-Path $modularIntegration) {

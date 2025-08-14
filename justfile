@@ -4,23 +4,35 @@
 default:
     @just --list
 
-# Run all automated tests (shell + PowerShell if available)
+# Run all automated tests (shell + PowerShell if available). Fast validation before commits.
 test:
     @bash scripts/run-tests.sh
 
-# CI-parity: run the same comprehensive suite used in workflows
+# Lint shell scripts (shellcheck) and verify formatting (shfmt diff mode)
+lint:
+    @bash tools/lint.sh
+
+# Auto-format shell scripts in-place using shfmt
+format:
+    @shfmt -w .
+
+# CI-parity: run the comprehensive test suite mirroring GitHub Actions workflow
 ci-test:
     @bash test/run-all-tests.sh
 
-# Interactive setup wizard (Unix shells)
+# Interactive state-aware setup wizard (Unix shells)
 setup:
     @bash scripts/setup-wizard.sh
+
+# Install optional dependencies (socat, openssh-client/server) with systemd guard
+install-deps:
+    @bash scripts/install-dependencies.sh
 
 # Interactive setup wizard (Windows via PowerShell 7)
 setup-windows:
     @pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/setup-wizard.ps1
 
-# Update repository safely and reapply configuration
+# Safe update: stash local changes, pull main, re-bootstrap, restore stash
 update:
     @bash update.sh
 

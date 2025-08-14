@@ -22,6 +22,7 @@ EMPTY=
 EOF
 
 # Source load_env.sh and call load_env_file on the sample file
+# Source the env loader using repository-relative path (avoid any Windows path remnants)
 source "$DOTFILES_ROOT/lib/env-loader.sh"
 
 # Unset variables first to avoid false positives

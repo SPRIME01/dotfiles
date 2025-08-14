@@ -1,350 +1,190 @@
+echo Opening WSL2 projects directory...
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Interactive setup wizard for the dotfiles project.  This script helps you
-# configure your preferred shells, install optional components like VS Code
-# settings, and enable advanced features such as MCP integration and SSH
-# agent bridging.  It detects your environment and calls the appropriate
-# installation scripts.  Use this wizard instead of running bootstrap scripts
-# manually if you'd like guidance and a summary of actions taken.
+# Description: Unified interactive setup wizard (consolidated). Provides idempotent,
+# state-aware installation for shells, VS Code settings, hooks, projects, SSH bridge,
+# and Windows integration. Supersedes previous setup-wizard.sh and setup-wizard-improved.sh.
+# Category: setup
+# Dependencies: bash, coreutils, (optional) pwsh, powershell.exe (WSL), just
+# Idempotent: yes (component state tracked in DOTFILES_STATE_FILE)
+# Inputs: environment (WSL_DISTRO_NAME), DOTFILES_STATE_FILE, user prompts
+# Outputs: Updated state file, configured shells, optional Windows integration artifacts
+# Exit Codes: 0 success, >0 failure
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Load state management functions
 source "$DOTFILES_ROOT/lib/state-management.sh"
+[[ -f "$DOTFILES_ROOT/lib/log.sh" ]] && source "$DOTFILES_ROOT/lib/log.sh"
 
-echo "📦 Welcome to the dotfiles setup wizard!"
-echo "This wizard will help you configure your development environment."
+log_info "📦 Unified dotfiles setup wizard start"
 echo
 
-# Helper to prompt with default value
 prompt_yes_no() {
-  local prompt="$1"
-  local default="$2"
-  local reply
-  if [ "$default" = "y" ]; then
-    prompt="$prompt [Y/n] "
-  else
-    prompt="$prompt [y/N] "
-  fi
-  read -r -p "$prompt" reply
-  reply="${reply:-$default}"
-  if [[ "$reply" =~ ^[Yy]$ ]]; then
-    return 0
-  fi
-  return 1
+  local prompt="$1" default="$2" reply
+  if [ "$default" = y ]; then prompt+=" [Y/n] "; else prompt+=" [y/N] "; fi
+  read -r -p "$prompt" reply || reply=""
+  reply="${reply:-$default}"; [[ $reply =~ ^[Yy]$ ]]
 }
 
-# Show current installation status if any setup has been done
+safe_execute() {
+  local component="$1" description="$2" command="$3"
+  echo "▶️  $description..."
+  if eval "$command"; then
+    mark_component_installed "$component"; echo "✅ $description"; return 0
+  else
+    mark_component_failed "$component" "$description failed"; echo "❌ $description"; return 1
+  fi
+}
+
 if has_any_setup_been_done; then
-    echo "📋 Current installation status:"
-    show_installation_status
-    echo
-
-    # Check for failed components and offer to retry
-    failed_components=$(get_failed_components)
-    if [[ -n "$failed_components" ]]; then
-        echo "⚠️  Some components failed in previous runs:"
-        echo "$failed_components"
-        echo
-        if prompt_yes_no "Would you like to retry failed components only?" "n"; then
-            # Set flags to only retry failed components
-            RETRY_FAILED_ONLY=true
-        else
-            RETRY_FAILED_ONLY=false
-        fi
-    else
-        RETRY_FAILED_ONLY=false
-    fi
-else
-    echo "🚀 This appears to be your first time running the setup wizard."
+  log_info "Displaying current installation status"; show_installation_status; echo
+  failed_components=$(get_failed_components || true)
+  if [[ -n "$failed_components" ]]; then
+    echo "⚠️  Failed previously:"; echo "$failed_components"; echo
+    prompt_yes_no "Retry failed components only?" n && RETRY_FAILED_ONLY=true || RETRY_FAILED_ONLY=false
+  else
     RETRY_FAILED_ONLY=false
-fi
-
-# Determine available shells
-available_pwsh=0
-if command -v pwsh >/dev/null 2>&1; then
-  available_pwsh=1
-fi
-
-# Ask which shells to configure (using smart prompts)
-configure_bash=0
-configure_zsh=0
-configure_pwsh=0
-
-# Only prompt for components that aren't installed or if retrying failed ones
-if [[ "$RETRY_FAILED_ONLY" == "true" ]]; then
-    echo "🔄 Retrying failed components only..."
-    # Check each component and set flags based on failure status
-    if grep -q "^bash_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-        configure_bash=1
-    fi
-    if grep -q "^zsh_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-        configure_zsh=1
-    fi
-    if grep -q "^pwsh_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-        configure_pwsh=1
-    fi
+  fi
+  prompt_yes_no "Force reinstall all components?" n && FORCE_REINSTALL=true || FORCE_REINSTALL=false
 else
-    # Normal prompting with smart state checking
-    if smart_prompt_yes_no "bash_config" "Do you want to configure Bash?" "y"; then
-      configure_bash=1
+  echo "🚀 First run detected."; RETRY_FAILED_ONLY=false; FORCE_REINSTALL=false
+fi
+
+available_pwsh=0; command -v pwsh >/dev/null 2>&1 && available_pwsh=1 || true
+
+# Component flags
+configure_bash=0; configure_zsh=0; configure_pwsh=0; install_vscode=0; enable_hook=0; enable_bridge=0
+setup_projects=0; setup_pwsh7_windows=0; setup_ssh_agent_windows=0
+
+if [[ "$RETRY_FAILED_ONLY" == true ]]; then
+  echo "🔄 Retrying only failed components..."
+  for c in bash_config zsh_config pwsh_config vscode_settings git_hook ssh_bridge projects_setup pwsh7_windows ssh_agent_windows; do
+    if grep -q "^${c}=failed" "${DOTFILES_STATE_FILE}" 2>/dev/null; then
+      case $c in
+        bash_config) configure_bash=1 ;; zsh_config) configure_zsh=1 ;; pwsh_config) configure_pwsh=1 ;;
+        vscode_settings) install_vscode=1 ;; git_hook) enable_hook=1 ;; ssh_bridge) enable_bridge=1 ;;
+        projects_setup) setup_projects=1 ;; pwsh7_windows) setup_pwsh7_windows=1 ;; ssh_agent_windows) setup_ssh_agent_windows=1 ;;
+      esac
+      echo "🔄 Will retry: $c"
     fi
-    if smart_prompt_yes_no "zsh_config" "Do you want to configure Zsh?" "y"; then
-      configure_zsh=1
-    fi
-    if [ "$available_pwsh" -eq 1 ]; then
-      if smart_prompt_yes_no "pwsh_config" "Do you want to configure PowerShell?" "y"; then
-        configure_pwsh=1
+  done
+else
+  log_info "Gathering user choices"; echo
+  smart_prompt_yes_no bash_config "Configure Bash?" y "$FORCE_REINSTALL" && configure_bash=1
+  smart_prompt_yes_no zsh_config "Configure Zsh?" y "$FORCE_REINSTALL" && configure_zsh=1
+  if (( available_pwsh )); then
+    smart_prompt_yes_no pwsh_config "Configure PowerShell?" y "$FORCE_REINSTALL" && configure_pwsh=1 || true
+  else
+    mark_component_skipped pwsh_config "PowerShell not available"
+  fi
+  smart_prompt_yes_no vscode_settings "Install VS Code settings?" y "$FORCE_REINSTALL" && install_vscode=1
+  smart_prompt_yes_no git_hook "Install post-commit alias hook?" y "$FORCE_REINSTALL" && enable_hook=1
+  smart_prompt_yes_no ssh_bridge "Enable WSL→Windows SSH agent bridge?" y "$FORCE_REINSTALL" && enable_bridge=1
+  smart_prompt_yes_no projects_setup "Setup projects directory (WSL2)?" y "$FORCE_REINSTALL" && setup_projects=1
+  if [[ -n ${WSL_DISTRO_NAME:-} ]] && command -v cmd.exe >/dev/null 2>&1; then
+    command -v pwsh.exe >/dev/null 2>&1 && smart_prompt_yes_no pwsh7_windows "Setup Windows pwsh7 profile?" y "$FORCE_REINSTALL" && setup_pwsh7_windows=1 || mark_component_skipped pwsh7_windows "pwsh7 not on Windows"
+    command -v powershell.exe >/dev/null 2>&1 && smart_prompt_yes_no ssh_agent_windows "Setup Windows SSH Agent?" y "$FORCE_REINSTALL" && setup_ssh_agent_windows=1 || mark_component_skipped ssh_agent_windows "Windows PowerShell missing"
+  else
+    mark_component_skipped pwsh7_windows "Not WSL"; mark_component_skipped ssh_agent_windows "Not WSL"
+  fi
+fi
+
+echo; log_info "Applying selections"; overall_success=true
+
+if (( configure_zsh )); then
+  chmod +x "$DOTFILES_ROOT/install_zsh.sh" || true
+  safe_execute zsh_config "Installing Oh My Zsh and plugins" "bash '$DOTFILES_ROOT/install_zsh.sh'" || overall_success=false
+fi
+
+if (( configure_bash || configure_zsh )); then
+  chmod +x "$DOTFILES_ROOT/bootstrap.sh" || true
+  safe_execute bash_config "Setting up shell symlinks and environment" "bash '$DOTFILES_ROOT/bootstrap.sh'" || overall_success=false
+fi
+
+(( configure_pwsh )) && safe_execute pwsh_config "Setting up PowerShell configuration" "pwsh -NoProfile -ExecutionPolicy Bypass -File '$DOTFILES_ROOT/bootstrap.ps1'" || true
+
+if (( install_vscode )); then
+  if [ -f "$DOTFILES_ROOT/install/vscode.sh" ]; then
+    safe_execute vscode_settings "Installing VS Code settings" "bash '$DOTFILES_ROOT/install/vscode.sh'" || overall_success=false
+  else
+    echo "⚠️  VS Code installer missing"; mark_component_failed vscode_settings missing; overall_success=false
+  fi
+fi
+
+if (( enable_hook )); then
+  HOOK_SRC="$DOTFILES_ROOT/scripts/git-hooks/post-commit"; HOOK_DEST="$DOTFILES_ROOT/.git/hooks/post-commit"
+  if [ -f "$HOOK_SRC" ]; then
+    if [[ ! -f $HOOK_DEST || $HOOK_SRC -nt $HOOK_DEST ]]; then
+      if mkdir -p "$(dirname "$HOOK_DEST")" && cp "$HOOK_SRC" "$HOOK_DEST" && chmod +x "$HOOK_DEST"; then
+        mark_component_installed git_hook; echo "✅ Git hook installed/updated"
+      else
+        mark_component_failed git_hook copy_failed; overall_success=false
       fi
     else
-      echo "⚠️  PowerShell (pwsh) is not installed; skipping PowerShell configuration."
-      mark_component_skipped "pwsh_config" "PowerShell not available"
-    fi
-fi
-
-# Ask about VS Code settings
-install_vscode=0
-if prompt_yes_no "Install VS Code settings from dotfiles?" "y"; then
-  install_vscode=1
-fi
-
-# Ask about copying the git hook for alias regeneration
-enable_hook=0
-if prompt_yes_no "Install post-commit hook to auto-regenerate PowerShell aliases?" "y"; then
-  enable_hook=1
-fi
-
-# Ask about SSH agent bridge
-enable_bridge=0
-if prompt_yes_no "Enable WSL2 → Windows SSH agent bridge (WSL only)?" "y"; then
-  enable_bridge=1
-fi
-
-# Ask about projects directory setup
-setup_projects=0
-if prompt_yes_no "Set up projects directory with Windows symlink (WSL2 only)?" "y"; then
-  setup_projects=1
-fi
-
-# Ask about PowerShell 7 Windows integration (WSL2 only)
-setup_pwsh7_windows=0
-if [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v cmd.exe >/dev/null 2>&1; then
-  if command -v pwsh.exe >/dev/null 2>&1; then
-    if prompt_yes_no "Set up PowerShell 7 profile for Windows integration?" "y"; then
-      setup_pwsh7_windows=1
+      echo "✅ Git hook already current"; mark_component_installed git_hook
     fi
   else
-    echo "ℹ️  PowerShell 7 (pwsh.exe) not detected on Windows; skipping Windows PowerShell 7 setup."
+    log_warn "Git hook source missing"; mark_component_failed git_hook missing; overall_success=false
   fi
 fi
 
-# Ask about Windows SSH Agent setup (WSL2 only)
-setup_ssh_agent_windows=0
-if [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v cmd.exe >/dev/null 2>&1; then
-  if command -v powershell.exe >/dev/null 2>&1; then
-    if prompt_yes_no "Set up Windows SSH Agent for automatic startup?" "y"; then
-      setup_ssh_agent_windows=1
-    fi
-  else
-    echo "ℹ️  PowerShell not detected on Windows; skipping SSH Agent setup."
-  fi
+if (( enable_bridge )); then
+  echo "ℹ️  SSH agent bridge will rely on shell startup configuration."; mark_component_installed ssh_bridge
 fi
 
-echo
-echo "🔧 Applying your selections..."
-
-# Configure Bash/Zsh by running bootstrap.sh and optional zsh installer
-if [ "$configure_bash" -eq 1 ] || [ "$configure_zsh" -eq 1 ]; then
-  # Ensure install scripts are executable
-  chmod +x "$DOTFILES_ROOT/bootstrap.sh" || true
-  chmod +x "$DOTFILES_ROOT/install_zsh.sh" || true
-  # Run install_zsh.sh if Zsh selected
-  if [ "$configure_zsh" -eq 1 ]; then
-    echo "▶️  Installing Oh My Zsh and plugins..."
-    bash "$DOTFILES_ROOT/install_zsh.sh"
-  fi
-  echo "▶️  Running bootstrap.sh to set up Bash/Zsh symlinks and environment..."
-  bash "$DOTFILES_ROOT/bootstrap.sh"
-fi
-
-# Configure PowerShell
-if [ "$configure_pwsh" -eq 1 ]; then
-  echo "▶️  Running PowerShell bootstrap script..."
-  pwsh -NoProfile -ExecutionPolicy Bypass -File "$DOTFILES_ROOT/bootstrap.ps1"
-fi
-
-# Install VS Code settings if requested
-if [ "$install_vscode" -eq 1 ]; then
-  if [ -f "$DOTFILES_ROOT/install/vscode.sh" ]; then
-    echo "▶️  Installing VS Code settings..."
-    bash "$DOTFILES_ROOT/install/vscode.sh"
-  else
-    echo "⚠️  VS Code installer script not found; skipping."
-  fi
-fi
-
-# Copy git hook
-if [ "$enable_hook" -eq 1 ]; then
-  HOOK_SRC="$DOTFILES_ROOT/scripts/git-hooks/post-commit"
-  HOOK_DEST="$DOTFILES_ROOT/.git/hooks/post-commit"
-  if [ -f "$HOOK_SRC" ]; then
-    echo "▶️  Installing post-commit hook at .git/hooks/post-commit"
-    mkdir -p "$DOTFILES_ROOT/.git/hooks"
-    cp "$HOOK_SRC" "$HOOK_DEST"
-    chmod +x "$HOOK_DEST"
-  else
-    echo "⚠️  Hook script not found at $HOOK_SRC; skipping."
-  fi
-fi
-
-# Remind user about SSH agent bridge
-if [ "$enable_bridge" -eq 1 ]; then
-  echo "ℹ️  The SSH agent bridge script will run automatically when you open a new Bash or Zsh session."
-  echo "    Make sure npiperelay and wsl-ssh-agent-relay are installed on Windows as described in docs/ssh.md."
-fi
-
-# Set up projects directory
-if [ "$setup_projects" -eq 1 ]; then
-  echo "▶️  Setting up projects directory..."
-
-  # Create projects directory
-  mkdir -p "$HOME/projects"
-  echo "✅ Created ~/projects directory"
-
-  # Create Windows symlink if in WSL2
-  if [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v cmd.exe >/dev/null 2>&1; then
-    WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r' 2>/dev/null)
-    if [[ -n "$WIN_USER" ]]; then
-      WIN_PROJECTS_LINK="/mnt/c/Users/$WIN_USER/projects"
-      if [[ ! -e "$WIN_PROJECTS_LINK" ]]; then
+if (( setup_projects )); then
+  echo "▶️  Ensuring projects directory"; mkdir -p "$HOME/projects"; projects_success=true
+  if [[ -n ${WSL_DISTRO_NAME:-} ]] && command -v cmd.exe >/dev/null 2>&1; then
+    WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r' || true)
+    if [[ -n $WIN_USER ]]; then
+      WIN_PROJECTS_LINK="/mnt/c/Users/$WIN_USER/projects"; BATCH_FILE="/mnt/c/Users/$WIN_USER/projects.bat"
+      if [[ -L $WIN_PROJECTS_LINK && -d $WIN_PROJECTS_LINK ]]; then
+        echo "✅ Windows symlink exists"
+      elif [[ -d $WIN_PROJECTS_LINK ]]; then
+        echo "ℹ️  Windows projects directory exists (not symlink)"
+      else
         WSL_PROJECTS_WIN_PATH="\\\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\projects"
-        echo "🔗 Creating Windows access to projects directory..."
-
-        # Try to create symbolic link first (requires admin privileges)
         if cmd.exe /c "mklink /D \"C:\\Users\\$WIN_USER\\projects\" \"$WSL_PROJECTS_WIN_PATH\"" >/dev/null 2>&1; then
-          echo "✅ Windows symlink created successfully at C:\\Users\\$WIN_USER\\projects"
-          echo "💡 Added to Windows PATH. You can now use 'projects' in Windows terminals!"
+          echo "✅ Created Windows symlink"
         else
-          # Fallback: Create a batch file
-          BATCH_FILE="/mnt/c/Users/$WIN_USER/projects.bat"
-          cat > "$BATCH_FILE" 2>/dev/null << EOF
+          if [[ ! -f $BATCH_FILE ]]; then
+            cat > "$BATCH_FILE" <<'EOF'
 @echo off
-REM Navigate to WSL2 projects directory
-echo Opening WSL2 projects directory...
-cd /d "\\\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\projects"
+
+cd /d "\\wsl.localhost\%WSL_DISTRO_NAME%\home\%USERNAME%\projects" || echo Failed to access projects
 cmd /k
 EOF
-          chmod +x "$BATCH_FILE" 2>/dev/null
-          echo "⚠️  Symlink requires admin privileges. Created projects.bat instead."
-          echo "💡 To create the symlink manually, run as Administrator:"
-          echo "    mklink /D \"C:\\Users\\$WIN_USER\\projects\" \"$WSL_PROJECTS_WIN_PATH\""
-          echo "✅ Alternative: Use 'projects.bat' to access your projects directory"
+            chmod +x "$BATCH_FILE" 2>/dev/null || true; echo "✅ Created projects.bat fallback"
+          else
+            echo "✅ Batch fallback already present"
+          fi
         fi
-
-        # Add instructions for Windows PATH
-        echo ""
-        echo "📋 To access projects from any Windows terminal:"
-        echo "   1. Add C:\\Users\\$WIN_USER to your Windows PATH environment variable"
-        echo "   2. Then type 'projects' (if symlink) or 'projects.bat' in any Windows terminal"
-        echo "   3. Or open Windows Explorer and navigate to \\\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\projects"
-        echo ""
-        echo "🔧 PowerShell users can also run: Link-WSLProjects"
-
-      else
-        echo "✅ Windows projects access already exists"
-      fi
-    fi
-  fi
-fi
-
-# Set up PowerShell 7 Windows integration
-if [ "$setup_pwsh7_windows" -eq 1 ]; then
-  echo "▶️  Setting up PowerShell 7 Windows integration..."
-
-  # Use the just command for consistency
-  if command -v just >/dev/null 2>&1; then
-    just setup-pwsh7
-  else
-    # Fallback to manual setup if just is not available
-    echo "ℹ️  'just' command not found, using manual setup..."
-
-    WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r' 2>/dev/null)
-    if [[ -n "$WIN_USER" ]]; then
-      # Get PowerShell 7 profile path
-      PWSH7_PROFILE=$(pwsh.exe -c '$PROFILE' 2>/dev/null | tr -d '\r' 2>/dev/null)
-
-      if [[ -n "$PWSH7_PROFILE" ]]; then
-        # Convert to WSL path and create profile
-        PWSH7_PROFILE_WSL=$(echo "$PWSH7_PROFILE" | sed 's|C:\\|/mnt/c/|g' | sed 's|\\|/|g')
-        PROFILE_DIR=$(dirname "$PWSH7_PROFILE_WSL")
-
-        mkdir -p "$PROFILE_DIR" 2>/dev/null
-
-        cat > "$PWSH7_PROFILE_WSL" << EOF
-# Windows PowerShell 7 Profile - Generated by dotfiles setup wizard
-
-# Set execution policy for current user to allow local scripts
-try {
-    if ((Get-ExecutionPolicy -Scope CurrentUser) -eq 'Undefined' -or (Get-ExecutionPolicy -Scope CurrentUser) -eq 'Restricted') {
-        Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-        Write-Host "✅ Set PowerShell execution policy to RemoteSigned" -ForegroundColor Green
-    }
-} catch {
-    Write-Warning "Could not set execution policy: \$(\$_.Exception.Message)"
-}
-
-\$env:DOTFILES_ROOT = "\\\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\dotfiles"
-\$env:PROJECTS_ROOT = "C:\\Users\\$WIN_USER\\projects"
-
-if (-not (Test-Path \$env:PROJECTS_ROOT)) {
-    New-Item -ItemType Directory -Path \$env:PROJECTS_ROOT -Force | Out-Null
-}
-
-\$mainProfile = Join-Path \$env:DOTFILES_ROOT 'PowerShell\\Microsoft.PowerShell_profile.ps1'
-if (Test-Path \$mainProfile) {
-    try {
-        . \$mainProfile
-        Write-Host "✅ Loaded dotfiles PowerShell profile" -ForegroundColor Green
-    } catch {
-        function global:projects { Set-Location -Path \$env:PROJECTS_ROOT }
-        Write-Host "📦 Created basic functions as fallback" -ForegroundColor Blue
-    }
-} else {
-    function global:projects { Set-Location -Path \$env:PROJECTS_ROOT }
-    Write-Host "📦 Created basic functions as fallback" -ForegroundColor Blue
-}
-EOF
-        echo "✅ PowerShell 7 profile created successfully"
-
-        # Set execution policy
-        echo "🔐 Setting PowerShell execution policy..."
-        pwsh.exe -c "try { Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Write-Host 'Execution policy set successfully' } catch { Write-Warning \"Could not set execution policy: \$(\$_.Exception.Message)\" }" 2>/dev/null || echo "⚠️  Could not set execution policy automatically"
-
-        echo "💡 Open a new PowerShell 7 window (pwsh) and run 'projects' to test"
-      else
-        echo "⚠️  Could not determine PowerShell 7 profile path"
       fi
     else
-      echo "⚠️  Could not determine Windows username"
+      echo "⚠️  Could not determine Windows username"; projects_success=false
     fi
   fi
+  if $projects_success; then mark_component_installed projects_setup; else mark_component_failed projects_setup windows_integration; overall_success=false; fi
 fi
 
-# Set up Windows SSH Agent
-if [ "$setup_ssh_agent_windows" -eq 1 ]; then
-  echo "▶️  Setting up Windows SSH Agent..."
-
-  # Use the just command for consistency
-  if command -v just >/dev/null 2>&1; then
-    just setup-ssh-agent-windows
+(( setup_pwsh7_windows )) && safe_execute pwsh7_windows "Setting up PowerShell 7 Windows integration" "bash '$DOTFILES_ROOT/scripts/setup-pwsh7.sh'" || true
+if (( setup_ssh_agent_windows )); then
+  if [[ -f "$DOTFILES_ROOT/scripts/setup-ssh-agent-windows-simple.ps1" ]]; then
+    safe_execute ssh_agent_windows "Setting up Windows SSH Agent" "powershell.exe -ExecutionPolicy Bypass -File '$DOTFILES_ROOT/scripts/setup-ssh-agent-windows-simple.ps1'" || overall_success=false
   else
-    # Fallback to direct PowerShell execution
-    echo "ℹ️  'just' command not found, using direct setup..."
-    powershell.exe -ExecutionPolicy Bypass -File "$PWD/scripts/setup-ssh-agent-windows.ps1" 2>/dev/null || echo "⚠️  Could not set up SSH Agent automatically"
+    echo "⚠️  SSH Agent setup script missing"; mark_component_failed ssh_agent_windows missing; overall_success=false
   fi
 fi
 
-echo
-echo "🎉 Setup complete!  Please restart your terminal sessions to load the new configuration."
+echo; echo "=================================================="
+if $overall_success; then
+  echo "🎉 Setup completed successfully!"
+else
+  echo "⚠️  Setup completed with some issues. Re-run to retry failures."
+fi
+echo; echo "📋 Final installation status:"; show_installation_status; echo
+echo "🚀 Next steps: restart terminal or 'source ~/.zshrc'; run 'p10k configure' if desired."
+echo "setup_completed=$(date -Iseconds)" >> "$DOTFILES_STATE_FILE" || true
+if [ "$enable_hook" -eq 1 ]; then

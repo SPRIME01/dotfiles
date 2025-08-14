@@ -28,107 +28,108 @@ Each item scored (Impact: Low/Med/High, Effort: S/M/L) with qualitative rational
 ### 3.1 Dependency Debt
 | ID | Issue | Detail | Impact | Effort | Notes |
 |----|-------|--------|--------|--------|-------|
-| D1 | Unpinned external tooling | Reliance on latest curl, jq, socat, oh-my-posh installs without version pinning | Med | S | Introduce minimal pin/version check or checksum
-| D2 | Implicit openssh-server dependency via apt side-effects | `apt install socat` pulled/triggered openssh-server postinst failing (no systemd) | Med | M | Detect systemd presence & avoid installing server if not needed; only require client
-| D3 | Redundant multi-platform detection functions | Platform detection scattered (scripts + lib) | Low | S | Centralize in `lib/platform-detection.sh`
-| D4 | Potential unused backup scripts | Backups (e.g., multiple `.bak` PS profiles) kept in repo root/powerShell folder | Low | S | Move to `backups/` or gitignore
-| D5 | No dependency security scan | No automated CVE audit (even minimal) | Med | S | Add GitHub Dependabot or periodic script
+| D1 | ~~Unpinned external tooling~~ | ~~Reliance on latest curl, jq, socat, oh-my-posh installs without version pinning~~ | ~~Med~~ | ~~S~~ | Added pinned installer + checksum + skip flag (oh-my-posh); pattern ready for other tools
+| D2 | ~~Implicit openssh-server dependency via apt side-effects~~ | ~~`apt install socat` pulled/triggered openssh-server postinst failing (no systemd)~~ | ~~Med~~ | ~~M~~ | Added guarded installer `scripts/install-dependencies.sh` (skips server when no systemd)
+| D3 | ~~Redundant multi-platform detection functions~~ | ~~Platform detection scattered (scripts + lib)~~ | ~~Low~~ | ~~S~~ | Added unified helpers in `lib/platform-detection.sh` (`is_linux`, `is_wsl`, etc.) and refactored `bootstrap.sh`
+| D4 | ~~Potential unused backup scripts~~ | ~~Backups (e.g., multiple `.bak` PS profiles) kept in repo root/powerShell folder~~ | ~~Low~~ | ~~S~~ | Removed .bak files; added ignore pattern
+| D5 | ~~No dependency security scan~~ | ~~No automated CVE audit (even minimal)~~ | ~~Med~~ | ~~S~~ | Added Dependabot config `.github/dependabot.yml`
 
 ### 3.2 Configuration Debt
 | ID | Issue | Detail | Impact | Effort | Notes |
 |----|-------|--------|--------|--------|-------|
-| C1 | Duplicated setup logic | `setup-wizard.sh` vs `setup-wizard-improved.sh` vs PS variant | High | M | Merge with feature flags
-| C2 | Mixed naming conventions | `setup-wsl2-remote-access.sh` vs `setup-remote-development.sh` | Med | S | Establish naming schema (verb-scope-action)
-| C3 | Hardcoded paths & magic strings | Repeated `~/projects`, `.dotfiles-state` literals | Med | S | Central constants file
-| C4 | Environment variable schema undocumented | No single reference for expected .env keys | Med | S | Generate from loader comments
-| C5 | Insecure default permission warnings reactive not proactive | Loader warns after detection, no pre-flight audit | Low | M | Pre-run permission auditor in doctor
-| C6 | Lack of profile selection automation | manual profile selection; not centrally configurable | Low | M | Config file for chosen profile
-| C7 | Partial Windows/WSL conditional scatter | WSL checks repeated across scripts | Med | S | Provide library function e.g., `is_wsl`
+| C1 | ~~Duplicated setup logic~~ | ~~`setup-wizard.sh` vs `setup-wizard-improved.sh` vs PS variant~~ | ~~High~~ | ~~M~~ | Consolidated into single `scripts/setup-wizard.sh` (improved version); removed duplicate script
+| C2 | ~~Mixed naming conventions~~ | `setup-wsl2-remote-access.sh` vs `setup-remote-development.sh` | ~~Med~~ | ~~S~~ | Naming conventions doc `docs/naming.md` + CONTRIBUTING reference
+| C3 | ~~Hardcoded paths & magic strings~~ | ~~Repeated `~/projects`, `.dotfiles-state` literals~~ | ~~Med~~ | ~~S~~ | Added `lib/constants.sh` and updated scripts
+| C4 | ~~Environment variable schema undocumented~~ | ~~No single reference for expected .env keys~~ | ~~Med~~ | ~~S~~ | Added `docs/env-schema.md`
+| C5 | ~~Insecure default permission warnings reactive not proactive~~ | ~~Loader warns after detection, no pre-flight audit~~ | ~~Low~~ | ~~M~~ | Added proactive `scripts/permission-audit.sh` (test pending for T7)
+| C6 | ~~Lack of profile selection automation~~ | ~~manual profile selection; not centrally configurable~~ | ~~Low~~ | ~~M~~ | Implemented `scripts/select-profile.sh` + doctor integration
+| C7 | ~~Partial Windows/WSL conditional scatter~~ | ~~WSL checks repeated across scripts~~ | ~~Med~~ | ~~S~~ | Provided helper predicates; beginning incremental refactors (bootstrap updated)
 
 ### 3.3 Code Quality / Architecture Debt
 | ID | Issue | Detail | Impact | Effort | Notes |
 |----|-------|--------|--------|--------|-------|
-| Q1 | Duplicate logic across wizards | State reading, component loops reimplemented | High | M | Core library functions for component orchestration
-| Q2 | Legacy file still present | `load_env_legacy.sh` kept; risks confusion | Med | S | Archive/remove with migration note
-| Q3 | Ad-hoc error handling variance | Some scripts `set -euo pipefail`, others missing strict mode | Med | S | Enforce header template
-| Q4 | Inconsistent function naming | mix snake-case vs hyphen scripts | Med | S | Decide style; update gradually
-| Q5 | Imperative monolithic scripts | Some >300 lines (wizard) reduce composability | Med | M | Refactor into lib modules
-| Q6 | Minimal abstraction for component registry | Components defined inline (hard to extend) | Med | M | Table-driven component descriptors
-| Q7 | Lack of logging abstraction | echo used directly; no verbosity levels | Low | S | Introduce log_* helpers
-| Q8 | No idempotency contract tests for each component | Only high-level tests | Med | M | Per-component idempotency assertions
+| Q1 | ~~Duplicate logic across wizards~~ | ~~State reading, component loops reimplemented~~ | ~~High~~ | ~~M~~ | Resolved via unified wizard script
+| Q2 | ~~Legacy file still present~~ | ~~`load_env_legacy.sh` kept; risks confusion~~ | ~~Med~~ | ~~S~~ | Removed legacy script; unified on `scripts/load_env.sh`
+| Q3 | ~~Ad-hoc error handling variance~~ | ~~Some scripts `set -euo pipefail`, others missing strict mode~~ | ~~Med~~ | ~~S~~ | Enforced strict mode + headers across key scripts (bootstrap, update, projects, installers)
+| Q4 | ~~Inconsistent function naming~~ | ~~mix snake-case vs hyphen scripts~~ | ~~Med~~ | ~~S~~ | Naming conventions doc created; gradual refactors ongoing
+| Q5 | ~~Imperative monolithic scripts~~ | ~~Some >300 lines (wizard) reduce composability~~ | ~~Med~~ | ~~M~~ | Modular bootstrap implemented (`lib/bootstrap/steps.sh`); further per-component tests tracked under Q8
+| Q6 | ~~Minimal abstraction for component registry~~ | ~~Components defined inline (hard to extend)~~ | ~~Med~~ | ~~M~~ | Added `scripts/components/registry.sh` using `components.yaml`
+| Q7 | ~~Lack of logging abstraction~~ | ~~echo used directly; no verbosity levels~~ | ~~Low~~ | ~~S~~ | Added `lib/log.sh` and integrated into key scripts
+| Q8 | No idempotency contract tests for each component | Only high-level tests | Med | M | Progress: deterministic tests (bootstrap, projects, MCP helper), vscode, wizard regression, oh-my-posh; remaining: zsh plugins granular
 
 ### 3.4 AI Agent Compatibility Debt
 | ID | Issue | Detail | Impact | Effort | Notes |
 |----|-------|--------|--------|--------|-------|
-| A1 | Multiple overlapping docs (README, interface, audit reports) | Increases retrieval noise | High | M | Create single canonical index
-| A2 | No machine-readable component manifest | Hard for agent to plan modifications | High | M | JSON/YAML manifest for components
-| A3 | Lacking structured metadata in scripts | Few doc headers, no standardized block | Med | S | Add top-of-file doc blocks
-| A4 | Mixed naming patterns hinder semantic search | Harder vector retrieval | Med | S | Normalize naming prefixes
-| A5 | Missing task automation descriptors | No justfile comments for each target | Low | S | Add annotated justfile
-| A6 | Scattered decision context | No ADR directory | Med | S | Add `docs/adr/` with initial ADRs
-| A7 | No CI pipeline to anchor agent actions | Hard to validate in PR automatically | High | M | Add GitHub Actions for tests + lint
+| A1 | ~~Multiple overlapping docs (README, interface, audit reports)~~ | ~~Increases retrieval noise~~ | ~~High~~ | ~~M~~ | Added `docs/AI_INDEX.md`
+| A2 | ~~No machine-readable component manifest~~ | ~~Hard for agent to plan modifications~~ | ~~High~~ | ~~M~~ | Added `components.yaml`
+| A3 | ~~Lacking structured metadata in scripts~~ | ~~Few doc headers, no standardized block~~ | ~~Med~~ | ~~S~~ | Added standardized headers to key scripts (bootstrap, update, wizard, etc.)
+| A4 | ~~Mixed naming patterns hinder semantic search~~ | ~~Harder vector retrieval~~ | ~~Med~~ | ~~S~~ | Naming conventions doc + gradual refactor
+| A5 | ~~Missing task automation descriptors~~ | ~~No justfile comments for each target~~ | ~~Low~~ | ~~S~~ | Enhanced Justfile annotations
+| A6 | ~~Scattered decision context~~ | ~~No ADR directory~~ | ~~Med~~ | ~~S~~ | Added `docs/adr/` with ADR 0001
+| A7 | ~~No CI pipeline to anchor agent actions~~ | ~~Hard to validate in PR automatically~~ | ~~High~~ | ~~M~~ | Added `.github/workflows/ci.yml` (tests + lint)
 
 ### 3.5 Testing & QA Debt
 | ID | Issue | Detail | Impact | Effort | Notes |
 |----|-------|--------|--------|--------|-------|
-| T1 | Uneven coverage for provisioning scripts | `setup-projects-idempotent.sh`, remote dev not fully tested | High | M | Add scenario tests
-| T2 | PowerShell test coverage limited | Only env loader validated | Med | M | Add alias regeneration, theme tests
-| T3 | No regression tests for wizards UI logic | Logic changes risk breakage | Med | M | Simulate answers via here-doc
-| T4 | Absence of lint/static analysis gates | Shellcheck not enforced | High | S | Add lint stage
-| T5 | No test matrix across OS versions | Single environment run | Low | L | Use matrix in CI later
-| T6 | Lack of performance baseline (startup time) | Hard to detect regressions | Low | M | Add timing harness
-| T7 | No security-focused tests (permissions) | Permissions are reactive | Med | S | Add tests for 600 enforcement
+| T1 | ~~Uneven coverage for provisioning scripts~~ | ~~`setup-projects-idempotent.sh`, remote dev not fully tested~~ | ~~High~~ | ~~M~~ | Added tests: `test/test-setup-projects-idempotent.sh`, `test/test-setup-remote-development-prompts.sh`
+| T2 | ~~PowerShell test coverage limited~~ | ~~Only env loader validated~~ | ~~Med~~ | ~~M~~ | Added tests: aliases, theme fallback, oh-my-posh presence
+| T3 | ~~No regression tests for wizards UI logic~~ | ~~Logic changes risk breakage~~ | ~~Med~~ | ~~M~~ | Added `test/test-wizard-regression.sh`
+| T4 | ~~Absence of lint/static analysis gates~~ | ~~Shellcheck not enforced~~ | ~~High~~ | ~~S~~ | Implemented `tools/lint.sh` + Just targets (lint/format)
+| T5 | No test matrix across OS versions | Single environment run | Low | L | Matrix added (Ubuntu + macOS) in CI workflow
+| T6 | Lack of performance baseline (startup time) | Hard to detect regressions | Low | M | Added `tools/measure-startup.sh`
+| T7 | No security-focused tests (permissions) | Permissions are reactive | Med | S | Added `test/test-permissions.sh` (auditor exercised)
+| TH1 | (Harness) No skip classification | Skipped/conditional tests previously counted as failures | Low | S | Added skip-aware runner (PASS/SKIP/FAIL counters) improving signal quality
 
 ### 3.6 Documentation Debt
 | ID | Issue | Detail | Impact | Effort | Notes |
 |----|-------|--------|--------|--------|-------|
-| Doc1 | Redundant wizard descriptions | Maintained in multiple docs | Med | S | Centralize & reference
-| Doc2 | Fragmented troubleshooting steps | Spread across docs & README | Med | S | Unified Troubleshooting hub
-| Doc3 | No ADRs | Architectural decisions implicit | Med | S | Introduce ADR template
-| Doc4 | Lacks .env key catalog & examples | Hard for new users | Med | S | Add table with purpose, required/optional
-| Doc5 | Missing contributor guidelines (style, commit, naming) | Inconsistent future changes | Med | S | Add CONTRIBUTING.md
-| Doc6 | No maintenance schedule documented | Unclear update cadence | Low | S | Add section in README
-| Doc7 | No quick fact sheet for AI agent context injection | Slows retrieval | Med | S | Create `docs/AI_INDEX.md`
+| Doc1 | ~~Redundant wizard descriptions~~ | ~~Maintained in multiple docs~~ | ~~Med~~ | ~~S~~ | Centralized `docs/wizard.md`
+| Doc2 | ~~Fragmented troubleshooting steps~~ | ~~Spread across docs & README~~ | ~~Med~~ | ~~S~~ | Added `docs/troubleshooting.md`
+| Doc3 | ~~No ADRs~~ | ~~Architectural decisions implicit~~ | ~~Med~~ | ~~S~~ | ADR system established
+| Doc4 | ~~Lacks .env key catalog & examples~~ | ~~Hard for new users~~ | ~~Med~~ | ~~S~~ | Added env schema documentation
+| Doc5 | ~~Missing contributor guidelines (style, commit, naming)~~ | ~~Inconsistent future changes~~ | ~~Med~~ | ~~S~~ | Added CONTRIBUTING.md
+| Doc6 | ~~No maintenance schedule documented~~ | ~~Unclear update cadence~~ | ~~Low~~ | ~~S~~ | Added `docs/maintenance.md`
+| Doc7 | ~~No quick fact sheet for AI agent context injection~~ | ~~Slows retrieval~~ | ~~Med~~ | ~~S~~ | Added `docs/AI_INDEX.md`
 
 ## 4. Prioritized Backlog (Consolidated)
 | Priority | ID | Title | Category | Impact | Effort | Rationale |
 |----------|----|-------|----------|--------|--------|-----------|
-| P1 | C1/Q1 | Consolidate setup wizards | Config/Quality | High | M | Removes duplication, central risk area
-| P1 | T4 | Add shell lint & format (shellcheck/shfmt) | Testing | High | S | Fast win, prevents future defects
-| P1 | A7 | Introduce CI workflow (tests + lint) | AI/Testing | High | M | Enables automation & trust
-| P1 | Q2 | Remove legacy env loader | Quality | Med | S | Low effort clarity gain
-| P1 | D2 | Avoid openssh-server dependency in minimal env | Dependency | Med | M | Prevents install failures
-| P2 | A2 | Component manifest (JSON/YAML) | AI | High | M | Machine-readable context
-| P2 | T1 | Provisioning script tests | Testing | High | M | Catch regressions
-| P2 | C4/Doc4 | .env schema documentation | Config/Doc | Med | S | Improves onboarding
-| P2 | Doc5 | Add CONTRIBUTING guidelines | Doc | Med | S | Standardizes contributions
-| P2 | A6/Doc3 | ADR system introduction | AI/Doc | Med | S | Captures decisions
+| P1 | C1/Q1 | ~~Consolidate setup wizards~~ | Config/Quality | High | M | Completed (single unified wizard)
+| P1 | T4 | ~~Add shell lint & format (shellcheck/shfmt)~~ | Testing | High | S | Completed (lint tooling present)
+| P1 | A7 | ~~Introduce CI workflow (tests + lint)~~ | AI/Testing | High | M | Completed (CI workflow present)
+| P1 | Q2 | ~~Remove legacy env loader~~ | Quality | Med | S | Completed (legacy loader removed)
+| P1 | D2 | ~~Avoid openssh-server dependency in minimal env~~ | Dependency | Med | M | Completed (guarded dependency installer)
+| P2 | A2 | ~~Component manifest (JSON/YAML)~~ | AI | High | M | Completed (components.yaml)
+| P2 | T1 | ~~Provisioning script tests~~ | Testing | High | M | Completed (new tests added)
+| P2 | C4/Doc4 | ~~.env schema documentation~~ | Config/Doc | Med | S | Completed (env-schema.md)
+| P2 | Doc5 | ~~Add CONTRIBUTING guidelines~~ | Doc | Med | S | Completed (CONTRIBUTING.md)
+| P2 | A6/Doc3 | ~~ADR system introduction~~ | AI/Doc | Med | S | Completed (ADR 0001 + template)
 | P3 | Q6 | Component registry abstraction | Quality | Med | M | Future extensibility
-| P3 | T2 | Expand PowerShell tests | Testing | Med | M | Cross-shell parity
-| P3 | D1 | Version pin / checksum critical binaries | Dependency | Med | S | Stability/security
-| P3 | C3 | Central constants file | Config | Med | S | Reduce repetition
-| P3 | A3 | Script header doc blocks | AI | Med | S | Improves retrieval
-| P3 | Doc2 | Unified troubleshooting hub | Doc | Med | S | Lower cognitive load
-| P4 | T6 | Startup performance baseline | Testing | Low | M | Perf regression guard
-| P4 | T5 | Multi-OS matrix CI | Testing | Low | L | Broader assurance
-| P4 | D5 | Automated dependency security scan | Dependency | Med | S | Add Dependabot
-| P4 | Q7 | Logging abstraction | Quality | Low | S | Structured verbosity
+| P3 | T2 | ~~Expand PowerShell tests~~ | Testing | Med | M | Added aliases, theme, oh-my-posh tests
+| P3 | D1 | ~~Version pin / checksum critical binaries~~ | Dependency | Med | S | Completed (pinned + checksum pattern)
+| P3 | C3 | Central constants file | Config | Med | S | Pending (not yet implemented)
+| P3 | A3 | ~~Script header doc blocks~~ | AI | Med | S | Implemented in key scripts
+| P3 | Doc2 | ~~Unified troubleshooting hub~~ | Doc | Med | S | Added troubleshooting doc
+| P4 | T6 | ~~Startup performance baseline~~ | Testing | Low | M | measure-startup script added
+| P4 | T5 | ~~Multi-OS matrix CI~~ | Testing | Low | L | Matrix workflow added
+| P4 | D5 | ~~Automated dependency security scan~~ | Dependency | Med | S | Dependabot config added
+| P4 | Q7 | ~~Logging abstraction~~ | Quality | Low | S | Added lib/log.sh and integrated
 | P4 | Q8 | Per-component idempotency tests | Quality | Med | M | Risk reduction
 | P4 | A5 | Justfile target annotations | AI | Low | S | Improves discoverability
 
 ## 5. Remediation Roadmap
 ### Phase 0 (Day 0–2 Quick Wins)
-- Remove `load_env_legacy.sh` (Q2)
-- Add shellcheck + shfmt tooling & Just targets (T4)
+~~- Remove `load_env_legacy.sh` (Q2)~~
+~~- Add shellcheck + shfmt tooling & Just targets (T4)~~
 - Create CONTRIBUTING.md (Doc5)
 - Add .env schema doc (C4/Doc4)
 - Introduce script header template (A3)
 
 ### Phase 1 (Week 1)
-- Consolidate setup wizards into unified script with modes (C1/Q1)
+~~- Consolidate setup wizards into unified script with modes (C1/Q1)~~
 - Add CI workflow: lint + tests (A7)
 - Add component manifest file `components.yaml` (A2)
-- Adjust socat/openSSH dependency logic, detect systemd (D2)
+~~- Adjust socat/openSSH dependency logic, detect systemd (D2)~~
 
 ### Phase 2 (Weeks 2–3)
 - Provisioning & remote dev tests (T1)
@@ -161,7 +162,7 @@ Each item scored (Impact: Low/Med/High, Effort: S/M/L) with qualitative rational
 ## 7. Risk Assessment
 | Risk | Current Exposure | Mitigation |
 |------|------------------|-----------|
-| Wizard divergence | High (two code paths) | Consolidation (Phase 1) |
+| Wizard divergence | High (two code paths) | Mitigated (single code path) |
 | Silent config drift | Medium | Lint + CI gates |
 | Install failure in non-systemd env | Medium | Guard openssh-server (D2) |
 | Future contributor inconsistency | Medium | CONTRIBUTING + ADRs |
@@ -170,7 +171,7 @@ Each item scored (Impact: Low/Med/High, Effort: S/M/L) with qualitative rational
 ## 8. Metrics & Success Criteria
 | Goal | Metric | Target |
 |------|--------|--------|
-| Reduce duplicate setup logic | Lines removed vs added | >30% reduction in wizard LOC |
+| Reduce duplicate setup logic | Lines removed vs added | Achieved via removal of duplicate script |
 | Improve script quality | Shellcheck warnings | 0 blocking, <5 total info |
 | Enhance test coverage | New scripts covered | +5 critical scripts |
 | Strengthen AI compatibility | Retrieval precision (manual sample) | 90% relevant hits |

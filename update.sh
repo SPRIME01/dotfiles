@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
-set -e
+# Description: Safe update workflow for dotfiles (stash local changes, pull, re-bootstrap, restore stash).
+# Category: maintenance
+# Dependencies: git, bash
+# Idempotent: yes (re-runnable; only pulls latest changes)
+# Inputs: DOTFILES_DIR (defaults to $HOME/dotfiles), BRANCH (default main)
+# Outputs: Updated repository, possibly restored local changes
+# Exit Codes: 0 success, 1 missing repo, >1 git errors
+set -euo pipefail
 
 echo "📡 Checking for updates from dotfiles..."
 
