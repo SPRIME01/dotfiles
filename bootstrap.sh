@@ -25,7 +25,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 log_info "Bootstrap start: $ROOT_DIR"
 
 # Source platform helpers if they exist
-for helper in lib/platform-detection.sh lib/error-handling.sh lib/env-loader.sh; do
+for helper in lib/error-handling.sh lib/env-loader.sh; do
     if [ -f "$ROOT_DIR/$helper" ]; then
         # shellcheck disable=SC1090
         source "$ROOT_DIR/$helper"
