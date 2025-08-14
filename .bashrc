@@ -1,9 +1,8 @@
 #!/bin/bash
 
-# Resolve DOTFILES_ROOT once for consistency across shells
-if [ -z "${DOTFILES_ROOT:-}" ]; then
-  DOTFILES_ROOT="$HOME/dotfiles"
-fi
+# Resolve DOTFILES_ROOT once for consistency across shells (allow override)
+DOTFILES_ROOT="${DOTFILES_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+export DOTFILES_ROOT
 
 # Source shared configuration and helper scripts (readable check)
 if [ -r "$DOTFILES_ROOT/.shell_common.sh" ]; then
