@@ -54,7 +54,7 @@ When making a significant architectural decision, add an ADR in `docs/adr/` usin
 - Use lowercase-with-hyphens for script filenames
 - Functions in bash use snake_case
 - Keep lines <= 120 chars where practical
- - See `docs/naming.md` for detailed conventions (scripts, env vars, components)
+- See `docs/naming.md` for detailed conventions (scripts, env vars, components)
 
 ## Lint & Formatting
 Run `just lint` before pushing. Format shell code with `shfmt -w` if needed.
