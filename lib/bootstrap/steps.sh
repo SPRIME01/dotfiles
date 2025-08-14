@@ -59,7 +59,7 @@ bootstrap_vscode() {
   local root="$1"
   echo "💻 Setting up VS Code configuration..."
   if [ -f "$root/install/vscode.sh" ]; then
-    "$root/install/vscode.sh"
+    "$root/install/vscode.sh" || echo "⚠️  VS Code installation script reported a non-zero exit; continuing"
   else
     echo "⚠️  VS Code installation script not found"
   fi
