@@ -2,8 +2,15 @@
 # Regression tests for interactive-setup wizard (non-interactive simulation)
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-WIZ="$ROOT/install/interactive-setup.sh"
-if [[ ! -f $WIZ ]]; then
+WIZ=""
+for cand in \
+  "$ROOT/scripts/setup-wizard.sh" \
+  "$ROOT/scripts/setup-wizard-improved.sh" \
+  "$ROOT/install/interactive-setup.sh"
+do
+  if [[ -f "$cand" ]]; then WIZ="$cand"; break; fi
+done
+if [[ -z "$WIZ" ]]; then
   echo "SKIP: wizard script missing"; exit 0
 fi
 
