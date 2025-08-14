@@ -414,7 +414,7 @@ It checks:
 - PATH includes common user bins (~/.local/bin, ~/.cargo/bin, Pulumi, Volta)
 - Valid JSON for `mcp/servers.json` (if `jq` is installed)
 - On WSL, prerequisites for the SSH agent bridge (socat/npiperelay)
-- Best‑effort VS Code terminal defaults and zsh path
+- Best-effort VS Code terminal defaults and zsh path
 
 Note: All warnings are informational; no side effects.
 
