@@ -19,6 +19,15 @@ ok() { echo "✅ $*"; }
 warn() { echo "⚠️  $*"; }
 err() { echo "❌ $*"; }
 
+# Active profile
+PROFILE_MARKER="${DOTFILES_PROFILE_FILE:-$HOME/.dotfiles-profile}"
+if [[ -f "$PROFILE_MARKER" ]]; then
+  profile=$(tr -d '\r' < "$PROFILE_MARKER" | head -n1)
+  ok "Active profile: ${profile:-unknown}"
+else
+  warn "No active profile selected (run scripts/select-profile.sh <minimal|developer|full>)"
+fi
+
 # Shell & frameworks
 command -v zsh >/dev/null 2>&1 && ok "zsh present ($(zsh --version | head -n1))" || warn "zsh not found"
 [ -d "$HOME/.oh-my-zsh" ] && ok "Oh My Zsh installed" || warn "Oh My Zsh not installed (~/.oh-my-zsh missing)"
@@ -123,3 +132,9 @@ else
 fi
 
 echo "\nDone."
+
+# Permission audit (non-blocking)
+if [ -x "$REPO_ROOT/scripts/permission-audit.sh" ]; then
+  echo "\n🔐 Permission audit:"
+  bash "$REPO_ROOT/scripts/permission-audit.sh" || true
+fi

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TMP_HOME=$(mktemp -d)
+export HOME="$TMP_HOME"
+
+run_bootstrap() { NO_NETWORK=1 OMP_VERSION=skip bash "$ROOT/bootstrap.sh" >/dev/null 2>&1; }
+
+HELPER="$ROOT/test/helpers/state_snapshot.sh"
+if [[ ! -x $HELPER ]]; then echo "FAIL: snapshot helper missing"; exit 1; fi
+
+if ! run_bootstrap; then
+  echo "FAIL: bootstrap first run failed"; exit 1
+fi
+snapshot1=$($HELPER "$HOME" 3)
+if ! run_bootstrap; then
+  echo "FAIL: bootstrap second run failed"; exit 1
+fi
+snapshot2=$($HELPER "$HOME" 3)
+
+if [[ "$snapshot1" != "$snapshot2" ]]; then
+  echo "FAIL: bootstrap not idempotent (hash mismatch)"; exit 1
+fi
+
+echo "PASS: bootstrap idempotent"

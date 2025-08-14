@@ -1,14 +1,25 @@
 #!/usr/bin/env bash
-# Idempotent projects directory setup script
-# This script safely sets up projects directory with Windows integration
+# Description: Idempotent projects directory setup with optional Windows (WSL) integration.
+# Category: setup
+# Dependencies: bash, (optional) cmd.exe for WSL detection
+# Idempotent: yes (safe re-runs; only creates directory/symlink/batch if absent)
+# Inputs: PROJECTS_ROOT (optional override), WSL_DISTRO_NAME (auto-provided in WSL2)
+# Outputs: Ensured projects directory, optional Windows symlink or batch file
+# Exit Codes: 0 success, >0 failure conditions (user resolution needed)
+set -euo pipefail
 
-set -e
+# Source constants if available
+if [[ -f "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/constants.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/constants.sh"
+fi
 
 echo "🗂️  Setting up projects directory..."
 
 # Always safe to create the directory
-mkdir -p ~/projects
-echo "✅ Projects directory ensured at ~/projects"
+PROJECTS_DIR="${PROJECTS_ROOT:-$(get_projects_root 2>/dev/null || echo "$HOME/projects")}";
+mkdir -p "$PROJECTS_DIR"
+echo "✅ Projects directory ensured at $PROJECTS_DIR"
 
 # Check if we're in WSL2 environment
 if [[ -z "${WSL_DISTRO_NAME:-}" ]] || ! command -v cmd.exe >/dev/null 2>&1; then
@@ -25,7 +36,7 @@ if [[ -z "$WIN_USER" ]]; then
 fi
 
 WIN_PROJECTS_LINK="/mnt/c/Users/$WIN_USER/projects"
-WSL_PROJECTS_WIN_PATH="\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\projects"
+WSL_PROJECTS_WIN_PATH="\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\$(basename "$PROJECTS_DIR")"
 BATCH_FILE="/mnt/c/Users/$WIN_USER/projects.bat"
 
 echo "🔗 Setting up Windows access to projects directory..."

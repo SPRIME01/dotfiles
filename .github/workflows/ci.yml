@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, fix/**, feature/** ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install shellcheck & shfmt (Linux)
+        if: contains(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y shellcheck curl
+          curl -sSLo /tmp/shfmt.tar.gz https://github.com/mvdan/sh/releases/download/v3.7.0/shfmt_v3.7.0_linux_amd64.tar.gz
+          sudo tar -C /usr/local/bin -xzf /tmp/shfmt.tar.gz shfmt
+      - name: Install shellcheck & shfmt (macOS)
+        if: contains(matrix.os, 'macos')
+        run: |
+          brew update
+            brew install shellcheck shfmt || true
+      - name: Run lint
+        run: bash tools/lint.sh
+      - name: Run tests
+        run: bash scripts/run-tests.sh

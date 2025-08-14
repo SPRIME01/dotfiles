@@ -1,85 +1,52 @@
 #!/usr/bin/env bash
-set -e
+# Description: Bootstrap Unix shell environment (symlinks, themes, MCP, VS Code) idempotently.
+# Category: setup
+# Dependencies: curl (optional), bash, git
+# Idempotent: yes (safe re-runs; external installers may self-skip if already present)
+# Inputs: DOTFILES (path auto-detected)
+# Outputs: Symlinked config files, installed themes/tools, updated editor settings
+# Exit Codes: 0 success, >0 failure conditions (missing repo)
+set -euo pipefail
 
-# Automatically determine the dotfiles directory based on where this script lives
-DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-: "${DOTFILES:=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
-
-echo "⚙️ Setting up Unix shell..."
-
-DOTFILES=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-
-# Create symlinks for shell configuration files
-ln -sf "$DOTFILES/.bashrc" ~/.bashrc
-ln -sf "$DOTFILES/.zshrc" ~/.zshrc
-ln -sf "$DOTFILES/.shell_common.sh" ~/.shell_common
-ln -sf "$DOTFILES/.shell_theme_common.ps1" ~/.shell_theme_common
-ln -sf "$DOTFILES/.shell_functions.sh" ~/.shell_functions
-
-# Install oh-my-posh if not present
-if ! command -v oh-my-posh &> /dev/null; then
-    echo "📦 Installing oh-my-posh..."
-    curl -s https://ohmyposh.dev/install.sh | bash -s
+# Logging
+if [ -f "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/log.sh" ]; then
+    # shellcheck disable=SC1090
+    . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/log.sh"
 fi
 
-# Ensure Oh My Zsh is installed (idempotent, unattended)
-if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
-    echo "📦 Installing Oh My Zsh..."
-    if command -v curl >/dev/null 2>&1; then
-        sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended || true
-    else
-        echo "⚠️ curl not available; skipping Oh My Zsh installation"
+# Source platform detection helpers
+if [ -f "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/platform-detection.sh" ]; then
+    # shellcheck source=/dev/null
+    . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/platform-detection.sh"
+    detect_platform || true
+fi
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+log_info "Bootstrap start: $ROOT_DIR"
+
+# Source platform helpers if they exist
+for helper in lib/platform-detection.sh lib/error-handling.sh lib/env-loader.sh; do
+    if [ -f "$ROOT_DIR/$helper" ]; then
+        # shellcheck disable=SC1090
+        source "$ROOT_DIR/$helper"
     fi
+done
+
+# Source modular steps
+if [ -f "$ROOT_DIR/lib/bootstrap/steps.sh" ]; then
+    # shellcheck disable=SC1090
+    source "$ROOT_DIR/lib/bootstrap/steps.sh"
 else
-    echo "✅ Oh My Zsh already installed"
+    log_error "Missing lib/bootstrap/steps.sh; cannot continue"
+    exit 1
 fi
 
-# Install Oh My Zsh for Linux/WSL2 environments
-if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ -n "$WSL_DISTRO_NAME" ]]; then
-    echo "🐧 Detected Linux/WSL2 environment"
+bootstrap_link_shell_configs "$ROOT_DIR"
+bootstrap_install_oh_my_posh "$ROOT_DIR"
+bootstrap_install_oh_my_zsh
+bootstrap_zsh_linux_setup "$ROOT_DIR"
+bootstrap_mcp "$ROOT_DIR"
+bootstrap_vscode "$ROOT_DIR"
+bootstrap_doctor "$ROOT_DIR"
 
-    # Make install_zsh.sh executable and run it
-    if [ -f "$DOTFILES/install_zsh.sh" ]; then
-        chmod +x "$DOTFILES/install_zsh.sh"
-        echo "🐚 Installing Oh My Zsh..."
-        "$DOTFILES/install_zsh.sh"
-    else
-        echo "⚠️  install_zsh.sh not found, skipping Zsh setup"
-    fi
-fi
-
-# Setup MCP configuration
-echo "🔧 Setting up MCP (Model Context Protocol) configuration..."
-if [ ! -d "$DOTFILES/mcp" ]; then
-    echo "⚠️  MCP directory not found. Run 'git pull' to get latest dotfiles."
-else
-    echo "✅ MCP configuration directory found"
-    if [ -f "$DOTFILES/mcp/.env" ]; then
-        echo "✅ MCP environment file found"
-    else
-        echo "⚠️  MCP environment file not found. You may need to configure MCP manually."
-    fi
-fi
-
-# Setup VS Code configuration
-echo "💻 Setting up VS Code configuration..."
-if [ -f "$DOTFILES/install/vscode.sh" ]; then
-    echo "🔧 Installing VS Code settings..."
-    "$DOTFILES/install/vscode.sh"
-else
-    echo "⚠️  VS Code installation script not found"
-fi
-
-echo "🎉 Bootstrap complete!"
-echo "💡 To use MCP helper tools, run:"
-echo "   $DOTFILES/mcp/mcp-helper.sh env      # Show MCP environment"
-echo "   $DOTFILES/mcp/mcp-helper.ps1 env     # Show MCP environment (PowerShell)"
-
-echo
-echo "🩺 Running dotfiles doctor (optional health checks)..."
-if [ -x "$DOTFILES/scripts/doctor.sh" ]; then
-    DOTFILES_ROOT="$DOTFILES" bash "$DOTFILES/scripts/doctor.sh" || true
-else
-    echo "(doctor not found)"
-fi
+log_info "Bootstrap complete"

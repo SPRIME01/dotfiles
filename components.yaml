@@ -1,0 +1,55 @@
+components:
+  - id: zsh_config
+    description: Install and configure Zsh + plugins + Powerlevel10k
+    script: install_zsh.sh
+    depends_on: [bash_config]
+    idempotent: true
+    tests: []
+  - id: bash_config
+    description: Bootstrap Bash/Zsh shared symlinks and environment
+    script: bootstrap.sh
+    depends_on: []
+    idempotent: true
+    tests: []
+  - id: pwsh_config
+    description: Configure PowerShell profile and modules
+    script: bootstrap.ps1
+    depends_on: []
+    idempotent: true
+    tests: []
+  - id: vscode_settings
+    description: Merge and install VS Code settings
+    script: install/vscode.sh
+    depends_on: []
+    idempotent: true
+    tests: [test/test-vscode-integration.sh]
+  - id: git_hook
+    description: Post-commit hook for PowerShell alias regeneration
+    script: scripts/git-hooks/post-commit
+    depends_on: []
+    idempotent: true
+    tests: []
+  - id: ssh_bridge
+    description: WSL to Windows SSH agent bridge initialization
+    script: scripts/enable-ssh-agent.sh
+    depends_on: []
+    idempotent: true
+    tests: []
+  - id: projects_setup
+    description: Create projects dir + optional Windows link
+    script: scripts/setup-projects-idempotent.sh
+    depends_on: []
+    idempotent: true
+    tests: []
+  - id: pwsh7_windows
+    description: Windows PowerShell 7 profile integration from WSL
+    script: scripts/setup-pwsh7.sh
+    depends_on: [pwsh_config]
+    idempotent: true
+    tests: []
+  - id: ssh_agent_windows
+    description: Configure Windows SSH Agent auto-start
+    script: scripts/setup-ssh-agent-windows-simple.ps1
+    depends_on: []
+    idempotent: true
+    tests: []

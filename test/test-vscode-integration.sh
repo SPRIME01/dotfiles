@@ -168,8 +168,8 @@ main() {
                 "0"
 
     test_assert "Bootstrap script includes VS Code setup" \
-                'grep -q "vscode.sh" "'$DOTFILES_DIR'/bootstrap.sh" >/dev/null 2>&1; echo $?' \
-                "0"
+                    'grep -Eq "(install/)?vscode.sh|bootstrap_vscode" "'$DOTFILES_DIR'/bootstrap.sh" >/dev/null 2>&1; echo $?' \
+                    "0"
 
     test_assert "Base settings have no Windows-specific paths" \
                 '(! grep -q "C:\\\\" "'$DOTFILES_DIR'/.config/Code/User/settings.json" && ! grep -q "AppData" "'$DOTFILES_DIR'/.config/Code/User/settings.json"); echo $?' \
