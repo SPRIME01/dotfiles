@@ -6,7 +6,12 @@
 # Dependencies: uname
 # Outputs: Exports DOTFILES_PLATFORM, DOTFILES_SHELL
 # Exit Codes: 0 always (functions return 0/1)
-set -euo pipefail
+# Exit Codes: 0 always (functions return 0/1)
+# NOTE: This file is intended to be sourced. Avoid forcing strict mode globally.
+# Enable strict mode only if executed directly.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  set -euo pipefail
+fi
 
 detect_platform() {
     # Only compute once per shell session unless forced
