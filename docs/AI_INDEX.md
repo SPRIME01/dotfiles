@@ -6,6 +6,7 @@ Concise, high-signal reference for automated agents interacting with this reposi
 Cross-shell (Bash/Zsh/PowerShell) developer environment bootstrap: prompts, themes (oh-my-posh, p10k), VS Code settings merge, WSL ↔ Windows integration, MCP configuration, SSH agent bridging, remote dev setup.
 
 ## Primary Entry Scripts
+
 | Area | Script | Role |
 |------|--------|------|
 | Unified Setup | `scripts/setup-wizard.sh` | Interactive, state-aware installer |
