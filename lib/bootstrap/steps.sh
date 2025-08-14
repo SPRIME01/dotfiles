@@ -38,11 +38,9 @@ bootstrap_install_oh_my_zsh() {
 
 bootstrap_zsh_linux_setup() {
   local root="$1"
-  if command -v is_linux >/dev/null 2>&1 || command -v is_wsl >/dev/null 2>&1; then
-    if is_linux || is_wsl; then
-      if [ -f "$root/install_zsh.sh" ]; then
-        chmod +x "$root/install_zsh.sh"; "$root/install_zsh.sh" || true
-      fi
+  if is_linux || is_wsl; then
+    if [ -f "$root/install_zsh.sh" ]; then
+      chmod +x "$root/install_zsh.sh"; "$root/install_zsh.sh" || true
     fi
   fi
 }
