@@ -11,10 +11,15 @@ if [ -r "$DOTFILES_ROOT/.shell_common.sh" ]; then
 fi
 
 # Load the environment loader and import variables from .env if it exists.
-if [ -r "$DOTFILES_ROOT/scripts/load_env.sh" ]; then
+if [ -r "$DOTFILES_ROOT/lib/env-loader.sh" ]; then
+  # shellcheck source=/dev/null
+  . "$DOTFILES_ROOT/lib/env-loader.sh"
+  load_dotfiles_environment "$DOTFILES_ROOT" || true
+elif [ -r "$DOTFILES_ROOT/scripts/load_env.sh" ]; then
   # shellcheck source=/dev/null
   . "$DOTFILES_ROOT/scripts/load_env.sh"
-  load_env_file "$DOTFILES_ROOT/.env" || true
+  # Fallback: legacy/simple loader if present
+  command -v load_env_file >/dev/null 2>&1 && load_env_file "$DOTFILES_ROOT/.env" || true
 fi
 
 # Set up SSH agent bridging in WSL2 (idempotent)
