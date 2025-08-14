@@ -36,7 +36,7 @@ command -v oh-my-posh >/dev/null 2>&1 && ok "oh-my-posh present" || warn "oh-my-
 # Fonts and Powerlevel10k (best effort)
 if [ "$QUICK" -eq 0 ]; then
   # MesloLGS NF check (common local path)
-  if ls "$HOME/.local/share/fonts"/MesloLGS\ NF* >/dev/null 2>&1; then
+  if compgen -G "$HOME/.local/share/fonts/MesloLGS NF"* >/dev/null 2>&1; then
     ok "MesloLGS NF fonts installed"
   else
     warn "MesloLGS NF fonts not found in ~/.local/share/fonts"
