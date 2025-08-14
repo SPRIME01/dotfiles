@@ -21,6 +21,7 @@ Cross-shell (Bash/Zsh/PowerShell) developer environment bootstrap: prompts, them
 `components.yaml` enumerates configurable components with metadata (id, script, deps, tests).
 
 ## Libraries
+
 | File | Purpose |
 |------|---------|
 | `lib/state-management.sh` | Track install state & component statuses |
