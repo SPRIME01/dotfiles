@@ -10,12 +10,12 @@ unset WSL_DISTRO_NAME || true
 # Prepare temp HOME
 TMP_HOME=$(mktemp -d)
 export HOME="$TMP_HOME"
+trap 'rm -rf "$TMP_HOME"' EXIT
 
 SCRIPT="$ROOT/scripts/setup-projects-idempotent.sh"
 HELPER="$ROOT/test/helpers/state_snapshot.sh"
-if [[ ! -f $SCRIPT ]]; then echo "FAIL: setup-projects-idempotent script missing"; exit 1; fi
-if [[ ! -x $HELPER ]]; then echo "FAIL: snapshot helper missing"; exit 1; fi
-
+if [[ ! -f "$SCRIPT" ]]; then echo "FAIL: setup-projects-idempotent script missing"; exit 1; fi
+if [[ ! -x "$HELPER" ]]; then echo "FAIL: snapshot helper missing or not executable"; exit 1; fi
 # Use isolated projects root
 export PROJECTS_ROOT="$HOME/projects"
 
