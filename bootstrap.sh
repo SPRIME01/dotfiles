@@ -23,6 +23,18 @@ if ! command -v oh-my-posh &> /dev/null; then
     curl -s https://ohmyposh.dev/install.sh | bash -s
 fi
 
+# Ensure Oh My Zsh is installed (idempotent, unattended)
+if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
+    echo "📦 Installing Oh My Zsh..."
+    if command -v curl >/dev/null 2>&1; then
+        sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended || true
+    else
+        echo "⚠️ curl not available; skipping Oh My Zsh installation"
+    fi
+else
+    echo "✅ Oh My Zsh already installed"
+fi
+
 # Install Oh My Zsh for Linux/WSL2 environments
 if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ -n "$WSL_DISTRO_NAME" ]]; then
     echo "🐧 Detected Linux/WSL2 environment"
@@ -63,3 +75,11 @@ echo "🎉 Bootstrap complete!"
 echo "💡 To use MCP helper tools, run:"
 echo "   $DOTFILES/mcp/mcp-helper.sh env      # Show MCP environment"
 echo "   $DOTFILES/mcp/mcp-helper.ps1 env     # Show MCP environment (PowerShell)"
+
+echo
+echo "🩺 Running dotfiles doctor (optional health checks)..."
+if [ -x "$DOTFILES/scripts/doctor.sh" ]; then
+    DOTFILES_ROOT="$DOTFILES" bash "$DOTFILES/scripts/doctor.sh" || true
+else
+    echo "(doctor not found)"
+fi
