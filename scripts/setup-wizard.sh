@@ -153,7 +153,7 @@ if (( setup_projects )); then
             cat > "$BATCH_FILE" <<'EOF'
 @echo off
 
-cd /d "\\wsl.localhost\%WSL_DISTRO_NAME%\home\%USERNAME%\projects" || echo Failed to access projects
+cd /d "\\wsl.localhost\%WSL_DISTRO_NAME%\home\$USER\projects" || echo Failed to access projects
 cmd /k
 EOF
             chmod +x "$BATCH_FILE" 2>/dev/null || true; echo "✅ Created projects.bat fallback"
