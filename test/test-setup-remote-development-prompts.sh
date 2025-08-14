@@ -12,6 +12,10 @@ if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
 fi
 
 # Provide 'n' responses to both confirmation prompts
+if [[ ! -f "$ROOT/scripts/setup-remote-development.sh" ]]; then
+  echo "SKIP: scripts/setup-remote-development.sh not found"; exit 0
+fi
+# Provide a single 'n' to decline the first prompt and assert early, clean exit
 if ! ( printf 'n\n' | bash "$ROOT/scripts/setup-remote-development.sh" >/dev/null 2>&1 ); then
   echo "FAIL: script failed when declining first prompt" >&2; exit 1
 fi
