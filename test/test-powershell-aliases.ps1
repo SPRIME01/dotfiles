@@ -8,7 +8,12 @@ if (-Not (Test-Path $profilePath)) {
   Write-Host 'SKIP: PowerShell profile not found'
   exit 0
 }
-. $profilePath
+try {
+  . $profilePath
+} catch {
+  Write-Error ("FAIL: failed to load PowerShell profile: {0}" -f $_.Exception.Message)
+  exit 1
+}
 # Simple heuristic: ensure at least one expected alias exists (e.g., 'projects')
 if (Get-Command projects -ErrorAction SilentlyContinue) {
   Write-Host 'PASS: projects alias/function available'
