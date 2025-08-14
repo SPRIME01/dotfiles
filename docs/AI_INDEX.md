@@ -37,6 +37,7 @@ See `docs/env-schema.md` for authoritative list.
 ADRs under `docs/adr/` (ADR 0001 defines component manifest + headers).
 
 ## Common Automation Tasks
+
 | Task | Command |
 |------|---------|
 | Lint scripts | `just lint` |
