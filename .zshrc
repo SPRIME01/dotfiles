@@ -1,76 +1,54 @@
 # Suppress instant prompt warnings - must be set before instant prompt initialization
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
+# Enable Powerlevel10k instant prompt early.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-#!/usr/bin/env zsh
-# dotfiles/.zshrc
-#
-# This zsh configuration is intentionally minimal.  It sources common
-# configuration shared between shells, loads environment variables and
-# plugins from modular files under `zsh/`, and then initialises Oh My Zsh.
-# Additional configuration can be placed in the files within `zsh/`.
+# dotfiles/.zshrc — minimal, modular loader
 
-# Always source the shared shell configuration first to set PROJECTS_ROOT,
-# DOTFILES_ROOT and other global aliases.
-if [ -f "$HOME/dotfiles/.shell_common.sh" ]; then
-    . "$HOME/dotfiles/.shell_common.sh"
+# Resolve DOTFILES_ROOT consistently
+if [[ -z ${DOTFILES_ROOT:-} ]]; then
+    DOTFILES_ROOT="$HOME/dotfiles"
 fi
 
-# Define the path to your Oh My Zsh installation
-export ZSH="$HOME/.oh-my-zsh"
-
-# Load environment variables and additional settings from .env
-if [ -f "$HOME/dotfiles/zsh/env.zsh" ]; then
-    . "$HOME/dotfiles/zsh/env.zsh"
+# Always source shared configuration first
+if [[ -r "$DOTFILES_ROOT/.shell_common.sh" ]]; then
+    source "$DOTFILES_ROOT/.shell_common.sh"
 fi
 
-# Configure PATH and add package manager binaries
-if [ -f "$HOME/dotfiles/zsh/path.zsh" ]; then
-    . "$HOME/dotfiles/zsh/path.zsh"
+# Oh My Zsh path
+export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
+
+# Modular zsh configuration
+[[ -r "$DOTFILES_ROOT/zsh/env.zsh" ]] && source "$DOTFILES_ROOT/zsh/env.zsh"
+[[ -r "$DOTFILES_ROOT/zsh/path.zsh" ]] && source "$DOTFILES_ROOT/zsh/path.zsh"
+[[ -r "$DOTFILES_ROOT/zsh/plugins.zsh" ]] && source "$DOTFILES_ROOT/zsh/plugins.zsh"
+[[ -r "$DOTFILES_ROOT/zsh/prompt.zsh" ]] && source "$DOTFILES_ROOT/zsh/prompt.zsh"
+
+# Initialize Oh My Zsh if available
+if [[ -r "$ZSH/oh-my-zsh.sh" ]]; then
+    source "$ZSH/oh-my-zsh.sh"
 fi
 
-# Load plugin definitions
-if [ -f "$HOME/dotfiles/zsh/plugins.zsh" ]; then
-    . "$HOME/dotfiles/zsh/plugins.zsh"
-fi
+# Shared functions
+[[ -r "$DOTFILES_ROOT/.shell_functions.sh" ]] && source "$DOTFILES_ROOT/.shell_functions.sh"
 
-# Configure the prompt and theme
-if [ -f "$HOME/dotfiles/zsh/prompt.zsh" ]; then
-    . "$HOME/dotfiles/zsh/prompt.zsh"
-fi
+# SSH agent bridge (WSL-aware script handles idempotency/noise)
+[[ -r "$DOTFILES_ROOT/zsh/ssh-agent.zsh" ]] && source "$DOTFILES_ROOT/zsh/ssh-agent.zsh"
 
-# Initialize Oh My Zsh (this was missing!)
-source $ZSH/oh-my-zsh.sh
-
-# Load functions that are shared across shells
-if [ -f "$HOME/dotfiles/.shell_functions.sh" ]; then
-    . "$HOME/dotfiles/.shell_functions.sh"
-fi
-
-# Set up SSH agent bridge in WSL2
-# SSH agent setup (uncomment to enable)
-if [ -f "$HOME/dotfiles/zsh/ssh-agent.zsh" ]; then
-    . "$HOME/dotfiles/zsh/ssh-agent.zsh"
-fi
-
-# Always set basic shell settings since we're lazy loading Oh My Zsh
-autoload -U compinit && compinit
+# Core shell options (compinit is invoked by oh-my-zsh)
 setopt CORRECT
 setopt EXTENDED_GLOB
-HISTFILE=~/.zsh_history
+HISTFILE=$HOME/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
 setopt SHARE_HISTORY
 setopt HIST_IGNORE_DUPS
 
-# Enhanced history search for the history-substring-search plugin
-if [[ -n "${plugins[(r)history-substring-search]}" ]]; then
+# Enhanced history search keybinds if plugin is loaded
+if (( $+functions[history-substring-search-up] )); then
     bindkey '^[[A' history-substring-search-up
     bindkey '^[[B' history-substring-search-down
 fi
@@ -82,8 +60,27 @@ else
     export EDITOR='code'
 fi
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# Powerlevel10k config
+[[ -r "$HOME/.p10k.zsh" ]] && source "$HOME/.p10k.zsh"
 
-# add Pulumi to the PATH
-export PATH=$PATH:/home/prime/.pulumi/bin
+# Add Pulumi to PATH idempotently (only if it exists)
+if [[ -d "$HOME/.pulumi/bin" ]]; then
+    case ":$PATH:" in
+        *":$HOME/.pulumi/bin:"*) ;;
+        *) PATH="$PATH:$HOME/.pulumi/bin" ;;
+    esac
+    export PATH
+fi
+
+# Common user bins (~/.local/bin, ~/.cargo/bin)
+for _p in "$HOME/.local/bin" "$HOME/.cargo/bin"; do
+    if [[ -d "$_p" && ":$PATH:" != *":$_p:"* ]]; then
+        PATH="$PATH:$_p"
+    fi
+done
+export PATH
+
+# Optional debug tracing
+if [[ ${DOTFILES_DEBUG:-0} == 1 ]]; then
+    echo "[dotfiles] zsh profile loaded (DOTFILES_ROOT=$DOTFILES_ROOT, ZSH=$ZSH)"
+fi

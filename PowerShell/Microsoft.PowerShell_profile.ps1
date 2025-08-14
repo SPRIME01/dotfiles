@@ -20,12 +20,13 @@ if (Test-Path $modularIntegration) {
 $envLoader = Join-Path $env:DOTFILES_ROOT 'PowerShell/Utils/Load-Env.ps1'
 if (Test-Path $envLoader) {
     . $envLoader
-    # Load variables from the project .env
-    Load-EnvFile -FilePath (Join-Path $env:DOTFILES_ROOT '.env')
+    # Load variables from the project .env (if present)
+    $rootEnv = Join-Path $env:DOTFILES_ROOT '.env'
+    if (Test-Path $rootEnv) { Load-EnvFile -FilePath $rootEnv }
     # Load variables from the MCP .env if it exists
     $mcpDir = Join-Path $env:DOTFILES_ROOT 'mcp'
     $mcpEnvFile = Join-Path $mcpDir '.env'
-    Load-EnvFile -FilePath $mcpEnvFile
+    if (Test-Path $mcpEnvFile) { Load-EnvFile -FilePath $mcpEnvFile }
 }
 
 # Basic PowerShell setup - must come first
@@ -40,14 +41,18 @@ if (-not (Test-Path $themePath)) {
     $themePath = Join-Path $env:DOTFILES_ROOT 'PowerShell/Themes/emodipt-extend.omp.json'
 }
 
-oh-my-posh init pwsh --config "$themePath" | Invoke-Expression
+if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
+    oh-my-posh init pwsh --config "$themePath" | Invoke-Expression
+} else {
+    Write-Verbose "oh-my-posh not found; skipping prompt init" -Verbose:$false
+}
 Import-Module -Name Terminal-Icons -ErrorAction SilentlyContinue
 Import-Module PSReadLine -ErrorAction SilentlyContinue
 Set-PSReadLineOption -PredictionSource History
 Set-PSReadLineOption -PredictionViewStyle ListView
 Set-PSReadLineOption -EditMode Windows
 
- $sharedShellConfig = Join-Path $env:DOTFILES_ROOT 'PowerShell/.shell_theme_common.ps1'
+$sharedShellConfig = Join-Path $env:DOTFILES_ROOT 'PowerShell/.shell_theme_common.ps1'
 if (Test-Path $sharedShellConfig) {
     . $sharedShellConfig
 }

@@ -1,21 +1,48 @@
 #!/bin/bash
 
-# Source shared configuration and helper scripts
-if [ -f "$HOME/dotfiles/.shell_common.sh" ]; then
-  . "$HOME/dotfiles/.shell_common.sh"
+# Resolve DOTFILES_ROOT once for consistency across shells
+if [ -z "${DOTFILES_ROOT:-}" ]; then
+  DOTFILES_ROOT="$HOME/dotfiles"
+fi
+
+# Source shared configuration and helper scripts (readable check)
+if [ -r "$DOTFILES_ROOT/.shell_common.sh" ]; then
+  # shellcheck source=/dev/null
+  . "$DOTFILES_ROOT/.shell_common.sh"
 fi
 
 # Load the environment loader and import variables from .env if it exists.
-if [ -f "$HOME/dotfiles/scripts/load_env.sh" ]; then
-  # shellcheck source=dotfiles-main/scripts/load_env.sh
-  . "$HOME/dotfiles/scripts/load_env.sh"
-  load_env_file "$HOME/dotfiles/.env"
+if [ -r "$DOTFILES_ROOT/scripts/load_env.sh" ]; then
+  # shellcheck source=/dev/null
+  . "$DOTFILES_ROOT/scripts/load_env.sh"
+  load_env_file "$DOTFILES_ROOT/.env" || true
 fi
 
 # Set up SSH agent bridging in WSL2 (idempotent)
-if [ -f "$HOME/dotfiles/scripts/setup-ssh-agent-bridge.sh" ]; then
-  # shellcheck source=dotfiles-main/scripts/setup-ssh-agent-bridge.sh
-  . "$HOME/dotfiles/scripts/setup-ssh-agent-bridge.sh"
+if [ -r "$DOTFILES_ROOT/scripts/setup-ssh-agent-bridge.sh" ]; then
+  # shellcheck source=/dev/null
+  . "$DOTFILES_ROOT/scripts/setup-ssh-agent-bridge.sh"
 fi
-export VOLTA_HOME="$HOME/.volta"
-export PATH="$VOLTA_HOME/bin:$PATH"
+
+# Volta PATH (idempotent; only if it exists)
+export VOLTA_HOME="${VOLTA_HOME:-$HOME/.volta}"
+if [ -d "$VOLTA_HOME/bin" ]; then
+  case ":$PATH:" in
+    *":$VOLTA_HOME/bin:"*) ;; # already present
+    *) PATH="$VOLTA_HOME/bin:$PATH" ;;
+  esac
+  export PATH
+fi
+
+# Common user bins (~/.local/bin, ~/.cargo/bin)
+for _p in "$HOME/.local/bin" "$HOME/.cargo/bin"; do
+  if [ -d "$_p" ] && [[ ":$PATH:" != *":$_p:"* ]]; then
+    PATH="$PATH:$_p"
+  fi
+done
+export PATH
+
+# Optional debug tracing
+if [ "${DOTFILES_DEBUG:-0}" = "1" ]; then
+  echo "[dotfiles] bash profile loaded (DOTFILES_ROOT=$DOTFILES_ROOT, SHELL=$SHELL)"
+fi
