@@ -16,7 +16,7 @@ fi
 
 # Test selecting each profile via simulated input (1:minimal,2:developer,3:full)
 for choice in 1 2 3; do
-  if ! (printf '%s\n' "$choice" | bash "$WIZ" >/dev/null 2>&1); then
+  if ! (printf '%s\nn\nn\n' "$choice" | DOTFILES_ROOT="$ROOT" bash "$WIZ" >/dev/null 2>&1); then
     echo "FAIL: wizard failed for selection $choice" >&2; exit 1
   fi
 done
