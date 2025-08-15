@@ -17,6 +17,26 @@ EOF
     fi
 }
 
+# Write a key=value pair to the state file, replacing any existing key in-place.
+# Usage: write_state_key "key" "value"
+write_state_key() {
+    local key="$1"
+    local value="$2"
+    init_state_file
+
+    # Escape slashes for sed
+    local esc_value
+    esc_value=$(printf '%s' "$value" | sed -e 's/[\/&]/\\&/g')
+
+    if grep -q "^${key}=" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+        # Replace existing line in-place
+        sed -i "s@^${key}=.*@${key}=${esc_value}@" "$DOTFILES_STATE_FILE"
+    else
+        # Append
+        echo "${key}=${value}" >> "$DOTFILES_STATE_FILE"
+    fi
+}
+
 # Check if a component is already installed
 is_component_installed() {
     local component="$1"
@@ -34,11 +54,7 @@ mark_component_installed() {
     local component="$1"
     init_state_file
 
-    # Remove any existing entry for this component
-    sed -i "/^${component}=/d" "$DOTFILES_STATE_FILE" 2>/dev/null || true
-
-    # Add new entry
-    echo "${component}=installed" >> "$DOTFILES_STATE_FILE"
+    write_state_key "$component" "installed"
     echo "✅ Marked $component as installed"
 }
 
@@ -48,11 +64,7 @@ mark_component_skipped() {
     local reason="${2:-user choice}"
     init_state_file
 
-    # Remove any existing entry for this component
-    sed -i "/^${component}=/d" "$DOTFILES_STATE_FILE" 2>/dev/null || true
-
-    # Add new entry
-    echo "${component}=skipped # $reason" >> "$DOTFILES_STATE_FILE"
+    write_state_key "$component" "skipped # $reason"
     echo "ℹ️  Marked $component as skipped ($reason)"
 }
 
@@ -62,11 +74,7 @@ mark_component_failed() {
     local error="${2:-unknown error}"
     init_state_file
 
-    # Remove any existing entry for this component
-    sed -i "/^${component}=/d" "$DOTFILES_STATE_FILE" 2>/dev/null || true
-
-    # Add new entry
-    echo "${component}=failed # $error" >> "$DOTFILES_STATE_FILE"
+    write_state_key "$component" "failed # $error"
     echo "❌ Marked $component as failed ($error)"
 }
 
