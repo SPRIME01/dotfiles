@@ -191,12 +191,15 @@ main() {
 	# Detect the current context
 	local context
 	context="${1:-${DOTFILES_PLATFORM:-$(detect_context)}}"
+	# Normalize synonyms to match settings file naming
+	case "$context" in
+		macos) context="darwin" ;;
+	esac
 
 	if [[ "$context" == "unknown" ]]; then
 		log_error "Could not detect platform context"
 		exit 1
 	fi
-
 	log_info "Detected context: $context"
 
 	# Setup VS Code configuration
