@@ -55,11 +55,20 @@ check_jq() {
 		case "$(detect_context)" in
 		"wsl" | "linux")
 			if command -v apt &>/dev/null; then
-				sudo apt update && sudo apt install -y jq
+				sudo apt update && sudo apt install -y jq || {
+					log_error "apt failed to install jq"
+					return 1
+				}
 			elif command -v yum &>/dev/null; then
-				sudo yum install -y jq
+				sudo yum install -y jq || {
+					log_error "yum failed to install jq"
+					return 1
+				}
 			elif command -v pacman &>/dev/null; then
-				sudo pacman -S --noconfirm jq
+				sudo pacman -S --noconfirm jq || {
+					log_error "pacman failed to install jq"
+					return 1
+				}
 			else
 				log_error "Could not install jq automatically. Please install jq manually."
 				return 1
@@ -67,7 +76,10 @@ check_jq() {
 			;;
 		"darwin")
 			if command -v brew &>/dev/null; then
-				brew install jq
+				brew install jq || {
+					log_error "brew failed to install jq"
+					return 1
+				}
 			else
 				log_error "Homebrew not found. Please install jq manually: brew install jq"
 				return 1
