@@ -34,7 +34,9 @@ setopt COMPLETE_IN_WORD  # Complete from both ends of word
 setopt AUTO_MENU         # Use menu completion after second tab
 setopt AUTO_LIST         # Automatically list choices on ambiguous completion
 setopt AUTO_PARAM_SLASH  # Add trailing slash to directory names
-setopt FLOW_CONTROL      # Disable start/stop characters (ctrl-s/ctrl-q)
+unsetopt FLOW_CONTROL    # Disable start/stop characters (ctrl-s/ctrl-q)
+# Ensure terminal-level flow control is off in interactive sessions
+[[ -t 1 ]] && command -v stty >/dev/null 2>&1 && stty -ixon
 
 # Zsh completion system
 autoload -Uz compinit
