@@ -3,7 +3,7 @@
 # This script provides functions to track installation state and make setup idempotent
 
 # State file location
-DOTFILES_STATE_FILE="${DOTFILES_ROOT:-$HOME/dotfiles}/.dotfiles-state"
+DOTFILES_STATE_FILE="${DOTFILES_STATE_FILE:-${DOTFILES_STATE_FILE_DEFAULT:-$HOME/.dotfiles-state}}"
 
 # Initialize state file if it doesn't exist
 init_state_file() {

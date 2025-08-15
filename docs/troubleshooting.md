@@ -14,14 +14,18 @@ Central guide for resolving common issues encountered with the dotfiles setup.
 ## Shell Initialization Issues
 Symptoms: Aliases/functions missing, errors on new shell.
 Checks:
-1. Verify `.shell_common.sh` symlink exists in home: `ls -l ~/.shell_common`
+1. Verify `.shell_common` symlink exists in home: `ls -l ~/.shell_common`
 2. Run `just diagnose-shell`
 3. Ensure `set -euo pipefail` not removed in modified scripts.
 
 ## VS Code Settings Not Applying
-1. Run `bash install/vscode.sh` manually and inspect output.
-2. Ensure `jq` installed; script will attempt package install if missing.
-3. Check merged settings file path: `~/.config/Code/User/settings.json`.
+1. Run `bash install/vscode.sh` manually and inspect output — the script auto-detects your platform (wsl | linux | darwin | windows). You may pass a platform override as the first argument (optional).
+2. Ensure `jq` is installed; the script attempts to install it when possible.
+3. Check merged settings file location for your platform:
+   - Linux: `~/.config/Code/User/settings.json`
+   - macOS: `~/Library/Application Support/Code/User/settings.json`
+   - Windows: `%APPDATA%/Code/User/settings.json`
+   - WSL (Remote‑WSL server): `~/.vscode-server/data/Machine/settings.json` and Windows side (when using Remote‑WSL): `/mnt/c/Users/<USER>/AppData/Roaming/Code/User/settings.json`
 
 ## Oh My Posh / Prompt Problems
 1. Confirm binary: `oh-my-posh version`

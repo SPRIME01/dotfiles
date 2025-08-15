@@ -14,11 +14,51 @@ FILES=()
 [[ -n "${DOTFILES_STATE_FILE:-}" && -f "${DOTFILES_STATE_FILE}" ]] && FILES+=("${DOTFILES_STATE_FILE}")
 
 for f in "${FILES[@]}"; do
-  perms=$(stat -c %a "$f" 2>/dev/null || echo "")
+get_octal_perms() {
+  local path="$1"
+  # GNU stat: prints like 600
+  if stat -c %a "$path" >/dev/null 2>&1; then
+    stat -c %a "$path"
+    return
+  fi
+  # BSD/macOS stat: prints like 0100600; take last 3 or 4 digits
+  if stat -f %p "$path" >/dev/null 2>&1; then
+    local raw
+    raw="$(stat -f %p "$path")" || return 1
+    # Extract last 3 or 4 digits (ignore file type bits)
+    echo "${raw: -3}"
+    return
+  fi
+  return 1
+}
+
+for f in "${FILES[@]}"; do
+  perms="$(get_octal_perms "$f" 2>/dev/null || echo "")"
   [[ -z $perms ]] && continue
   if [[ $perms != 600 && $perms != 640 ]]; then
     echo "⚠️  Insecure permissions $perms on $f (recommend 600)"
   fi
+done
+    return
+  fi
+  # BSD/macOS stat: prints like 0100600; take last 3 or 4 digits
+  if stat -f %p "$path" >/dev/null 2>&1; then
+    local raw
+    raw="$(stat -f %p "$path")" || return 1
+    # Extract last 3 or 4 digits (ignore file type bits)
+    echo "${raw: -3}"
+    return
+  fi
+  return 1
+}
+
+for f in "${FILES[@]}"; do
+  perms="$(get_octal_perms "$f" 2>/dev/null || echo "")"
+  [[ -z $perms ]] && continue
+  if [[ $perms != 600 && $perms != 640 ]]; then
+    echo "⚠️  Insecure permissions $perms on $f (recommend 600)"
+  fi
+done
  done
 
 exit 0

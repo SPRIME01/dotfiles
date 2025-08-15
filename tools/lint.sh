@@ -32,6 +32,12 @@ mapfile -t FILES < <(git ls-files '*.sh' ':!:*/backups/*' 2>/dev/null || find "$
 
 fail=0
 
+# Guard: avoid calling shellcheck/shfmt with zero files (they can error on empty args)
+if ((${#FILES[@]} == 0)); then
+  echo "No shell files found; skipping."
+  exit 0
+fi
+
 if [[ $missing_sc -eq 0 ]]; then
   echo "🔍 Running shellcheck..."
   "$SHELLCHECK_BIN" "${FILES[@]}" || fail=1

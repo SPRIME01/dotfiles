@@ -36,9 +36,17 @@ if [[ -z "$WIN_USER" ]]; then
 fi
 
 WIN_PROJECTS_LINK="/mnt/c/Users/$WIN_USER/projects"
-WSL_PROJECTS_WIN_PATH="\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\$(basename "$PROJECTS_DIR")"
+# Derive Windows-visible path to the WSL projects dir
+WSL_PROJECTS_WIN_PATH="$(wslpath -w "$PROJECTS_DIR" 2>/dev/null || true)"
+if [[ -z "$WSL_PROJECTS_WIN_PATH" ]]; then
+    # Fallback to legacy UNC
+    WSL_PROJECTS_WIN_PATH="\\\\wsl$\\$WSL_DISTRO_NAME\\home\\$USER\\$(basename "$PROJECTS_DIR")"
+fi
 BATCH_FILE="/mnt/c/Users/$WIN_USER/projects.bat"
-
+    # Fallback to legacy UNC
+    WSL_PROJECTS_WIN_PATH="\\\\wsl$\\$WSL_DISTRO_NAME\\home\\$USER\\$(basename "$PROJECTS_DIR")"
+fi
+BATCH_FILE="/mnt/c/Users/$WIN_USER/projects.bat"
 echo "🔗 Setting up Windows access to projects directory..."
 
 # Check current state

@@ -1,5 +1,8 @@
-echo Opening WSL2 projects directory...
 #!/usr/bin/env bash
+# Canonical interactive setup wizard for the dotfiles repository.
+# Use this script as the primary entrypoint:
+#   bash scripts/setup-wizard.sh [--interactive|--quick|--force]
+
 set -euo pipefail
 
 # Description: Unified interactive setup wizard (consolidated). Provides idempotent,
@@ -12,11 +15,15 @@ set -euo pipefail
 # Outputs: Updated state file, configured shells, optional Windows integration artifacts
 # Exit Codes: 0 success, >0 failure
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOTFILES_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-
-source "$DOTFILES_ROOT/lib/state-management.sh"
 [[ -f "$DOTFILES_ROOT/lib/log.sh" ]] && source "$DOTFILES_ROOT/lib/log.sh"
+
+# Define minimal logging fallbacks if log.sh isn't present
+if ! command -v log_info >/dev/null 2>&1; then
+  log_info() { echo "[$(date -Iseconds)] [INFO ] $*" >&2; }
+fi
+if ! command -v log_warn >/dev/null 2>&1; then
+  log_warn() { echo "[$(date -Iseconds)] [WARN ] $*" >&2; }
+fi
 
 log_info "📦 Unified dotfiles setup wizard start"
 echo
@@ -91,18 +98,22 @@ else
   fi
 fi
 
+# Apply selections
 echo; log_info "Applying selections"; overall_success=true
 
-if (( configure_zsh )); then
-  chmod +x "$DOTFILES_ROOT/install_zsh.sh" || true
-  safe_execute zsh_config "Installing Oh My Zsh and plugins" "bash '$DOTFILES_ROOT/install_zsh.sh'" || overall_success=false
-fi
-
+# Run bootstrap first when either shell is selected (ensures bash_config runs before zsh_config)
 if (( configure_bash || configure_zsh )); then
   chmod +x "$DOTFILES_ROOT/bootstrap.sh" || true
   safe_execute bash_config "Setting up shell symlinks and environment" "bash '$DOTFILES_ROOT/bootstrap.sh'" || overall_success=false
 fi
 
+# Then install zsh (Oh My Zsh/plugins) so zsh_config observes bootstrap precondition
+if (( configure_zsh )); then
+  chmod +x "$DOTFILES_ROOT/install_zsh.sh" || true
+  safe_execute zsh_config "Installing Oh My Zsh and plugins" "bash '$DOTFILES_ROOT/install_zsh.sh'" || overall_success=false
+fi
+
+if (( configure_pwsh ))
 (( configure_pwsh )) && safe_execute pwsh_config "Setting up PowerShell configuration" "pwsh -NoProfile -ExecutionPolicy Bypass -File '$DOTFILES_ROOT/bootstrap.ps1'" || true
 
 if (( install_vscode )); then

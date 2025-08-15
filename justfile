@@ -138,3 +138,16 @@ setup-wsl2-complete:
 
 # Guided remote development setup (alias for setup-wsl2-complete)
 setup-remote-dev: setup-wsl2-complete
+
+# Run interactive wizard
+# old: just run-wizard => bash scripts/setup-wizard-improved.sh
+run-wizard:
+	@bash scripts/setup-wizard.sh --interactive
+
+# Ensure key scripts are executable in the git index (fixes CI / local runs).
+# This target is safe to run locally or in CI to set the executable bit and stage it in git.
+fix-permissions:
+	@echo "🔧 Ensuring executable bits for known scripts..."
+	@chmod +x tools/lint.sh scripts/install-dependencies.sh scripts/setup-pwsh7.sh || true
+	@git update-index --chmod=+x tools/lint.sh scripts/install-dependencies.sh scripts/setup-pwsh7.sh >/dev/null 2>&1 || true
+	@echo "✅ Permissions updated (if running in a git repo)."

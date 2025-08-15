@@ -16,29 +16,51 @@ SKIPPED=0
 FAIL_LIST=()
 
 # Run shell tests
-for test_script in "$SCRIPT_DIR"/*.sh; do
+# Run shell tests
+if compgen -G "$SCRIPT_DIR/test-*.sh" > /dev/null; then
+  for test_script in "$SCRIPT_DIR"/test-*.sh; do
     base="$(basename "$test_script")"
     # Skip this script and framework
     if [[ "$base" == "run-all-tests.sh" || "$base" == "framework.sh" ]]; then
-        continue
+      continue
     fi
     echo
-    echo "▶️ Running $base..."
-    TOTAL=$((TOTAL+1))
-    output="$(DOTFILES_ROOT="$REPO_ROOT" bash "$test_script" 2>&1 || true)"
+    set +e
+    output="$(DOTFILES_ROOT="$REPO_ROOT" bash "$test_script" 2>&1)"
     exit_code=$?
+    set -e
     echo "$output"
     if grep -Eq '^[[:space:]]*SKIP:' <<<"$output"; then
         SKIPPED=$((SKIPPED+1))
     elif [[ $exit_code -eq 0 ]]; then
         PASSED=$((PASSED+1))
     else
-        FAILED=1
-        FAIL_LIST+=("$base")
+    elif [[ $exit_code -eq 0 ]]; then
+      PASSED=$((PASSED+1))
+    else
+      FAILED=1
+      FAIL_LIST+=("$base")
     fi
-done
-
-# Run PowerShell tests if pwsh is available
+  done
+fi
+    output="$(DOTFILES_ROOT="$REPO_ROOT" bash "$test_script" 2>&1 || true)"
+    exit_code=$?
+          set +e
+          output="$(pwsh -NoProfile -ExecutionPolicy Bypass -File "$test_script" -DotfilesRoot "$REPO_ROOT" 2>&1)"
+          exit_code=$?
+          set -e
+          echo "$output"
+          echo "  - exit code: $exit_code"
+          if grep -Eq '^[[:space:]]*SKIP:' <<<"$output"; then
+              SKIPPED=$((SKIPPED+1))
+          elif [[ $exit_code -eq 0 ]]; then
+              PASSED=$((PASSED+1))
+          else
+              FAILED=1
+              FAIL_LIST+=("$(basename "$test_script")")
+          fi
+              FAIL_LIST+=("$(basename "$test_script")")
+          fi
 if compgen -G "$SCRIPT_DIR/*.ps1" > /dev/null; then
   for test_script in "$SCRIPT_DIR"/*.ps1; do
       if command -v pwsh >/dev/null 2>&1; then

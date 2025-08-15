@@ -13,47 +13,54 @@ if [ -f "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/log.sh" ]; then
   # shellcheck disable=SC1090
   . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/log.sh"
 fi
+if ! command -v log_info >/dev/null 2>&1; then
+  log_info()  { echo "[INFO ] $*"; }
+  log_warn()  { echo "[WARN ] $*" >&2; }
+  log_error() { echo "[ERROR] $*" >&2; }
+fi
+if ! command -v log_info >/dev/null 2>&1; then
+  log_info()  { echo "[INFO ] $*"; }
+  log_warn()  { echo "[WARN ] $*" >&2; }
+  log_error() { echo "[ERROR] $*" >&2; }
+fi
 
 if [[ "${OMP_VERSION:-}" == "skip" ]]; then
   log_info "Skipping oh-my-posh install due to OMP_VERSION=skip"
   exit 0
 fi
-TARGET_VERSION="${OMP_VERSION:-v24.9.0}" # Pinned version
-BINARY_NAME="oh-my-posh"
-INSTALL_DIR="$HOME/.local/bin"
-BIN_PATH="${OMP_BIN:-$INSTALL_DIR/$BINARY_NAME}"
-EXPECTED_SHA256="${OMP_EXPECTED_SHA256:-}"
-LOCAL_FILE="${OMP_LOCAL_FILE:-}"
-
-mkdir -p "$INSTALL_DIR"
 
 verify_checksum() {
   local file=$1 expected=$2
   if [[ -z "$expected" ]]; then
-  log_warn "No expected checksum provided; skipping verification"
+    log_warn "No expected checksum provided; skipping verification"
     return 0
   fi
-  if ! command -v sha256sum >/dev/null 2>&1; then
-  log_warn "sha256sum not available; cannot verify checksum"
+  local actual=""
+  if command -v sha256sum >/dev/null 2>&1; then
+    actual=$(sha256sum "$file" | awk '{print $1}')
+  elif command -v shasum >/dev/null 2>&1; then
+    actual=$(shasum -a 256 "$file" | awk '{print $1}')
+  else
+    log_warn "No checksum tool available (sha256sum/shasum missing); skipping verification"
     return 0
   fi
-  local actual
-  actual=$(sha256sum "$file" | awk '{print $1}')
   if [[ "$actual" != "$expected" ]]; then
-  log_error "Checksum mismatch for $file"
-  log_error "Expected: $expected"
-  log_error "Actual:   $actual"
+    log_error "Checksum mismatch for $file"
+    log_error "Expected: $expected"
+    log_error "Actual:   $actual"
     return 1
   fi
   log_info "Checksum verified ($actual)"
 }
 
 need_install=true
-if command -v "$BINARY_NAME" >/dev/null 2>&1; then
-  current=$($BINARY_NAME version 2>/dev/null || true)
-  if [[ "$current" == *"$TARGET_VERSION"* ]]; then
+if [[ -x "$BIN_PATH" ]]; then
+  current=$("$BIN_PATH" version 2>/dev/null || true)
+elif command -v "$BINARY_NAME" >/dev/null 2>&1; then
+  current=$("$BINARY_NAME" version 2>/dev/null || true)
+fi
+if [[ "${current:-}" == *"$TARGET_VERSION"* ]]; then
   log_info "oh-my-posh already at $TARGET_VERSION"; need_install=false
-  fi
 fi
 
 if $need_install; then
@@ -71,6 +78,12 @@ if $need_install; then
   chmod +x "$tmpfile"
   mv "$tmpfile" "$BIN_PATH"
   log_info "Installed $BIN_PATH"
+else
+  log_info "Skipping installation"
+fi
+
+# Print version for verification
+$BINARY_NAME version || true
 else
   log_info "Skipping installation"
 fi

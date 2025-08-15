@@ -6,11 +6,24 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 INSTALLER="$DOTFILES_DIR/scripts/install-oh-my-posh.sh"
 
-if ! command -v oh-my-posh >/dev/null 2>&1; then
-  echo "SKIP: oh-my-posh not present to derive checksum"
+if [[ ! -f "$INSTALLER" ]]; then
+  echo "SKIP: installer script missing"
   exit 0
 fi
 
+BIN_PATH="$(command -v oh-my-posh)"
+if command -v sha256sum >/dev/null 2>&1; then
+  HASH="$(sha256sum "$BIN_PATH" | awk '{print $1}')"
+else
+  HASH="$(shasum -a 256 "$BIN_PATH" | awk '{print $1}')"
+fi
+TMP_COPY="$(mktemp)"
+trap 'rm -f "$TMP_COPY"' EXIT
+cp "$BIN_PATH" "$TMP_COPY"
+fi
+TMP_COPY="$(mktemp)"
+trap 'rm -f "$TMP_COPY"' EXIT
+cp "$BIN_PATH" "$TMP_COPY"
 BIN_PATH="$(command -v oh-my-posh)"
 HASH=$(sha256sum "$BIN_PATH" | awk '{print $1}')
 TMP_COPY=$(mktemp)
