@@ -18,45 +18,45 @@ ln -sf "$DOTFILES/.shell_theme_common.ps1" ~/.shell_theme_common
 ln -sf "$DOTFILES/.shell_functions.sh" ~/.shell_functions
 
 # Install oh-my-posh if not present
-if ! command -v oh-my-posh &> /dev/null; then
-    echo "📦 Installing oh-my-posh..."
-    curl -s https://ohmyposh.dev/install.sh | bash -s
+if ! command -v oh-my-posh &>/dev/null; then
+	echo "📦 Installing oh-my-posh..."
+	curl -s https://ohmyposh.dev/install.sh | bash -s
 fi
 
 # Install Oh My Zsh for Linux/WSL2 environments
 if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ -n "$WSL_DISTRO_NAME" ]]; then
-    echo "🐧 Detected Linux/WSL2 environment"
+	echo "🐧 Detected Linux/WSL2 environment"
 
-    # Make install_zsh.sh executable and run it
-    if [ -f "$DOTFILES/install_zsh.sh" ]; then
-        chmod +x "$DOTFILES/install_zsh.sh"
-        echo "🐚 Installing Oh My Zsh..."
-        "$DOTFILES/install_zsh.sh"
-    else
-        echo "⚠️  install_zsh.sh not found, skipping Zsh setup"
-    fi
+	# Make install_zsh.sh executable and run it
+	if [ -f "$DOTFILES/install_zsh.sh" ]; then
+		chmod +x "$DOTFILES/install_zsh.sh"
+		echo "🐚 Installing Oh My Zsh..."
+		"$DOTFILES/install_zsh.sh"
+	else
+		echo "⚠️  install_zsh.sh not found, skipping Zsh setup"
+	fi
 fi
 
 # Setup MCP configuration
 echo "🔧 Setting up MCP (Model Context Protocol) configuration..."
 if [ ! -d "$DOTFILES/mcp" ]; then
-    echo "⚠️  MCP directory not found. Run 'git pull' to get latest dotfiles."
+	echo "⚠️  MCP directory not found. Run 'git pull' to get latest dotfiles."
 else
-    echo "✅ MCP configuration directory found"
-    if [ -f "$DOTFILES/mcp/.env" ]; then
-        echo "✅ MCP environment file found"
-    else
-        echo "⚠️  MCP environment file not found. You may need to configure MCP manually."
-    fi
+	echo "✅ MCP configuration directory found"
+	if [ -f "$DOTFILES/mcp/.env" ]; then
+		echo "✅ MCP environment file found"
+	else
+		echo "⚠️  MCP environment file not found. You may need to configure MCP manually."
+	fi
 fi
 
 # Setup VS Code configuration
 echo "💻 Setting up VS Code configuration..."
 if [ -f "$DOTFILES/install/vscode.sh" ]; then
-    echo "🔧 Installing VS Code settings..."
-    "$DOTFILES/install/vscode.sh"
+	echo "🔧 Installing VS Code settings..."
+	"$DOTFILES/install/vscode.sh"
 else
-    echo "⚠️  VS Code installation script not found"
+	echo "⚠️  VS Code installation script not found"
 fi
 
 echo "🎉 Bootstrap complete!"

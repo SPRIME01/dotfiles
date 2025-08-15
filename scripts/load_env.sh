@@ -16,26 +16,26 @@ NEW_ENV_LOADER="$PROJECT_ROOT/lib/env-loader.sh"
 
 # Check if the new loader exists and delegate to it
 if [[ -f "$NEW_ENV_LOADER" ]]; then
-    # Source the new loader
-    source "$NEW_ENV_LOADER"
+	# Source the new loader
+	source "$NEW_ENV_LOADER"
 
-    # Provide backward compatibility for the old function name
-    load_env_file() {
-        echo "Warning: load_env_file() is deprecated. Use the new lib/env-loader.sh system." >&2
-        local env_file="$1"
-        [[ -z "$env_file" || ! -f "$env_file" ]] && return 0
+	# Provide backward compatibility for the old function name
+	load_env_file() {
+		echo "Warning: load_env_file() is deprecated. Use the new lib/env-loader.sh system." >&2
+		local env_file="$1"
+		[[ -z "$env_file" || ! -f "$env_file" ]] && return 0
 
-        # Use the new secure loading function
-        load_env_file_secure "$env_file"
-    }
+		# Use the new secure loading function
+		load_env_file_secure "$env_file"
+	}
 
-    # If script is executed directly, use new system
-    if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-        load_dotfiles_environment "$PROJECT_ROOT"
-    fi
+	# If script is executed directly, use new system
+	if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+		load_dotfiles_environment "$PROJECT_ROOT"
+	fi
 else
-    # Fallback to original implementation if new system not available
-    echo "Error: New environment loading system not found at $NEW_ENV_LOADER" >&2
-    echo "Please ensure lib/env-loader.sh exists and is properly configured." >&2
-    exit 1
+	# Fallback to original implementation if new system not available
+	echo "Error: New environment loading system not found at $NEW_ENV_LOADER" >&2
+	echo "Please ensure lib/env-loader.sh exists and is properly configured." >&2
+	exit 1
 fi

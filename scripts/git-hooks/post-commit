@@ -23,10 +23,10 @@ DOTFILES_ROOT="$(cd "$HOOK_DIR/../.." && pwd)"
 
 # Only attempt to regenerate the aliases module if pwsh is available.
 if command -v pwsh >/dev/null 2>&1; then
-  pwsh -NoProfile -ExecutionPolicy Bypass -Command "& {
+	pwsh -NoProfile -ExecutionPolicy Bypass -Command "& {
     Import-Module '$DOTFILES_ROOT/PowerShell/Modules/Aliases/Invoke-UpdateAliasesModule.ps1' -Force;
     Invoke-UpdateAliasesModule -Verbose
   }"
 else
-  echo "[post-commit] pwsh not found; skipping alias regeneration." >&2
+	echo "[post-commit] pwsh not found; skipping alias regeneration." >&2
 fi

@@ -5,17 +5,17 @@
 # https://github.com/ohmyzsh/ohmyzsh/wiki/Plugins for available options.
 
 plugins=(
-    git
-    zsh-autosuggestions
-    zsh-syntax-highlighting
-    docker
-    kubectl
-    npm
-    node
-    python
-    pip
-    ubuntu
-    command-not-found
-    history-substring-search
-    colored-man-pages
+	git
+	zsh-autosuggestions
+	zsh-syntax-highlighting
+	docker
+	kubectl
+	npm
+	node
+	python
+	pip
+	ubuntu
+	command-not-found
+	history-substring-search
+	colored-man-pages
 )
