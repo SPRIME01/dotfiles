@@ -3,7 +3,7 @@ set -euo pipefail
 
 # This test simulates declining prompts to ensure early exit paths are safe.
 
-TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" || exit && pwd)"
 ROOT="$(cd "$TEST_DIR/.." && pwd)"
 
 # Skip if not WSL (the script requires WSL)

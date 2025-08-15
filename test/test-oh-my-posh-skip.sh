@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit && pwd)"
 TMP_HOME="$(mktemp -d)"
 export HOME="$TMP_HOME"
 trap 'rm -rf "$TMP_HOME"' EXIT

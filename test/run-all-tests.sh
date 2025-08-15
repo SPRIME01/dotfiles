@@ -3,7 +3,7 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" || exit && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 echo "🔬 Running all dotfiles tests..."
@@ -27,12 +27,12 @@ if compgen -G "$SCRIPT_DIR/test-*.sh" >/dev/null; then
 		echo
 		echo "▶️ Running $base..."
 		TOTAL=$((TOTAL + 1))
-	set +e
-	# Run each test in a minimal, controlled environment to avoid leaking
-	# host-specific variables (WSL, USER, etc.) that can change behavior
-	# of the modular loader. Preserve PATH so external commands remain
-	# available for tests that need them.
-	output="$(env -i HOME="$HOME" PATH="$PATH" DOTFILES_ROOT="$REPO_ROOT" bash "$test_script" 2>&1)"
+		set +e
+		# Run each test in a minimal, controlled environment to avoid leaking
+		# host-specific variables (WSL, USER, etc.) that can change behavior
+		# of the modular loader. Preserve PATH so external commands remain
+		# available for tests that need them.
+		output="$(env -i HOME="$HOME" PATH="$PATH" DOTFILES_ROOT="$REPO_ROOT" bash "$test_script" 2>&1)"
 		exit_code=$?
 		set -e
 		echo "$output"

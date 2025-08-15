@@ -79,7 +79,7 @@ fi
 if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]] && [[ -z "${POWERLEVEL9K_INSTANT_PROMPT:-}" ]]; then
   # Auto-navigate to home if starting in Windows user directory (common WSL issue)
   if [[ "$PWD" == "/mnt/c/Users/"* ]] && [[ "$PWD" != "$HOME" ]]; then
-    cd "$HOME" 2>/dev/null
+  cd "$HOME" 2>/dev/null || return
   fi
 
   if [ -n "$BASH_VERSION" ]; then

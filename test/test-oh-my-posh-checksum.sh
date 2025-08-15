@@ -3,7 +3,7 @@
 # Uses existing installed binary to obtain expected hash and performs reinstall via local file path.
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" || exit && pwd)"
 DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 INSTALLER="$DOTFILES_DIR/scripts/install-oh-my-posh.sh"
 

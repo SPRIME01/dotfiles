@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Test MCP helper idempotency (lightweight)
 set -euo pipefail
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit && pwd)"
 HELPER_DIR="$ROOT/test/helpers"
 SNAPSHOT_HELPER="$HELPER_DIR/state_snapshot.sh"
 if [[ ! -x $SNAPSHOT_HELPER ]]; then

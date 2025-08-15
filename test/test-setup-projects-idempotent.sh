@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" || exit && pwd)"
 ROOT="$(cd "$TEST_DIR/.." && pwd)"
 
 # Simulate run (non-WSL to skip Windows integration) by unsetting WSL_DISTRO_NAME

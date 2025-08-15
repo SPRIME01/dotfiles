@@ -5,7 +5,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/framework.sh"
 
 # Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" || exit && pwd)"
 DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Test 1: Check if base settings file exists (in repo)

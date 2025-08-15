@@ -20,11 +20,11 @@ DOTFILES_ROOT="${DOTFILES_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 [[ -f "$DOTFILES_ROOT/lib/log.sh" ]] && source "$DOTFILES_ROOT/lib/log.sh"
 # State and prompts
 if [[ -f "$DOTFILES_ROOT/lib/state-management.sh" ]]; then
-  # shellcheck disable=SC1090
-  source "$DOTFILES_ROOT/lib/state-management.sh"
+	# shellcheck disable=SC1090
+	source "$DOTFILES_ROOT/lib/state-management.sh"
 else
-  echo "[ERROR] Missing lib/state-management.sh" >&2
-  exit 1
+	echo "[ERROR] Missing lib/state-management.sh" >&2
+	exit 1
 fi
 
 # Define minimal logging fallbacks if log.sh isn't present

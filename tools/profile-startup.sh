@@ -8,7 +8,7 @@ profile_shell_startup() {
 	echo "Profiling $shell_name startup time ($iterations iterations)..."
 
 	for ((i = 1; i <= iterations; i++)); do
-		/usr/bin/time -f "%e" $shell_name -i -c exit 2>&1
+		/usr/bin/time -f "%e" "$shell_name" -i -c exit 2>&1
 	done | awk '{sum+=$1} END {print "Average:", sum/NR, "seconds"}'
 }
 
