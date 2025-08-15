@@ -24,17 +24,27 @@ write_state_key() {
     local value="$2"
     init_state_file
 
-    # Escape slashes for sed
-    local esc_value
-    esc_value=$(printf '%s' "$value" | sed -e 's/[\/&]/\\&/g')
-
-    if grep -q "^${key}=" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-        # Replace existing line in-place
-        sed -i "s@^${key}=.*@${key}=${esc_value}@" "$DOTFILES_STATE_FILE"
-    else
-        # Append
-        echo "${key}=${value}" >> "$DOTFILES_STATE_FILE"
-    fi
+    # Portable in-place update using awk + temp file (works on GNU/BSD)
+    local tmp
+    tmp="$(mktemp "${DOTFILES_STATE_FILE}.XXXX")"
+    awk -v k="$key" -v v="$value" '
+      BEGIN { updated = 0 }
+      $0 ~ "^" k "=" {
+        print k "=" v
+        updated = 1
+        next
+      }
+      { print }
+      END {
+        if (NR == 0) {
+          # preserve header if file was just created by init_state_file
+        }
+        if (updated == 0) {
+          print k "=" v
+        }
+      }
+    ' "$DOTFILES_STATE_FILE" > "$tmp"
+    mv "$tmp" "$DOTFILES_STATE_FILE"
 }
 
 # Check if a component is already installed
