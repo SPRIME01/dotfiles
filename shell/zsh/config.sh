@@ -45,7 +45,9 @@ compinit
 # Completion options
 zstyle ':completion:*' menu select
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
-zstyle ':completion:*' list-colors "${LS_COLORS:-}"
+if [[ -n ${LS_COLORS:-} ]]; then
+  zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+fi
 zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
 zstyle ':completion:*:warnings' format '%F{red}No matches found%f'
 zstyle ':completion:*' group-name ''
