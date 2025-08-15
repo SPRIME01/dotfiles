@@ -15,6 +15,25 @@ command_exists() {
 
 # Install Zsh if not already installed
 if ! command_exists zsh; then
+	# Ensure required tools are available
+	for tool in curl git; do
+	  if ! command_exists "$tool"; then
+	    echo "📦 Installing missing dependency: $tool..."
+	    if command_exists apt; then
+	      sudo apt update && sudo apt install -y "$tool"
+	    elif command_exists yum; then
+	      sudo yum install -y "$tool"
+	    elif command_exists dnf; then
+	      sudo dnf install -y "$tool"
+	    elif command_exists pacman; then
+	      sudo pacman -Sy --noconfirm && sudo pacman -S --noconfirm --needed "$tool"
+	    else
+	      echo "❌ Missing $tool and no supported package manager found." >&2
+	      exit 1
+	    fi
+	  fi
+	done
+
 	echo "📦 Installing Zsh..."
 	if command_exists apt; then
 		sudo apt update && sudo apt install -y zsh curl git
@@ -23,7 +42,9 @@ if ! command_exists zsh; then
 	elif command_exists dnf; then
 		sudo dnf install -y zsh curl git
 	elif command_exists pacman; then
-		sudo pacman -S zsh curl git
+		# Ensure package database is up to date and avoid prompts
+		sudo pacman -Sy --noconfirm
+		sudo pacman -S --noconfirm --needed zsh curl git
 	else
 		echo "❌ Could not detect package manager. Please install zsh manually."
 		exit 1
