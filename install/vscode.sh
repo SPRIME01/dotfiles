@@ -104,11 +104,24 @@ setup_vscode() {
 	"wsl")
 		# WSL2 - Setup both WSL and Windows VS Code settings
 		WSL_VSCODE_DIR="$HOME/.vscode-server/data/Machine"
-		WINDOWS_VSCODE_DIR="/mnt/c/Users/$(powershell.exe -Command "Write-Host \$env:USERNAME" 2>/dev/null | tr -d '\r' || whoami)/AppData/Roaming/Code/User"
+		# Resolve Windows username from WSL as robustly as possible
+		local WINDOWS_USER
+		WINDOWS_USER="$(
+			{ command -v wslvar >/dev/null 2>&1 && wslvar USERNAME; } 2>/dev/null || \
+			{ command -v cmd.exe  >/dev/null 2>&1 && cmd.exe /c echo %USERNAME% | tr -d '\r'; } 2>/dev/null || \
+			{ command -v powershell.exe >/dev/null 2>&1 && powershell.exe -NoProfile -Command '$env:USERNAME' | tr -d '\r'; } 2>/dev/null
+		)"
+		if [[ -z "${WINDOWS_USER:-}" ]]; then
+			log_warning "Could not determine Windows username under WSL; skipping Windows VS Code setup"
+		else
+			WINDOWS_VSCODE_DIR="/mnt/c/Users/${WINDOWS_USER}/AppData/Roaming/Code/User"
+		fi
 
 		# Create directories if they don't exist
 		mkdir -p "$WSL_VSCODE_DIR" 2>/dev/null || true
-		mkdir -p "$WINDOWS_VSCODE_DIR" 2>/dev/null || true
+		if [[ -n "${WINDOWS_VSCODE_DIR:-}" ]]; then
+			mkdir -p "$WINDOWS_VSCODE_DIR" 2>/dev/null || true
+		fi
 
 		# Setup WSL VS Code Server settings
 		if [[ -d "$WSL_VSCODE_DIR" ]]; then
