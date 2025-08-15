@@ -31,9 +31,9 @@ fi
 if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ -n "$WSL_DISTRO_NAME" ]]; then
 	echo "🐧 Detected Linux/WSL2 environment"
 
-	# Make install_zsh.sh executable and run it (skip when NO_NETWORK=1)
+	# Make install_zsh.sh executable and run it (skip entirely when NO_NETWORK=1 for test idempotency)
 	if [[ "${NO_NETWORK:-0}" == "1" ]]; then
-		echo "ℹ️  NO_NETWORK=1 set; skipping Oh My Zsh installation"
+		echo "ℹ️  NO_NETWORK=1 set; skipping Zsh/Oh My Zsh installation"
 	else
 		if [ -f "$DOTFILES/install_zsh.sh" ]; then
 			chmod +x "$DOTFILES/install_zsh.sh"
