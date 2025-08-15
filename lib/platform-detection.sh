@@ -73,7 +73,7 @@ is_unix() {
 get_dotfiles_root() {
 	local script_dir
 	script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-	echo "$(cd "$script_dir/.." && pwd)"
+	(cd "$script_dir/.." && pwd)
 }
 
 # Validate that dotfiles root is properly set

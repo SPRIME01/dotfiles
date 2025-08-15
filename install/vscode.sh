@@ -92,7 +92,7 @@ setup_vscode() {
 	"wsl")
 		# WSL2 - Setup both WSL and Windows VS Code settings
 		WSL_VSCODE_DIR="$HOME/.vscode-server/data/Machine"
-		WINDOWS_VSCODE_DIR="/mnt/c/Users/$(powershell.exe -Command "Write-Host \$env:USERNAME" 2>/dev/null | tr -d '\r' || echo "$(whoami)")/AppData/Roaming/Code/User"
+		WINDOWS_VSCODE_DIR="/mnt/c/Users/$(powershell.exe -Command "Write-Host \$env:USERNAME" 2>/dev/null | tr -d '\r' || whoami)/AppData/Roaming/Code/User"
 
 		# Create directories if they don't exist
 		mkdir -p "$WSL_VSCODE_DIR" 2>/dev/null || true
@@ -178,7 +178,8 @@ backup_existing_settings() {
 	local target_file="$1"
 
 	if [[ -f "$target_file" ]]; then
-		local backup_file="${target_file}.backup.$(date +%Y%m%d_%H%M%S)"
+		local backup_file
+		backup_file="${target_file}.backup.$(date +%Y%m%d_%H%M%S)"
 		log_info "Backing up existing settings to: $backup_file"
 		cp "$target_file" "$backup_file"
 	fi
