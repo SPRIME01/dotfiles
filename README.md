@@ -401,29 +401,6 @@ Add your own functions to `.shell_functions.sh` - they'll be available in both b
 
 ---
 
-## 🩺 Health Check (doctor)
-
-Run a quick status report of your setup without making changes:
-
-```bash
-bash scripts/doctor.sh
-```
-
-It checks:
-- zsh, Oh My Zsh, and oh-my-posh availability
-- PATH includes common user bins (~/.local/bin, ~/.cargo/bin, Pulumi, Volta)
-- Valid JSON for `mcp/servers.json` (if `jq` is installed)
-- On WSL, prerequisites for the SSH agent bridge (socat/npiperelay)
-- Best-effort VS Code terminal defaults and zsh path
-
-Note: All warnings are informational; no side effects.
-
-Flags:
-- --quick (-q): Skip slower optional checks (fonts, WSL bridge, VS Code parsing)
-- --verbose (-v): Print additional information while checking
-
----
-
 ## 🧪 Provisioning a New Machine
 
 1. Clone this repo:

@@ -25,12 +25,10 @@ if (Test-Path $modularIntegration) {
 $envLoader = Join-Path $env:DOTFILES_ROOT 'PowerShell/Utils/Load-Env.ps1'
 if (Test-Path $envLoader) {
     . $envLoader
-    # Load variables from .env.defaults (if present), then project .env
-    $defaultsEnv = Join-Path $env:DOTFILES_ROOT '.env.defaults'
-    if (Test-Path $defaultsEnv) { Load-EnvFile -FilePath $defaultsEnv }
+    # Load variables from the project .env (if present)
     $rootEnv = Join-Path $env:DOTFILES_ROOT '.env'
     if (Test-Path $rootEnv) { Load-EnvFile -FilePath $rootEnv }
-    # Load variables from the MCP .env (if present)
+    # Load variables from the MCP .env if it exists
     $mcpDir = Join-Path $env:DOTFILES_ROOT 'mcp'
     $mcpEnvFile = Join-Path $mcpDir '.env'
     if (Test-Path $mcpEnvFile) { Load-EnvFile -FilePath $mcpEnvFile }
@@ -59,7 +57,8 @@ Set-PSReadLineOption -PredictionSource History
 Set-PSReadLineOption -PredictionViewStyle ListView
 Set-PSReadLineOption -EditMode Windows
 
-$sharedShellConfig = Join-Path $env:DOTFILES_ROOT 'PowerShell/.shell_theme_common.ps1'
+# Changed: source the shared theme config from the repo root ('.shell_theme_common.ps1')
+$sharedShellConfig = Join-Path $env:DOTFILES_ROOT '.shell_theme_common.ps1'
 if (Test-Path $sharedShellConfig) {
     . $sharedShellConfig
 }
