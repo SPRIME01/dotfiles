@@ -14,9 +14,22 @@ test_assert() {
 
 	((TESTS_RUN++))
 
-	local actual
-	actual="$(eval "$command" 2>&1)"
+	local raw_actual
+	# Ensure any inherited xtrace doesn't pollute command output by disabling it
+	# for the duration of the evaluated command.
+	raw_actual="$((set +x; eval "$command") 2>&1)"
 	local exit_code=$?
+
+	# Sanitize output: remove bash xtrace/trace prefixes (lines that start with '+')
+	# and take the last non-empty line. This keeps assertions robust when sourced
+	# modules enable 'set -x' which writes traced commands to stderr (captured).
+	local actual
+	actual="$(printf '%s
+' "$raw_actual" | sed '/^[+]/d' | awk 'NF{line=$0} END{print line}')"
+	# Fallback to raw output if sanitization yields empty string
+	if [[ -z "${actual:-}" ]]; then
+		actual="$raw_actual"
+	fi
 
 	if [[ "$actual" == "$expected" && $exit_code -eq 0 ]]; then
 		echo "✅ $description"

@@ -25,6 +25,29 @@ if ! command -v log_warn >/dev/null 2>&1; then
 	log_warn() { echo "[$(date -Iseconds)] [WARN ] $*" >&2; }
 fi
 
+# Lightweight fallbacks for state helpers (used in tests/non-interactive runs)
+if ! command -v has_any_setup_been_done >/dev/null 2>&1; then
+	has_any_setup_been_done() { return 1; }
+fi
+if ! command -v show_installation_status >/dev/null 2>&1; then
+	show_installation_status() { echo "(no installation status available)"; }
+fi
+if ! command -v get_failed_components >/dev/null 2>&1; then
+	get_failed_components() { return 0; }
+fi
+if ! command -v mark_component_installed >/dev/null 2>&1; then
+	mark_component_installed() { :; }
+fi
+if ! command -v mark_component_failed >/dev/null 2>&1; then
+	mark_component_failed() { :; }
+fi
+if ! command -v mark_component_skipped >/dev/null 2>&1; then
+	mark_component_skipped() { :; }
+fi
+
+# Ensure DOTFILES_STATE_FILE is set to avoid unbound errors in tests
+: ${DOTFILES_STATE_FILE:="$HOME/.dotfiles-state"}
+
 log_info "📦 Unified dotfiles setup wizard start"
 echo
 
@@ -34,6 +57,34 @@ prompt_yes_no() {
 	read -r -p "$prompt" reply || reply=""
 	reply="${reply:-$default}"
 	[[ $reply =~ ^[Yy]$ ]]
+}
+
+# smart_prompt_yes_no: smarter wrapper for non-interactive and force behavior
+# Usage: smart_prompt_yes_no <varname> <prompt> <default> <force_flag>
+# Returns 0 if answer is yes, 1 otherwise. Also sets the variable name to 'y' or 'n'.
+smart_prompt_yes_no() {
+	local varname="$1" prompt="$2" default="${3:-n}" force_flag="${4:-false}"
+	# If force flag is true, respect it as a 'yes' to expedite automation
+	if [[ "$force_flag" == true || "$FORCE_REINSTALL" == true ]]; then
+		eval "$varname=y"
+		return 0
+	fi
+
+	# If not a TTY, use default without prompting
+	if [[ ! -t 0 ]]; then
+		eval "$varname=${default}"
+		[[ "${default}" == "y" ]]
+		return $?
+	fi
+
+	# Otherwise delegate to interactive prompt
+	if prompt_yes_no "$prompt" "$default"; then
+		eval "$varname=y"
+		return 0
+	else
+		eval "$varname=n"
+		return 1
+	fi
 }
 
 safe_execute() {

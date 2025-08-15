@@ -83,4 +83,5 @@ main() {
 }
 
 main "$@"
-chmod +x "$tmpfile"
+
+# Ensure no stray commands after main; tmpfile is cleaned up by trap inside main
