@@ -72,12 +72,12 @@ export_computed_variables() {
 	fi
 
 	# Set WSL-specific variables if needed
-	if [[ "$DOTFILES_PLATFORM" == "wsl" ]]; then
-		if [[ -z "$WSL_USER" ]]; then
-			export WSL_USER="$USER"
+	if [[ "${DOTFILES_PLATFORM:-}" == "wsl" ]]; then
+		if [[ -z "${WSL_USER:-}" ]]; then
+			export WSL_USER="${USER:-$(id -un 2>/dev/null || whoami)}"
 		fi
 
-		if [[ -z "$WSL_PROJECTS_PATH" ]]; then
+		if [[ -z "${WSL_PROJECTS_PATH:-}" ]]; then
 			export WSL_PROJECTS_PATH="$HOME/projects"
 		fi
 	fi
