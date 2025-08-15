@@ -114,64 +114,43 @@ dev-laptop)
 	;;
 esac
 
-# --- Kubernetes Configuration (WSL2 Only) ---
-# Set up kubectl config to use Windows kubectl configuration in WSL2
-# Only runs in WSL2 and silently handles missing kubectl or config files
+# --- WSL2 Integration ---
+# Consolidated configuration for WSL2: Kubernetes, SSH, and Projects symlinks.
+# Runs only when inside WSL and when cmd.exe is available. Fetch WIN_USER once
+# and then perform the per-feature setup steps. This reduces duplication and
+# centralizes platform-specific behavior for easier maintenance.
 if [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v cmd.exe >/dev/null 2>&1; then
-	# Get Windows username safely
+	# Get Windows username safely (do this once)
 	WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r' 2>/dev/null)
 
 	if [[ -n "$WIN_USER" ]]; then
+        
+		# --- Kubernetes (kubectl) ---
 		WIN_KUBE_CONFIG="/mnt/c/Users/$WIN_USER/.kube/config"
 		LOCAL_KUBE_DIR="$HOME/.kube"
 		LOCAL_KUBE_CONFIG="$LOCAL_KUBE_DIR/config"
 
-		# Only proceed if Windows kubectl config exists
 		if [[ -f "$WIN_KUBE_CONFIG" ]]; then
-			# Create local .kube directory if it doesn't exist
 			[[ ! -d "$LOCAL_KUBE_DIR" ]] && mkdir -p "$LOCAL_KUBE_DIR" 2>/dev/null
-
-			# Create symlink if it doesn't exist or points to wrong location
 			if [[ ! -L "$LOCAL_KUBE_CONFIG" ]] || [[ "$(readlink "$LOCAL_KUBE_CONFIG" 2>/dev/null)" != "$WIN_KUBE_CONFIG" ]]; then
 				ln -sf "$WIN_KUBE_CONFIG" "$LOCAL_KUBE_CONFIG" 2>/dev/null
 			fi
-
-			# Set proper permissions if file exists and is readable
 			[[ -f "$LOCAL_KUBE_CONFIG" ]] && chmod 600 "$LOCAL_KUBE_CONFIG" 2>/dev/null
 		fi
-	fi
-fi
 
-# --- SSH Keys Configuration (WSL2 Only) ---
-# Set up SSH keys to use Windows SSH keys in WSL2
-# Only runs in WSL2 and silently handles missing keys
-if [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v cmd.exe >/dev/null 2>&1; then
-	# Get Windows username safely (reuse from above if available)
-	if [[ -z "$WIN_USER" ]]; then
-		WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r' 2>/dev/null)
-	fi
-
-	if [[ -n "$WIN_USER" ]]; then
+		# --- SSH Keys ---
 		WIN_SSH_DIR="/mnt/c/Users/$WIN_USER/.ssh"
 		LOCAL_SSH_DIR="$HOME/.ssh"
-
-		# Create local .ssh directory if it doesn't exist
 		[[ ! -d "$LOCAL_SSH_DIR" ]] && mkdir -p "$LOCAL_SSH_DIR" 2>/dev/null
 
-		# Common SSH key files to symlink
 		declare -a ssh_files=("id_rsa" "id_rsa.pub" "id_ed25519" "id_ed25519.pub" "known_hosts" "config")
-
 		for ssh_file in "${ssh_files[@]}"; do
 			WIN_SSH_FILE="$WIN_SSH_DIR/$ssh_file"
 			LOCAL_SSH_FILE="$LOCAL_SSH_DIR/$ssh_file"
-
-			# Only create symlink if Windows file exists and local symlink doesn't point to it
 			if [[ -f "$WIN_SSH_FILE" ]]; then
 				if [[ ! -L "$LOCAL_SSH_FILE" ]] || [[ "$(readlink "$LOCAL_SSH_FILE" 2>/dev/null)" != "$WIN_SSH_FILE" ]]; then
 					ln -sf "$WIN_SSH_FILE" "$LOCAL_SSH_FILE" 2>/dev/null
 				fi
-
-				# Set appropriate permissions for key files
 				case "$ssh_file" in
 				id_rsa | id_ed25519)
 					chmod 600 "$LOCAL_SSH_FILE" 2>/dev/null
@@ -185,36 +164,17 @@ if [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v cmd.exe >/dev/null 2>&1; then
 				esac
 			fi
 		done
-	fi
-fi
 
-# --- Projects Directory Windows Symlink (WSL2 Only) ---
-# Create Windows symlink to WSL2 projects directory for easy access
-if [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v cmd.exe >/dev/null 2>&1; then
-	# Get Windows username safely (reuse from above if available)
-	if [[ -z "$WIN_USER" ]]; then
-		WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r' 2>/dev/null)
-	fi
-
-	if [[ -n "$WIN_USER" ]]; then
-		# Ensure projects directory exists in WSL2
+		# --- Projects Directory Windows Symlink ---
 		[[ ! -d "$PROJECTS_ROOT" ]] && mkdir -p "$PROJECTS_ROOT" 2>/dev/null
-
-		# Windows paths
 		WIN_USER_HOME="/mnt/c/Users/$WIN_USER"
 		WIN_PROJECTS_LINK="$WIN_USER_HOME/projects"
 
-		# Create Windows symlink if it doesn't exist and projects directory exists
 		if [[ -d "$PROJECTS_ROOT" ]] && [[ ! -e "$WIN_PROJECTS_LINK" ]]; then
-			# Convert WSL path to Windows path for mklink
 			WSL_PROJECTS_WIN_PATH="\\\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\projects"
-
-			# Try to create symbolic link in Windows (requires admin privileges)
 			if cmd.exe /c "mklink /D \"C:\\Users\\$WIN_USER\\projects\" \"$WSL_PROJECTS_WIN_PATH\"" >/dev/null 2>&1; then
-				# Success - symlink created
 				true
 			else
-				# Fallback: Create a batch file that navigates to the WSL projects directory
 				BATCH_FILE="$WIN_USER_HOME/projects.bat"
 				cat >"$BATCH_FILE" 2>/dev/null <<'EOF'
 @echo off
@@ -222,7 +182,6 @@ REM Navigate to WSL2 projects directory
 cd /d "\\wsl.localhost\Ubuntu\home\%USERNAME%\projects"
 cmd /k
 EOF
-				# Make it executable
 				chmod +x "$BATCH_FILE" 2>/dev/null
 			fi
 		fi
