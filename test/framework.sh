@@ -17,7 +17,8 @@ test_assert() {
 	local raw_actual
 	# Ensure any inherited xtrace doesn't pollute command output by disabling it
 	# for the duration of the evaluated command.
-	raw_actual="$((set +x; eval "$command") 2>&1)"
+	# Run in a subshell with xtrace disabled; also disable errexit locally to always capture exit status/output.
+	raw_actual="$( ( set +e; set +x; eval "$command" ) 2>&1 )"
 	local exit_code=$?
 
 	# Sanitize output: remove bash xtrace/trace prefixes (lines that start with '+')
