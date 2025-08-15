@@ -118,7 +118,7 @@ if [ -d "$HOME/.local/share/fonts" ] || mkdir -p "$HOME/.local/share/fonts"; the
 	)
 
 	for font in "${fonts[@]}"; do
-		font_name=$(echo "$font" | sed 's/%20/ /g')
+		font_name="${font//%20/ }"
 		if [ ! -f "$font_name" ]; then
 			echo "📥 Downloading $font_name..."
 			curl -fLo "$font_name" "https://github.com/romkatv/powerlevel10k-media/raw/master/$font"
