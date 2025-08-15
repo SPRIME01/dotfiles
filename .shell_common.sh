@@ -22,7 +22,7 @@ fi
 # --- WSL Integration Variables ---
 # Set default values for WSL-Windows integration, can be overridden in .env files
 if [[ -z "${WSL_USER:-}" ]]; then
-  export WSL_USER="$USER"
+  export WSL_USER="${USER:-$(id -un 2>/dev/null || whoami)}"
 fi
 
 if [[ -z "${WSL_PROJECTS_PATH:-}" ]] && [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
