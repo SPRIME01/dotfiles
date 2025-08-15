@@ -124,7 +124,7 @@ if [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v cmd.exe >/dev/null 2>&1; then
 	WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r' 2>/dev/null)
 
 	if [[ -n "$WIN_USER" ]]; then
-        
+
 		# --- Kubernetes (kubectl) ---
 		WIN_KUBE_CONFIG="/mnt/c/Users/$WIN_USER/.kube/config"
 		LOCAL_KUBE_DIR="$HOME/.kube"
