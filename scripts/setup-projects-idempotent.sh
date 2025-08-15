@@ -63,7 +63,7 @@ else
 
 	# Try to create symbolic link (requires admin privileges)
 	if cmd.exe /c "mklink /D \"C:\\Users\\$WIN_USER\\projects\" \"$WSL_PROJECTS_WIN_PATH\"" >/dev/null 2>&1; then
-		echo "✅ Windows symlink created at C:\\Users\\$WIN_USER\\projects"
+		printf "✅ Windows symlink created at C:\\\\Users\\\\%s\\\\projects\n" "$WIN_USER"
 		LINK_STATUS="symlink_created"
 	else
 		echo "⚠️  Symlink creation requires Administrator privileges"
@@ -102,14 +102,14 @@ EOF
 	echo "   2. Open any Windows terminal and type: projects"
 	echo ""
 	echo "💡 To create the symlink manually (run as Administrator in Windows):"
-	echo "   mklink /D \"C:\\Users\\$WIN_USER\\projects\" \"$WSL_PROJECTS_WIN_PATH\""
+	printf "   mklink /D \"C:\\\\Users\\\\%s\\\\projects\" \"%s\"\n" "$WIN_USER" "$WSL_PROJECTS_WIN_PATH"
 fi
 
 echo ""
 echo "📋 Windows integration summary:"
 case "$LINK_STATUS" in
 "symlink_exists" | "symlink_created")
-	echo "✅ Symlink: C:\\Users\\$WIN_USER\\projects → WSL2 projects"
+	printf "✅ Symlink: C:\\\\Users\\\\%s\\\\projects → WSL2 projects\n" "$WIN_USER"
 	echo "✅ Access: Use 'projects' command or browse in Windows Explorer"
 	;;
 "directory_exists")
