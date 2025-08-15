@@ -32,7 +32,7 @@ All shell scripts:
 #!/usr/bin/env bash
 set -euo pipefail
 ```
-Add the documented header block for new scripts (see Technical Debt Report Appendix A).
+Add the documented header block for new scripts (see docs/TECHNICAL_DEBT_REPORT.md — Appendix A: Proposed Script Header Template).
 
 ## Adding Components
 1. Implement script under `scripts/` or appropriate directory

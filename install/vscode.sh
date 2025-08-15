@@ -190,7 +190,7 @@ main() {
 
     # Detect the current context
     local context
-    context=$(detect_context)
+    context="${1:-${DOTFILES_PLATFORM:-$(detect_context)}}"
 
     if [[ "$context" == "unknown" ]]; then
         log_error "Could not detect platform context"
@@ -225,6 +225,6 @@ main() {
 }
 
 # Run main function if script is executed directly
-if [[ "${BASH_SOURCE[0]:-}" == "${0:-}" ]]; then
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi

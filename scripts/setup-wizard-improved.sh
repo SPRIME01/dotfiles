@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# DEPRECATED: This variant is retained for reference only.
+# The canonical and supported setup wizard is:
+#   bash scripts/setup-wizard.sh
+# If you previously used this script, please switch to the canonical script.
+
 set -euo pipefail
 
 # Interactive setup wizard for the dotfiles project with idempotent state management.
