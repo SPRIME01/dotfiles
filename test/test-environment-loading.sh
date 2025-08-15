@@ -16,11 +16,12 @@ test_environment_loading() {
 		'echo "$DOTFILES_ROOT"' \
 		"$expected_root"
 
-	# Test GEMINI_API_KEY is loaded
-	# Allow missing GEMINI_API_KEY if no .env present; treat as pass when .env/.env.example absent
-	local expect_secret="SET"
-	if [[ ! -f "$(dirname "$BASH_SOURCE")/../.env" ]]; then
-		expect_secret="UNSET"
+	# Test GEMINI_API_KEY is loaded when declared in .env
+	# If there is no .env or it doesn't declare GEMINI_API_KEY, accept UNSET
+	local expect_secret="UNSET"
+	envfile="$(dirname "$BASH_SOURCE")/../.env"
+	if [[ -f "$envfile" ]] && grep -E '^\s*GEMINI_API_KEY\s*=' "$envfile" >/dev/null 2>&1; then
+		expect_secret="SET"
 	fi
 	test_assert "GEMINI_API_KEY is loaded" \
 		'[[ -n "$GEMINI_API_KEY" ]] && echo "SET" || echo "UNSET"' \
@@ -46,6 +47,10 @@ test_environment_loading() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 	# Ensure we're in the dotfiles directory and environment is loaded
 	cd "$(dirname "$0")/.."
+	# Use a temporary HOME for deterministic PROJECTS_ROOT expectations
+	TMP_HOME=$(mktemp -d)
+	export HOME="$TMP_HOME"
+	trap 'rm -rf "$TMP_HOME"' EXIT
 	source .shell_common.sh
 
 	test_environment_loading

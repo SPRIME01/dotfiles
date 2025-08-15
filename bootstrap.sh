@@ -17,23 +17,31 @@ ln -sf "$DOTFILES/.shell_common.sh" ~/.shell_common
 ln -sf "$DOTFILES/.shell_theme_common.ps1" ~/.shell_theme_common
 ln -sf "$DOTFILES/.shell_functions.sh" ~/.shell_functions
 
-# Install oh-my-posh if not present
-if ! command -v oh-my-posh &>/dev/null; then
-	echo "📦 Installing oh-my-posh..."
-	curl -s https://ohmyposh.dev/install.sh | bash -s
+# Install oh-my-posh if not present (skip when NO_NETWORK=1)
+if [[ "${NO_NETWORK:-0}" != "1" ]]; then
+	if ! command -v oh-my-posh &>/dev/null; then
+		echo "📦 Installing oh-my-posh..."
+		curl -s https://ohmyposh.dev/install.sh | bash -s
+	fi
+else
+	echo "ℹ️  NO_NETWORK=1 set; skipping oh-my-posh installation"
 fi
 
 # Install Oh My Zsh for Linux/WSL2 environments
 if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ -n "$WSL_DISTRO_NAME" ]]; then
 	echo "🐧 Detected Linux/WSL2 environment"
 
-	# Make install_zsh.sh executable and run it
-	if [ -f "$DOTFILES/install_zsh.sh" ]; then
-		chmod +x "$DOTFILES/install_zsh.sh"
-		echo "🐚 Installing Oh My Zsh..."
-		"$DOTFILES/install_zsh.sh"
+	# Make install_zsh.sh executable and run it (skip when NO_NETWORK=1)
+	if [[ "${NO_NETWORK:-0}" == "1" ]]; then
+		echo "ℹ️  NO_NETWORK=1 set; skipping Oh My Zsh installation"
 	else
-		echo "⚠️  install_zsh.sh not found, skipping Zsh setup"
+		if [ -f "$DOTFILES/install_zsh.sh" ]; then
+			chmod +x "$DOTFILES/install_zsh.sh"
+			echo "🐚 Installing Oh My Zsh..."
+			"$DOTFILES/install_zsh.sh"
+		else
+			echo "⚠️  install_zsh.sh not found, skipping Zsh setup"
+		fi
 	fi
 fi
 
@@ -52,11 +60,15 @@ fi
 
 # Setup VS Code configuration
 echo "💻 Setting up VS Code configuration..."
-if [ -f "$DOTFILES/install/vscode.sh" ]; then
-	echo "🔧 Installing VS Code settings..."
-	"$DOTFILES/install/vscode.sh"
+if [[ "${NO_NETWORK:-0}" != "1" ]]; then
+	if [ -f "$DOTFILES/install/vscode.sh" ]; then
+		echo "🔧 Installing VS Code settings..."
+		"$DOTFILES/install/vscode.sh"
+	else
+		echo "⚠️  VS Code installation script not found"
+	fi
 else
-	echo "⚠️  VS Code installation script not found"
+	echo "ℹ️  NO_NETWORK=1 set; skipping VS Code settings installation"
 fi
 
 echo "🎉 Bootstrap complete!"
