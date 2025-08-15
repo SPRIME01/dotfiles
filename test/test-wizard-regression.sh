@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Regression tests for interactive-setup wizard (non-interactive simulation)
 set -euo pipefail
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit && pwd)"
 WIZ=""
 for cand in \
 	"$ROOT/scripts/setup-wizard.sh" \

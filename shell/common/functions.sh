@@ -8,7 +8,7 @@ mkcd() {
 		echo "Usage: mkcd <directory>"
 		return 1
 	fi
-	mkdir -p "$1" && cd "$1"
+	mkdir -p "$1" && cd "$1" || return
 }
 
 # Extract various archive formats
@@ -94,14 +94,16 @@ backup() {
 		return 1
 	fi
 
-	local backup_name="${1}.bak.$(date +%Y%m%d_%H%M%S)"
+	local backup_name
+	backup_name="${1}.bak.$(date +%Y%m%d_%H%M%S)"
 	cp "$1" "$backup_name"
 	echo "Backup created: $backup_name"
 }
 
 # Quick note taking
 note() {
-	local note_file="$HOME/.notes/$(date +%Y-%m-%d).md"
+	local note_file
+	note_file="$HOME/.notes/$(date +%Y-%m-%d).md"
 	mkdir -p "$(dirname "$note_file")"
 
 	if [[ $# -eq 0 ]]; then
@@ -160,7 +162,9 @@ path_remove() {
 		return 1
 	fi
 
-	export PATH=$(echo "$PATH" | sed -e "s|:$1||g" -e "s|$1:||g" -e "s|$1||g")
+	local new_path
+	new_path=$(echo "$PATH" | sed -e "s|:$1||g" -e "s|$1:||g" -e "s|$1||g")
+	export PATH="$new_path"
 	echo "Removed $1 from PATH"
 }
 

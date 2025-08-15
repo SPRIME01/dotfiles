@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1091,SC2016
 # test/test-environment.sh - Environment loading tests
 
 # Source the test framework
@@ -10,14 +11,14 @@ test_environment_loading() {
 
 	# Test DOTFILES_ROOT is set correctly
 	local expected_root
-	expected_root="$(cd "$(dirname "$BASH_SOURCE")/.." && pwd)"
+	expected_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit && pwd)"
 	test_assert "DOTFILES_ROOT is set" \
 		'echo "$DOTFILES_ROOT"' \
 		"$expected_root"
 
 	# Test GEMINI_API_KEY is loaded when declared in .env
 	local expect_secret="UNSET"
-	envfile="$(dirname "$BASH_SOURCE")/../.env"
+	envfile="$(dirname "${BASH_SOURCE[0]}")/../.env"
 	if [[ -f "$envfile" ]] && grep -E '^\s*GEMINI_API_KEY\s*=' "$envfile" >/dev/null 2>&1; then
 		expect_secret="SET"
 	fi
@@ -26,9 +27,20 @@ test_environment_loading() {
 		"$expect_secret"
 
 	# Test PROJECTS_ROOT has default value
-	test_assert "PROJECTS_ROOT has default value" \
+	# Test PROJECTS_ROOT has default value or is overridden in .env
+	local expected_projects
+	expected_projects="$HOME/projects"
+	envfile="$(dirname "${BASH_SOURCE[0]}")/../.env"
+	if [[ -f "$envfile" ]] && grep -E '^\s*PROJECTS_ROOT\s*=' "$envfile" >/dev/null 2>&1; then
+		expected_projects=$(grep -E '^\s*PROJECTS_ROOT\s*=' "$envfile" | sed -E 's/^\s*PROJECTS_ROOT\s*=\s*//')
+		expected_projects=${expected_projects%\"}
+		expected_projects=${expected_projects#\"}
+		expected_projects=${expected_projects%\'}
+		expected_projects=${expected_projects#\'}
+	fi
+	test_assert "PROJECTS_ROOT has default value or .env override" \
 		'echo "$PROJECTS_ROOT"' \
-		"$HOME/projects"
+		"$expected_projects"
 
 	# Test platform detection
 	test_assert "Platform detection works" \
@@ -44,10 +56,12 @@ test_environment_loading() {
 # Run tests if script is executed directly
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 	# Ensure we're in the dotfiles directory and environment is loaded
-	cd "$(dirname "$0")/.."
+	cd "$(dirname "$0")/.." || exit
 	# Use a temporary HOME for deterministic PROJECTS_ROOT expectations
 	TMP_HOME=$(mktemp -d)
 	export HOME="$TMP_HOME"
+	# Ensure PROJECTS_ROOT isn't inherited from the outer environment
+	unset PROJECTS_ROOT 2>/dev/null || true
 	trap 'rm -rf "$TMP_HOME"' EXIT
 	source .shell_common.sh
 

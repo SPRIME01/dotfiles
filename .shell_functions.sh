@@ -6,7 +6,7 @@
 
 # Create and enter directory
 take() {
-    mkdir -p "$1" && cd "$1"
+    mkdir -p "$1" && cd "$1" || return
 }
 
 # Quick git commit with message
@@ -21,9 +21,9 @@ qcommit() {
 # Quick project navigation
 proj() {
     if [ -z "$1" ]; then
-        cd "$PROJECTS_ROOT" && ls
+        cd "$PROJECTS_ROOT" && ls || return
     else
-        cd "$PROJECTS_ROOT/$1"
+        cd "$PROJECTS_ROOT/$1" || return
     fi
 }
 
@@ -33,9 +33,10 @@ killport() {
         echo "Usage: killport <port>"
         return 1
     fi
-    local pid=$(lsof -t -i:$1)
+    local pid
+    pid="$(lsof -t -i:"$1" 2>/dev/null || true)"
     if [ -n "$pid" ]; then
-        kill -9 $pid
+        kill -9 "$pid"
         echo "Killed process $pid running on port $1"
     else
         echo "No process found running on port $1"
@@ -197,7 +198,8 @@ codehere() {
 
 # Quick note taking
 note() {
-    local note_file="$HOME/notes/$(date +%Y-%m-%d).md"
+    local note_file
+    note_file="$HOME/notes/$(date +%Y-%m-%d).md"
     mkdir -p "$(dirname "$note_file")"
     if [ -z "$1" ]; then
         ${EDITOR:-vim} "$note_file"

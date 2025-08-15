@@ -193,7 +193,7 @@ main() {
 	context="${1:-${DOTFILES_PLATFORM:-$(detect_context)}}"
 	# Normalize synonyms to match settings file naming
 	case "$context" in
-		macos) context="darwin" ;;
+	macos) context="darwin" ;;
 	esac
 
 	if [[ "$context" == "unknown" ]]; then

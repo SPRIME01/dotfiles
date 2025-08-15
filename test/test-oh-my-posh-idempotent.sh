@@ -2,7 +2,7 @@
 # Idempotency test for oh-my-posh installer (skips if installer absent)
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit && pwd)"
 INSTALLER="$ROOT/scripts/install-oh-my-posh.sh"
 if [[ ! -f $INSTALLER ]]; then
 	echo "SKIP: oh-my-posh installer not present"

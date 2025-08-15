@@ -1,4 +1,5 @@
 #!/bin/zsh
+# shellcheck shell=zsh
 # Zsh-specific configuration
 # Part of the modular dotfiles configuration system
 
@@ -46,7 +47,8 @@ compinit
 zstyle ':completion:*' menu select
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 if [[ -n ${LS_COLORS:-} ]]; then
-  zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+	# Use raw LS_COLORS value (POSIX-safe); precise splitting is a zsh-only nicety.
+	zstyle ':completion:*' list-colors "$LS_COLORS"
 fi
 zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
 zstyle ':completion:*:warnings' format '%F{red}No matches found%f'
@@ -77,11 +79,11 @@ dirsv() {
 }
 
 # Quick directory navigation (functions cannot start with a number in zsh)
-cd1() { cd -1; }
-cd2() { cd -2; }
-cd3() { cd -3; }
-cd4() { cd -4; }
-cd5() { cd -5; }
+cd1() { cd -1 || return; }
+cd2() { cd -2 || return; }
+cd3() { cd -3 || return; }
+cd4() { cd -4 || return; }
+cd5() { cd -5 || return; }
 
 # Backward-compatible numeric aliases (avoid creating aliases that are only digits)
 alias _1='cd1'
