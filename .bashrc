@@ -35,15 +35,16 @@ if [ -d "$VOLTA_HOME/bin" ]; then
     *":$VOLTA_HOME/bin:"*) ;; # already present
     *) PATH="$VOLTA_HOME/bin:$PATH" ;;
   esac
-  export PATH
 fi
 
-# Common user bins (~/.local/bin, ~/.cargo/bin)
+# Common user bins (~/.local/bin, ~/.cargo/bin) — prepend so user-installed bins take precedence
 for _p in "$HOME/.local/bin" "$HOME/.cargo/bin"; do
   if [ -d "$_p" ] && [[ ":$PATH:" != *":$_p:"* ]]; then
-    PATH="$PATH:$_p"
+    PATH="$_p:$PATH"
   fi
 done
+
+# Export PATH once after all modifications
 export PATH
 
 # Optional debug tracing
