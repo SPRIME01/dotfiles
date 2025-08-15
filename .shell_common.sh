@@ -21,17 +21,17 @@ fi
 
 # --- WSL Integration Variables ---
 # Set default values for WSL-Windows integration, can be overridden in .env files
-if [[ -z "$WSL_USER" ]]; then
-    export WSL_USER="$USER"
+if [[ -z "${WSL_USER:-}" ]]; then
+  export WSL_USER="$USER"
 fi
 
-if [[ -z "$WSL_PROJECTS_PATH" ]] && [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
+if [[ -z "${WSL_PROJECTS_PATH:-}" ]] && [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
     # Default Windows path for projects symlink
     export WSL_PROJECTS_PATH="\$env:USERPROFILE\\projects"
 fi
 
-if [[ -z "$WSL_DISTRO" ]] && [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
-    export WSL_DISTRO="$WSL_DISTRO_NAME"
+if [[ -z "${WSL_DISTRO:-}" ]] && [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
+  export WSL_DISTRO="$WSL_DISTRO_NAME"
 fi
 
 # --- Environment Variable Loading ---
