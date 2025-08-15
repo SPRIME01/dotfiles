@@ -136,9 +136,14 @@ dexec() {
 # Unalias gclean if it exists (from Oh My Zsh git plugin)
 unalias gclean 2>/dev/null
 gclean() {
+gclean() {
 	echo "Cleaning up Git repository..."
 	git fetch --prune
-	git branch --merged | grep -v "\*\|main\|master\|develop" | xargs -n 1 git branch -d
+	# Remove fully merged local branches, excluding primary branches
+	git branch --merged \
+		| grep -Ev '^\*| (main|master|develop)$' \
+		| sed 's/^[[:space:]]*//' \
+		| while read -r b; do git branch -d "$b"; done
 	git gc --aggressive --prune=now
 }
 
