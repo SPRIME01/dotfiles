@@ -5,12 +5,12 @@
 
 # Function to detect platform
 detect_platform() {
-    case "$(uname -s)" in
-        Linux*)     echo "Linux";;
-        Darwin*)    echo "macOS";;
-        CYGWIN*|MINGW*|MSYS*) echo "Windows";;
-        *)          echo "Unknown"
-    esac
+	case "$(uname -s)" in
+	Linux*) echo "Linux" ;;
+	Darwin*) echo "macOS" ;;
+	CYGWIN* | MINGW* | MSYS*) echo "Windows" ;;
+	*) echo "Unknown" ;;
+	esac
 }
 
 # Main installation wizard
@@ -27,17 +27,16 @@ echo
 # Profile selection
 PS3="Please select a configuration profile (1-3): "
 options=("minimal" "developer" "full")
-select profile in "${options[@]}"
-do
-    case $profile in
-        "minimal"|"developer"|"full")
-            echo "Selected profile: $profile"
-            break
-            ;;
-        *)
-            echo "Invalid option. Please select 1, 2 or 3."
-            ;;
-    esac
+select profile in "${options[@]}"; do
+	case $profile in
+	"minimal" | "developer" | "full")
+		echo "Selected profile: $profile"
+		break
+		;;
+	*)
+		echo "Invalid option. Please select 1, 2 or 3."
+		;;
+	esac
 done
 
 echo

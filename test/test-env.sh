@@ -7,14 +7,14 @@ set -euo pipefail
 
 # Determine repository root
 if [[ -z "${DOTFILES_ROOT:-}" ]]; then
-  echo "DOTFILES_ROOT is not set; please run via run-tests.sh" >&2
-  exit 1
+	echo "DOTFILES_ROOT is not set; please run via run-tests.sh" >&2
+	exit 1
 fi
 
 # Create a temporary directory and a sample .env file
 tmp_dir="$(mktemp -d)"
 sample_env="$tmp_dir/sample.env"
-cat > "$sample_env" <<'EOF'
+cat >"$sample_env" <<'EOF'
 FOO=bar
 BAR="quoted value"
 EMPTY=
@@ -31,34 +31,34 @@ unset FOO BAR EMPTY || true
 load_env_file_secure "$sample_env" || true
 
 if [[ "$FOO" != "bar" ]]; then
-  echo "Test failed: FOO expected 'bar' but got '${FOO:-}'" >&2
-  exit 1
+	echo "Test failed: FOO expected 'bar' but got '${FOO:-}'" >&2
+	exit 1
 fi
 
 if [[ "$BAR" != "quoted value" ]]; then
-  echo "Test failed: BAR expected 'quoted value' but got '${BAR:-}'" >&2
-  exit 1
+	echo "Test failed: BAR expected 'quoted value' but got '${BAR:-}'" >&2
+	exit 1
 fi
 
 # EMPTY should be set to an empty string
 if [[ -z "${EMPTY+x}" ]]; then
-  echo "Test failed: EMPTY should be defined" >&2
-  exit 1
+	echo "Test failed: EMPTY should be defined" >&2
+	exit 1
 fi
 
 echo "✅ load_env_file successfully parsed simple .env file"
 
 # Test .shell_common.sh overrides defaults when .env defines PROJECTS_ROOT
 sample_env2="$tmp_dir/sample2.env"
-cat > "$sample_env2" <<EOF
+cat >"$sample_env2" <<EOF
 PROJECTS_ROOT="$tmp_dir/projects"
 EOF
 
 unset PROJECTS_ROOT || true
 source "$DOTFILES_ROOT/.shell_common.sh" >/dev/null 2>&1
 if [[ "$PROJECTS_ROOT" != "$HOME/projects" ]]; then
-  echo "Test failed: default PROJECTS_ROOT should be \$HOME/projects" >&2
-  exit 1
+	echo "Test failed: default PROJECTS_ROOT should be \$HOME/projects" >&2
+	exit 1
 fi
 
 # Source .shell_common.sh with custom .env loaded via load_env_file
@@ -67,8 +67,8 @@ load_env_file_secure "$sample_env2" || true
 
 source "$DOTFILES_ROOT/.shell_common.sh" >/dev/null 2>&1
 if [[ "$PROJECTS_ROOT" != "$tmp_dir/projects" ]]; then
-  echo "Test failed: PROJECTS_ROOT override did not take effect" >&2
-  exit 1
+	echo "Test failed: PROJECTS_ROOT override did not take effect" >&2
+	exit 1
 fi
 
 echo "✅ .shell_common.sh correctly applied PROJECTS_ROOT override"

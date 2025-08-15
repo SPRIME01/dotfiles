@@ -38,17 +38,17 @@ alias reload='source ~/.bashrc 2>/dev/null || source ~/.zshrc 2>/dev/null'
 
 # Platform-specific aliases will be loaded from platform-specific modules
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS specific aliases
-    alias finder='open -a Finder'
-    alias preview='open -a Preview'
+	# macOS specific aliases
+	alias finder='open -a Finder'
+	alias preview='open -a Preview'
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # Linux specific aliases
-    alias open='xdg-open'
-    alias pbcopy='xclip -selection clipboard'
-    alias pbpaste='xclip -selection clipboard -o'
+	# Linux specific aliases
+	alias open='xdg-open'
+	alias pbcopy='xclip -selection clipboard'
+	alias pbpaste='xclip -selection clipboard -o'
 elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
-    # Windows/Git Bash specific aliases
-    alias explorer='explorer.exe'
+	# Windows/Git Bash specific aliases
+	alias explorer='explorer.exe'
 fi
 
 # Development aliases
@@ -58,15 +58,15 @@ alias npm-global='npm list -g --depth=0'
 alias serve='python3 -m http.server'
 
 # Docker aliases (if docker is available)
-if command -v docker &> /dev/null; then
-    alias dk='docker'
-    alias dc='docker-compose'
-    alias dps='docker ps'
-    alias di='docker images'
+if command -v docker &>/dev/null; then
+	alias dk='docker'
+	alias dc='docker-compose'
+	alias dps='docker ps'
+	alias di='docker images'
 fi
 
 # VS Code aliases (if code is available)
-if command -v code &> /dev/null; then
-    alias code.='code .'
-    alias codei='code --install-extension'
+if command -v code &>/dev/null; then
+	alias code.='code .'
+	alias codei='code --install-extension'
 fi

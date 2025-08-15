@@ -11,21 +11,22 @@ cleanup() { [[ ${tmp_created:-0} -eq 1 ]] && [[ -n ${env_file:-} ]] && rm -f -- 
 trap cleanup EXIT
 
 if [[ ! -f "$env_file" ]]; then
-    env_file="$(mktemp)"
-    cat > "$env_file" <<'EOF'
+	env_file="$(mktemp)"
+	cat >"$env_file" <<'EOF'
 ALPHA=one
 BETA=two three
 EMPTY=
 # comment
 EOF
-    tmp_created=1
+	tmp_created=1
 fi
 
 echo "Reading .env file directly with while loop (no IFS):"
 line_num=0
-echo "PASS: simple-read-test2"
-        echo "Line $line_num: '$line'"
-done < "$env_file"
+while IFS= read -r line || [[ -n "$line" ]]; do
+	line_num=$((line_num + 1))
+	echo "Line $line_num: '$line'"
+done <"$env_file"
 
 [[ $tmp_created -eq 1 ]] && rm -f ./.env
 echo "PASS: simple-read-test2"
