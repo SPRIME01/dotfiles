@@ -21,10 +21,10 @@ check() {
 	fi
 }
 
-check "DOTFILES_ROOT set" "[ -n \"${DOTFILES_ROOT:-}\" ]"
-check "Home writable" "[ -w \"$HOME\" ]"
-check "Projects dir present" "[ -d \"${PROJECTS_ROOT:-$HOME/projects}\" ]"
-check "Oh My Posh binary (optional)" "command -v oh-my-posh"
+check "DOTFILES_ROOT set" test -n "${DOTFILES_ROOT:-}"
+check "Home writable" test -w "$HOME"
+check "Projects dir present" test -d "${PROJECTS_ROOT:-$HOME/projects}"
+check_optional "Oh My Posh binary" command -v oh-my-posh
 
 if [ "$fail" -eq 0 ]; then
 	echo "All basic checks passed"
