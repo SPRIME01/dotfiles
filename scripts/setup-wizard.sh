@@ -15,7 +15,17 @@ set -euo pipefail
 # Outputs: Updated state file, configured shells, optional Windows integration artifacts
 # Exit Codes: 0 success, >0 failure
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_ROOT="${DOTFILES_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 [[ -f "$DOTFILES_ROOT/lib/log.sh" ]] && source "$DOTFILES_ROOT/lib/log.sh"
+# State and prompts
+if [[ -f "$DOTFILES_ROOT/lib/state-management.sh" ]]; then
+  # shellcheck disable=SC1090
+  source "$DOTFILES_ROOT/lib/state-management.sh"
+else
+  echo "[ERROR] Missing lib/state-management.sh" >&2
+  exit 1
+fi
 
 # Define minimal logging fallbacks if log.sh isn't present
 if ! command -v log_info >/dev/null 2>&1; then
