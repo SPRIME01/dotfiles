@@ -10,7 +10,7 @@ jobs:
         shell: [bash, zsh]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
 
     - name: Install ${{ matrix.shell }} and dependencies
       run: |
