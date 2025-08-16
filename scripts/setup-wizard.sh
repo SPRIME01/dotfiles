@@ -16,16 +16,39 @@ set -euo pipefail
 # Exit Codes: 0 success, >0 failure
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOTFILES_ROOT="${DOTFILES_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
-[[ -f "$DOTFILES_ROOT/lib/log.sh" ]] && source "$DOTFILES_ROOT/lib/log.sh"
-# State and prompts
-if [[ -f "$DOTFILES_ROOT/lib/state-management.sh" ]]; then
-	# shellcheck disable=SC1090
-	source "$DOTFILES_ROOT/lib/state-management.sh"
+
+# Robust root detection: honor DOTFILES_ROOT only if it points at a directory containing lib/state-management.sh
+if [[ -n "${DOTFILES_ROOT:-}" && -f "${DOTFILES_ROOT}/lib/state-management.sh" ]]; then
+	: # use provided
 else
-	echo "[ERROR] Missing lib/state-management.sh" >&2
+	# Fallback: parent of script dir
+	CANDIDATE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+	if [[ -f "$CANDIDATE_ROOT/lib/state-management.sh" ]]; then
+		DOTFILES_ROOT="$CANDIDATE_ROOT"
+	else
+		# Traverse upward until we find bootstrap.sh and lib
+		search_dir="$SCRIPT_DIR"
+		while [[ "$search_dir" != "/" ]]; do
+			if [[ -f "$search_dir/bootstrap.sh" && -d "$search_dir/lib" && -f "$search_dir/lib/state-management.sh" ]]; then
+				DOTFILES_ROOT="$search_dir"
+				break
+			fi
+			search_dir="$(dirname "$search_dir")"
+		done
+	fi
+fi
+
+if [[ -z "${DOTFILES_ROOT:-}" || ! -f "$DOTFILES_ROOT/lib/state-management.sh" ]]; then
+	echo "[ERROR] Missing lib/state-management.sh (looked in: ${DOTFILES_ROOT:-unset})." >&2
+	echo "[DEBUG] SCRIPT_DIR=$SCRIPT_DIR" >&2
+	echo "[DEBUG] Contents of candidate root (if any):" >&2
+	ls -1 "${DOTFILES_ROOT:-$SCRIPT_DIR}" 2>&1 >&2 || true
 	exit 1
 fi
+
+[[ -f "$DOTFILES_ROOT/lib/log.sh" ]] && source "$DOTFILES_ROOT/lib/log.sh"
+# shellcheck disable=SC1090
+source "$DOTFILES_ROOT/lib/state-management.sh"
 
 # Define minimal logging fallbacks if log.sh isn't present
 if ! command -v log_info >/dev/null 2>&1; then
@@ -58,7 +81,26 @@ fi
 # Ensure DOTFILES_STATE_FILE is set to avoid unbound errors in tests
 : ${DOTFILES_STATE_FILE:="$HOME/.dotfiles-state"}
 
-log_info "📦 Unified dotfiles setup wizard start"
+DRY_RUN=false
+FORCE_REINSTALL=${FORCE_REINSTALL:-false}
+
+# Argument parsing
+for arg in "$@"; do
+	case "$arg" in
+		--dry-run)
+			DRY_RUN=true ;;
+		--force|--force-reinstall)
+			FORCE_REINSTALL=true ;;
+		--quick)
+			QUICK_MODE=true ;;
+		--interactive)
+			INTERACTIVE_MODE=true ;;
+		*)
+			;; # ignore unknown for now
+	esac
+done
+
+log_info "📦 Unified dotfiles setup wizard start${DRY_RUN:+ (dry-run)}"
 echo
 
 prompt_yes_no() {
@@ -99,6 +141,10 @@ smart_prompt_yes_no() {
 
 safe_execute() {
 	local component="$1" description="$2" command="$3"
+	if [[ "$DRY_RUN" == true ]]; then
+		echo "📝 (dry-run) $description"
+		return 0
+	fi
 	echo "▶️  $description..."
 	if eval "$command"; then
 		mark_component_installed "$component"
@@ -111,7 +157,7 @@ safe_execute() {
 	fi
 }
 
-if has_any_setup_been_done; then
+if has_any_setup_been_done && [[ "$DRY_RUN" != true ]]; then
 	log_info "Displaying current installation status"
 	show_installation_status
 	echo
@@ -126,9 +172,12 @@ if has_any_setup_been_done; then
 	fi
 	prompt_yes_no "Force reinstall all components?" n && FORCE_REINSTALL=true || FORCE_REINSTALL=false
 else
-	echo "🚀 First run detected."
+	if [[ "$DRY_RUN" == true ]]; then
+		echo "🚀 (dry-run) Evaluating first-run decisions (no changes will be made)."
+	else
+		echo "🚀 First run detected."
+	fi
 	RETRY_FAILED_ONLY=false
-	FORCE_REINSTALL=false
 fi
 
 available_pwsh=0
