@@ -28,5 +28,4 @@ while IFS= read -r line || [[ -n "$line" ]]; do
 	echo "Line $line_num: '$line'"
 done <"$env_file"
 
-[[ $tmp_created -eq 1 ]] && rm -f ./.env
 echo "PASS: simple-read-test2"

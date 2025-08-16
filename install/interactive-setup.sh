@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Dotfiles Installation Wizard
 # Phase 4.1 Configuration Management

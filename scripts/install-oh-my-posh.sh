@@ -52,11 +52,17 @@ main() {
 
 	mkdir -p "$(dirname "$BIN_PATH")"
 
-	# If binary already exists and matches target, skip
+	# If binary already exists, optionally compare versions when a target is set.
 	if [[ -x "$BIN_PATH" ]]; then
-		if "$BIN_PATH" version 2>/dev/null | grep -q "${TARGET_VERSION:-}"; then
-			log_info "oh-my-posh already at ${TARGET_VERSION}; skipping"
-			return 0
+		if [[ -n "${TARGET_VERSION:-}" ]]; then
+			# Only run version matching when TARGET_VERSION is non-empty
+			if "$BIN_PATH" version 2>/dev/null | grep -q -- "${TARGET_VERSION}"; then
+				log_info "oh-my-posh already at ${TARGET_VERSION}; skipping"
+				return 0
+			fi
+		else
+			# No TARGET_VERSION requested: existing binary present — proceed to install latest by default
+			log_info "oh-my-posh binary present but no target version requested; installing latest"
 		fi
 	fi
 
