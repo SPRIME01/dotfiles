@@ -181,9 +181,9 @@ echo
 read -p "Would you like to run a test of the new system? (y/N): " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-	echo -e "${BLUE}Running test...${NC}"
-	echo "Testing environment loading:"
-	bash -c "cd '$DOTFILES_ROOT' && source .shell_common.sh && echo 'DOTFILES_ROOT:' \$DOTFILES_ROOT && echo 'GEMINI_API_KEY:' \${GEMINI_API_KEY:0:20}..."
-	echo
-	echo -e "${GREEN}Test complete!${NC}"
+		echo -e "${BLUE}Running test...${NC}"
+		echo "Testing environment loading:"
+		bash -c "cd '$DOTFILES_ROOT' && source .shell_common.sh && echo 'DOTFILES_ROOT:' \"\$DOTFILES_ROOT\" && if [[ -n \${GEMINI_API_KEY-} ]]; then echo 'GEMINI_API_KEY: [set]'; else echo 'GEMINI_API_KEY: [unset]'; fi"
+		echo
+		echo -e "${GREEN}Test complete!${NC}"
 fi

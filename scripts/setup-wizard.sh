@@ -2,12 +2,16 @@
 # Canonical interactive setup wizard for the dotfiles repository.
 # Use this script as the primary entrypoint:
 #   bash scripts/setup-wizard.sh [--interactive|--quick|--force]
+# NOTE: This script is the supported, canonical wizard and supersedes
+# legacy variants (for example, scripts/setup-wizard-improved.sh).
 
 set -euo pipefail
 
 # Description: Unified interactive setup wizard (consolidated). Provides idempotent,
 # state-aware installation for shells, VS Code settings, hooks, projects, SSH bridge,
-# and Windows integration. Supersedes previous setup-wizard.sh and setup-wizard-improved.sh.
+# and Windows integration. This is the canonical wizard to use for installs and CI.
+# Supersedes legacy variants such as scripts/setup-wizard-improved.sh (retained in
+# the repo for historical reference only).
 # Category: setup
 # Dependencies: bash, coreutils, (optional) pwsh, powershell.exe (WSL), just
 # Idempotent: yes (component state tracked in DOTFILES_STATE_FILE)

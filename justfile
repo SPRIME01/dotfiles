@@ -1,5 +1,7 @@
 # Justfile for dotfiles project
 
+set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
+
 # Display a list of available tasks when no target is specified.
 default:
     @just --list
@@ -91,7 +93,6 @@ enable-ssh-agent:
 
 # Set up WSL2 for remote access via SSH and VS Code
 setup-wsl2-remote:
-    #!/usr/bin/env bash
     echo "🌐 Setting up WSL2 for remote access..."
 
     # Check if we're in WSL2
@@ -110,7 +111,6 @@ setup-wsl2-remote:
 
 # Configure Windows for WSL2 remote access (run the PowerShell script)
 setup-wsl2-remote-windows:
-    #!/usr/bin/env bash
     echo "🪟 Configuring Windows for WSL2 remote access..."
 
     # Check if we're in WSL2
@@ -140,9 +140,8 @@ setup-wsl2-complete:
 setup-remote-dev: setup-wsl2-complete
 
 # Run interactive wizard
-# old: just run-wizard => bash scripts/setup-wizard-improved.sh
 run-wizard:
-	@bash scripts/setup-wizard.sh --interactive
+    @bash scripts/setup-wizard.sh --interactive
 
 # Ensure key scripts are executable in the git index (fixes CI / local runs).
 # This target is safe to run locally or in CI to set the executable bit and stage it in git.

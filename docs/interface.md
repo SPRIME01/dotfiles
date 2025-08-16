@@ -51,15 +51,17 @@ This command launches the standard wizard at `scripts/setup-wizard.sh`, which pr
 - Failure recovery (can retry only failed components)
 - Clear status output and safe, re-runnable operations
 
-Optional enhanced wizard (manual run):
+Optional enhanced wizard (deprecated; manual run):
 
 ```bash
-bash scripts/setup-wizard-improved.sh
+# Deprecated variant retained for reference; do not use for new installs.
+# Run the canonical interactive wizard instead:
+bash scripts/setup-wizard.sh
 ```
 
-The enhanced wizard adds a “force reinstall all components” option and a more detailed summary.
+This variant is retained for reference only; the canonical wizard is `scripts/setup-wizard.sh` and provides the same capabilities.
 
-Both wizards will:
+Both the canonical wizard and the retained improved variant will:
 - Detect your platform and shell
 - Show current installation status (if any previous setup exists)
 - Configure environment variables
@@ -316,8 +318,9 @@ The system maintains a state file at `~/dotfiles/.dotfiles-state` that tracks:
 # View current installation status (standard wizard)
 just setup  # Shows status if previous runs exist
 
-# Force reinstall all components (enhanced wizard)
-bash scripts/setup-wizard-improved.sh  # Choose "force reinstall" when prompted
+# Force reinstall all components (use canonical wizard)
+# Use: force reinstall is supported by the canonical wizard as well
+bash scripts/setup-wizard.sh --force  # Choose "force reinstall" when prompted (or use --force for automation)
 
 # Retry only failed components (both wizards)
 just setup  # Will offer to retry failed-only when failures exist
@@ -422,9 +425,11 @@ just setup  # Will prompt for that component again
 **Issue**: Setup wizard shows "already installed" but component not working
 **Solution**:
 ```bash
-# Option 1: Use the enhanced wizard to force reinstall
-bash scripts/setup-wizard-improved.sh
-# Choose "force reinstall all components" when prompted
+# Option 1: Use the canonical wizard to force reinstall
+# Interactive: run and choose "force reinstall all components"
+bash scripts/setup-wizard.sh --interactive
+# Non-interactive / automated: use --force
+# bash scripts/setup-wizard.sh --force
 
 # Option 2: Clear state and re-run
 rm ~/dotfiles/.dotfiles-state

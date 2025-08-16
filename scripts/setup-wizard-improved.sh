@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
-# DEPRECATED: This variant is retained for reference only.
+# DEPRECATED / LEGACY: This variant is retained for reference only.
 # The canonical and supported setup wizard is:
 #   bash scripts/setup-wizard.sh
 # If you previously used this script, please switch to the canonical script.
+#
+# Differences (summary):
+# - Older prompting flow and ordering of component installs
+# - Slightly different wording and batch-file fallbacks for Windows projects
+# - The canonical script consolidates state helpers, more robust fallbacks,
+#   and explicit non-interactive flags (--force/--interactive)
+#
+# This file remains in the repository only for historical comparison and
+# debugging; do not rely on it for new automation or CI tasks.
 
 set -euo pipefail
 
