@@ -5,8 +5,8 @@
 # `.zshrc` you ensure that agent forwarding works consistently.
 
 if [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
-    if [[ -f "$HOME/dotfiles/scripts/setup-ssh-agent-bridge.sh" ]]; then
-        # shellcheck source=dotfiles-main/scripts/setup-ssh-agent-bridge.sh
-        . "$HOME/dotfiles/scripts/setup-ssh-agent-bridge.sh"
-    fi
+	if [[ -f "$HOME/dotfiles/scripts/setup-ssh-agent-bridge.sh" ]]; then
+		# shellcheck source=dotfiles-main/scripts/setup-ssh-agent-bridge.sh
+		. "$HOME/dotfiles/scripts/setup-ssh-agent-bridge.sh"
+	fi
 fi

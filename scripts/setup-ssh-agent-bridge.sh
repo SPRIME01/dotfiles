@@ -11,56 +11,48 @@
 export SSH_AUTH_SOCK="${SSH_AUTH_SOCK:-$HOME/.ssh/wsl-ssh-agent.sock}"
 
 setup_ssh_agent_bridge() {
-    # Only run on WSL2
-    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
-        return 0
-    fi
+	# Only run on WSL2
+	if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
+		return 0
+	fi
 
-    # Start wsl-ssh-agent-relay if installed
-    if command -v wsl-ssh-agent-relay >/dev/null 2>&1; then
-        wsl-ssh-agent-relay start || true
-    fi
+	# Start wsl-ssh-agent-relay if installed
+	if command -v wsl-ssh-agent-relay >/dev/null 2>&1; then
+		wsl-ssh-agent-relay start || true
+	fi
 
-    # Determine path to npiperelay on Windows using USERPROFILE and wslpath
-    local userprofile_win
-    userprofile_win=$(cmd.exe /c "echo %USERPROFILE%" 2>/dev/null | tr -d '\r')
-    local userprofile
-    userprofile="$(wslpath "$userprofile_win")"
-    local npiperelay="${NPIPERELAY:-$userprofile/scoop/apps/npiperelay/0.1.0/npiperelay.exe}"
-    if [[ ! -x "$npiperelay" ]]; then
-        # Only show error message in interactive mode and not during instant prompt
-        if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]] && [[ -z "${POWERLEVEL9K_INSTANT_PROMPT:-}" ]]; then
-            echo "[setup-ssh-agent-bridge] npiperelay not found at $npiperelay" >&2
-        fi
-        return 0
-    fi
+	# Determine path to npiperelay on Windows using USERPROFILE and wslpath
+	local userprofile_win
+	userprofile_win=$(cmd.exe /c "echo %USERPROFILE%" 2>/dev/null | tr -d '\r')
+	local userprofile
+	userprofile="$(wslpath "$userprofile_win")"
+	local npiperelay="${NPIPERELAY:-$userprofile/scoop/apps/npiperelay/0.1.0/npiperelay.exe}"
+	if [[ ! -x "$npiperelay" ]]; then
+		# Only show error message in interactive mode and not during instant prompt
+		if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]] && [[ -z "${POWERLEVEL9K_INSTANT_PROMPT:-}" ]]; then
+			echo "[setup-ssh-agent-bridge] npiperelay not found at $npiperelay" >&2
+		fi
+		return 0
+	fi
 
-    # Helper to check if the socket is already live
-    is_socket_active() {
-        [[ -S "$SSH_AUTH_SOCK" ]] && ssh-add -l >/dev/null 2>&1
-    }
+	# Helper to check if the socket is already live
+	is_socket_active() {
+		[[ -S "$SSH_AUTH_SOCK" ]] && ssh-add -l >/dev/null 2>&1
+	}
 
-    # Only start socat if socket not alive
-    if ! is_socket_active; then
-        rm -f "$SSH_AUTH_SOCK"
-        # Use setsid and nohup to detach from the current process; disown to avoid job notifications
-        if [[ -n "${ZSH_VERSION:-}" ]]; then
-            # In zsh, &! starts a detached job that is not added to the job table
-            setsid nohup socat \
-                UNIX-LISTEN:"$SSH_AUTH_SOCK",fork \
-                EXEC:"$npiperelay //./pipe/openssh-ssh-agent" \
-                >/dev/null 2>&1 &!
-        else
-            # POSIX/bash fallback
-            setsid nohup socat \
-                UNIX-LISTEN:"$SSH_AUTH_SOCK",fork \
-                EXEC:"$npiperelay //./pipe/openssh-ssh-agent" \
-                >/dev/null 2>&1 &
-            # Best-effort: remove job from shell job table to suppress [n] done messages
-            bgpid=$!
-            { builtin disown "$bgpid" 2>/dev/null || disown "$bgpid" 2>/dev/null || true; }
-        fi
-    fi
+	# Only start socat if socket not alive
+	if ! is_socket_active; then
+		rm -f "$SSH_AUTH_SOCK"
+		# Use setsid and nohup to detach from the current process; disown to avoid job notifications
+		# Use portable backgrounding; avoid shell-specific '&!' token which breaks shfmt
+		setsid nohup socat \
+			UNIX-LISTEN:"$SSH_AUTH_SOCK",fork \
+			EXEC:"$npiperelay //./pipe/openssh-ssh-agent" \
+			>/dev/null 2>&1 &
+		bgpid=$!
+		# Best-effort: remove job from shell job table to suppress job notifications
+		{ builtin disown "$bgpid" 2>/dev/null || disown "$bgpid" 2>/dev/null || true; }
+	fi
 }
 
 # Execute the function when sourced or run directly

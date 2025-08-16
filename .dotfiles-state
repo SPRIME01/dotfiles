@@ -1,7 +1,7 @@
 # Dotfiles installation state
 # Format: COMPONENT=STATUS (installed|skipped|failed)
 # Generated: 2025-08-04T22:08:57-04:00
-setup_completed=2025-08-08T18:18:57-04:00
+projects_setup=installed
 zsh_config=installed
 bash_config=installed
 pwsh_config=installed
@@ -9,6 +9,24 @@ vscode_settings=installed
 git_hook=installed
 ssh_bridge=installed
 projects_setup=installed
-pwsh7_windows=installed
-ssh_agent_windows=installed
+pwsh7_windows=skipped # Not WSL
+ssh_agent_windows=skipped # Not WSL
 setup_completed=2025-08-13T22:41:48-04:00
+setup_completed=2025-08-15T11:48:31-04:00
+setup_completed=2025-08-15T11:48:37-04:00
+setup_completed=2025-08-15T11:48:47-04:00
+setup_completed=2025-08-15T11:54:46-04:00
+setup_completed=2025-08-15T11:54:53-04:00
+setup_completed=2025-08-15T11:54:59-04:00
+setup_completed=2025-08-15T11:57:23-04:00
+setup_completed=2025-08-15T11:57:29-04:00
+setup_completed=2025-08-15T11:57:39-04:00
+setup_completed=2025-08-15T11:59:06-04:00
+setup_completed=2025-08-15T11:59:12-04:00
+setup_completed=2025-08-15T11:59:19-04:00
+setup_completed=2025-08-15T12:20:34-04:00
+setup_completed=2025-08-15T12:20:40-04:00
+setup_completed=2025-08-15T12:20:47-04:00
+setup_completed=2025-08-15T12:55:47-04:00
+setup_completed=2025-08-15T12:55:53-04:00
+setup_completed=2025-08-15T12:55:59-04:00

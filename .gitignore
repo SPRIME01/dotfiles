@@ -195,3 +195,6 @@ local.config.*
 # Temporary directories
 tmp/
 temp/
+
+# PowerShell profile backups
+PowerShell/*.bak*
