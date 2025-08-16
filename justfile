@@ -4,23 +4,35 @@
 default:
     @just --list
 
-# Run all automated tests (shell + PowerShell if available)
+# Run all automated tests (shell + PowerShell if available). Fast validation before commits.
 test:
     @bash scripts/run-tests.sh
 
-# CI-parity: run the same comprehensive suite used in workflows
+# Lint shell scripts (shellcheck) and verify formatting (shfmt diff mode)
+lint:
+    @bash tools/lint.sh
+
+# Auto-format shell scripts in-place using shfmt
+format:
+    @shfmt -w .
+
+# CI-parity: run the comprehensive test suite mirroring GitHub Actions workflow
 ci-test:
     @bash test/run-all-tests.sh
 
-# Interactive setup wizard (Unix shells)
+# Interactive state-aware setup wizard (Unix shells)
 setup:
     @bash scripts/setup-wizard.sh
+
+# Install optional dependencies (socat, openssh-client/server) with systemd guard
+install-deps:
+    @bash scripts/install-dependencies.sh
 
 # Interactive setup wizard (Windows via PowerShell 7)
 setup-windows:
     @pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/setup-wizard.ps1
 
-# Update repository safely and reapply configuration
+# Safe update: stash local changes, pull main, re-bootstrap, restore stash
 update:
     @bash update.sh
 
@@ -126,3 +138,16 @@ setup-wsl2-complete:
 
 # Guided remote development setup (alias for setup-wsl2-complete)
 setup-remote-dev: setup-wsl2-complete
+
+# Run interactive wizard
+# old: just run-wizard => bash scripts/setup-wizard-improved.sh
+run-wizard:
+	@bash scripts/setup-wizard.sh --interactive
+
+# Ensure key scripts are executable in the git index (fixes CI / local runs).
+# This target is safe to run locally or in CI to set the executable bit and stage it in git.
+fix-permissions:
+	@echo "🔧 Ensuring executable bits for known scripts..."
+	@chmod +x tools/lint.sh scripts/install-dependencies.sh scripts/setup-pwsh7.sh || true
+	@git update-index --chmod=+x tools/lint.sh scripts/install-dependencies.sh scripts/setup-pwsh7.sh >/dev/null 2>&1 || true
+	@echo "✅ Permissions updated (if running in a git repo)."

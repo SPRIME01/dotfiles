@@ -9,56 +9,57 @@
 
 # Determine the directory where this script is located
 if [[ -n "$BASH_VERSION" ]]; then
-    SHELL_CONFIG_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+	SHELL_CONFIG_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 elif [[ -n "$ZSH_VERSION" ]]; then
-    SHELL_CONFIG_ROOT="$(cd "$(dirname "${(%):-%N}")" && pwd)"
+	# In zsh, ${(%):-%N} expands to the script name; use $0 as a portable fallback
+	SHELL_CONFIG_ROOT="$(cd "$(dirname "$0")" && pwd)"
 else
-    # Fallback for other shells
-    SHELL_CONFIG_ROOT="$(cd "$(dirname "$0")" && pwd)"
+	# Fallback for other shells
+	SHELL_CONFIG_ROOT="$(cd "$(dirname "$0")" && pwd)"
 fi
 
 # Determine current shell
 if [[ -n "$BASH_VERSION" ]]; then
-    CURRENT_SHELL="bash"
+	CURRENT_SHELL="bash"
 elif [[ -n "$ZSH_VERSION" ]]; then
-    CURRENT_SHELL="zsh"
+	CURRENT_SHELL="zsh"
 else
-    CURRENT_SHELL="unknown"
+	CURRENT_SHELL="unknown"
 fi
 
 # Determine platform
 case "$OSTYPE" in
-    linux*)
-        CURRENT_PLATFORM="linux"
-        ;;
-    darwin*)
-        CURRENT_PLATFORM="macos"
-        ;;
-    msys*|cygwin*|mingw*)
-        CURRENT_PLATFORM="windows"
-        ;;
-    *)
-        CURRENT_PLATFORM="unknown"
-        ;;
+linux*)
+	CURRENT_PLATFORM="linux"
+	;;
+darwin*)
+	CURRENT_PLATFORM="macos"
+	;;
+msys* | cygwin* | mingw*)
+	CURRENT_PLATFORM="windows"
+	;;
+*)
+	CURRENT_PLATFORM="unknown"
+	;;
 esac
 
 # Function to safely source a file
 safe_source() {
-    local file="$1"
-    if [[ -f "$file" && -r "$file" ]]; then
-        source "$file"
-        return 0
-    else
-        if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
-            echo "Warning: Could not load $file" >&2
-        fi
-        return 1
-    fi
+	local file="$1"
+	if [[ -f "$file" && -r "$file" ]]; then
+		source "$file"
+		return 0
+	else
+		if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
+			echo "Warning: Could not load $file" >&2
+		fi
+		return 1
+	fi
 }
 
 # Load common configuration (all shells, all platforms)
 if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
-    echo "Loading modular shell configuration..." >&2
+	echo "Loading modular shell configuration..." >&2
 fi
 
 # 1. Load common environment variables
@@ -72,20 +73,20 @@ safe_source "$SHELL_CONFIG_ROOT/common/functions.sh"
 
 # 4. Load platform-specific configuration
 if [[ "$CURRENT_PLATFORM" != "unknown" ]]; then
-    safe_source "$SHELL_CONFIG_ROOT/platform-specific/$CURRENT_PLATFORM.sh"
+	safe_source "$SHELL_CONFIG_ROOT/platform-specific/$CURRENT_PLATFORM.sh"
 else
-    if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
-        echo "Warning: Unknown platform '$OSTYPE', skipping platform-specific configuration" >&2
-    fi
+	if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
+		echo "Warning: Unknown platform '$OSTYPE', skipping platform-specific configuration" >&2
+	fi
 fi
 
 # 5. Load shell-specific configuration
 if [[ "$CURRENT_SHELL" != "unknown" ]]; then
-    safe_source "$SHELL_CONFIG_ROOT/$CURRENT_SHELL/config.sh"
+	safe_source "$SHELL_CONFIG_ROOT/$CURRENT_SHELL/config.sh"
 else
-    if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
-        echo "Warning: Unknown shell, skipping shell-specific configuration" >&2
-    fi
+	if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
+		echo "Warning: Unknown shell, skipping shell-specific configuration" >&2
+	fi
 fi
 
 # Export variables for use by other scripts
@@ -94,5 +95,5 @@ export CURRENT_SHELL
 export CURRENT_PLATFORM
 
 if [[ "${DOTFILES_DEBUG:-}" == "true" ]]; then
-    echo "Modular shell configuration loaded (shell: $CURRENT_SHELL, platform: $CURRENT_PLATFORM)"
+	echo "Modular shell configuration loaded (shell: $CURRENT_SHELL, platform: $CURRENT_PLATFORM)"
 fi

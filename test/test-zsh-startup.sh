@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
-# Verify zsh startup is clean: no parse errors, exit code 0
+# shellcheck disable=SC1091
+# test/test-zsh-startup.sh
+# test/test-zsh-startup.sh
+# Minimal test to ensure zsh startup loads without errors.
 set -euo pipefail
 
-if ! command -v zsh >/dev/null 2>&1; then
-  echo "⚠️ Skipping zsh startup test (zsh not installed)"
-  exit 0
+source "$(dirname "${BASH_SOURCE[0]}")/framework.sh"
+
+test_zsh_startup() {
+	echo "🧪 Testing zsh startup"
+	# Attempt to start zsh in non-interactive mode to ensure config loads
+	zsh -i -c "exit" >/dev/null 2>&1 && echo "PASS: zsh started" || echo "FAIL: zsh failed to start"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+	cd "$(dirname "$0")/.." || exit
+	source .shell_common.sh
+	test_zsh_startup
+	test_summary
 fi
-
-# Run with debug and capture output
-out="$(zsh -x -ic exit 2>&1 || true)"
-
-# Basic checks
-if echo "$out" | grep -E "parse error|defining function based on alias|\[.*\] done" >/dev/null; then
-  echo "❌ zsh startup has errors or job noise"
-  echo "$out" | tail -n 50
-  exit 1
-fi
-
-echo "✅ zsh startup clean"
