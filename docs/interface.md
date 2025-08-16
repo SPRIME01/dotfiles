@@ -1,12 +1,14 @@
+# Quick Start
+
+### Prerequisites
+
+ - **Just** command runner: [Install Just](https://github.com/casey/just#installation)
+ - **Git** for repository management
+ - **Zsh** or **Bash** shell (Zsh recommended)
+ - **PowerShell 7** (Windows users)
+
+### 30-Second Setup
 # Dotfiles Project - Complete How-To Guide
-
-Welcome to the comprehensive guide for the modern dotfiles project! This documentation provides step-by-step instructions for setup, usage, and maintenance of your cross-platform shell configuration system.
-
-## Table of Contents
-
-1. [Quick Start](#quick-start)
-2. [Installation & Setup](#installation--setup)
-3. [Command Reference](#command-reference)
 4. [Platform-Specific Guides](#platform-specific-guides)
 5. [Advanced Configuration](#advanced-configuration)
 6. [State Management & Idempotency](#state-management--idempotency)
@@ -54,59 +56,12 @@ This command launches the standard wizard at `scripts/setup-wizard.sh`, which pr
 Optional enhanced wizard (manual run):
 
 ```bash
-bash scripts/setup-wizard-improved.sh
+bash scripts/setup-wizard.sh
 ```
 
 The enhanced wizard adds a “force reinstall all components” option and a more detailed summary.
 
-Both wizards will:
-- Detect your platform and shell
-- Show current installation status (if any previous setup exists)
-- Configure environment variables
-- Set up Oh My Zsh (if desired)
-- Install VS Code settings
-- Configure MCP integration
-- Set up SSH agent (where supported)
-- Track all installation states for future runs
 
-### 2. Windows-Specific Setup
-
-For Windows users with PowerShell 7:
-
-```bash
-just setup-windows
-```
-
-This launches the PowerShell version of the setup wizard (`scripts/setup-wizard.ps1`) with Windows-specific optimizations.
-
-### 3. Complete Windows Integration
-
-For full Windows/WSL2 integration:
-
-```bash
-just setup-windows-integration
-```
-
-This comprehensive command:
-- Sets up the projects directory with Windows access
-- Configures PowerShell 7 profile
-- Creates WSL-Windows symlinks
-- Fixes shell configuration issues
-
-### 4. Projects Directory Setup (Improved & Idempotent)
-
-Create a unified projects directory with Windows access (WSL2):
-
-```bash
-just setup-projects
-```
-
-The **improved idempotent version** provides:
-
-**Safe Operations**:
-- ✅ Checks existing state before making changes
-- ✅ Never overwrites working configurations
-- ✅ Provides clear status of all operations
 - ✅ Safe to run multiple times
 
 **Smart Windows Integration**:
@@ -317,7 +272,7 @@ The system maintains a state file at `~/dotfiles/.dotfiles-state` that tracks:
 just setup  # Shows status if previous runs exist
 
 # Force reinstall all components (enhanced wizard)
-bash scripts/setup-wizard-improved.sh  # Choose "force reinstall" when prompted
+bash scripts/setup-wizard.sh  # Choose "force reinstall" when prompted
 
 # Retry only failed components (both wizards)
 just setup  # Will offer to retry failed-only when failures exist
@@ -423,7 +378,7 @@ just setup  # Will prompt for that component again
 **Solution**:
 ```bash
 # Option 1: Use the enhanced wizard to force reinstall
-bash scripts/setup-wizard-improved.sh
+bash scripts/setup-wizard.sh
 # Choose "force reinstall all components" when prompted
 
 # Option 2: Clear state and re-run
