@@ -21,6 +21,13 @@ fi
 # Oh My Zsh path
 export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
 
+# Ensure Powerlevel10k theme is selected if installed and no theme explicitly set
+if [[ -z ${ZSH_THEME:-} ]]; then
+    if [[ -d "${ZSH_CUSTOM:-$ZSH/custom}/themes/powerlevel10k" ]]; then
+        export ZSH_THEME="powerlevel10k/powerlevel10k"
+    fi
+fi
+
 # Modular zsh configuration
 [[ -r "$DOTFILES_ROOT/zsh/env.zsh" ]] && source "$DOTFILES_ROOT/zsh/env.zsh"
 [[ -r "$DOTFILES_ROOT/zsh/path.zsh" ]] && source "$DOTFILES_ROOT/zsh/path.zsh"
@@ -60,7 +67,7 @@ else
     export EDITOR='code'
 fi
 
-# Powerlevel10k config
+# Powerlevel10k config (deferred until after oh-my-zsh loads functions)
 [[ -r "$HOME/.p10k.zsh" ]] && source "$HOME/.p10k.zsh"
 
 # Add Pulumi to PATH idempotently (only if it exists)
