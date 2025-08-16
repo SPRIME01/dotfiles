@@ -24,6 +24,10 @@ ci-test:
 setup:
     @bash scripts/setup-wizard.sh
 
+# Dry-run the setup wizard (no changes, shows planned actions)
+setup-dry-run:
+    @bash scripts/setup-wizard.sh --dry-run
+
 # Install optional dependencies (socat, openssh-client/server) with systemd guard
 install-deps:
     @bash scripts/install-dependencies.sh
