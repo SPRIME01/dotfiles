@@ -12,7 +12,7 @@ Guides user through configuring shells, VS Code settings, projects directory, Po
 - Integrates logging (`lib/log.sh`) when available.
 
 ## Components Covered
-Bash/Zsh config, Oh My Zsh/plugins, VS Code settings, PowerShell profile, projects setup, SSH bridge, Windows pwsh7 profile, Windows SSH agent.
+Bash/Zsh config, Oh My Zsh/plugins, VS Code settings, PowerShell profile (see "PowerShell 7 (pwsh) setup" — `PowerShell/Microsoft.PowerShell_profile.ps1`), projects setup, SSH bridge (see "WSL SSH agent bridge" — `wsl-integration.md`), Windows pwsh7 profile, Windows SSH agent (see `ssh-agent-windows.md`).
 
 See also:
 - docs on WSL integration and SSH agent bridging: `README.md#how-to-use-remotely` and `README.md#🩺-health-check-doctor`
