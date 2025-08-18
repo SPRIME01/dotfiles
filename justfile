@@ -5,9 +5,9 @@ default:
     @just --list
 
 # Run all automated tests (shell + PowerShell if available). Fast validation before commits.
-test:
     @bash scripts/run-tests.sh
 
+<<<<<<< HEAD
 # Lint shell scripts (shellcheck) and verify formatting (shfmt diff mode)
 lint:
     @bash tools/lint.sh
@@ -17,10 +17,20 @@ format:
     @shfmt -w .
 
 # CI-parity: run the comprehensive test suite mirroring GitHub Actions workflow
-ci-test:
-    @bash test/run-all-tests.sh
+    # Install direnv across supported platforms (idempotent)
 
 # Interactive state-aware setup wizard (Unix shells)
+=======
+# Install direnv across supported platforms (idempotent)
+install-direnv:
+    @bash -c 'set -euo pipefail; echo "🌱 Installing direnv..."; if command -v direnv >/dev/null 2>&1; then echo "✅ direnv already installed: $$(command -v direnv)"; direnv version || true; exit 0; fi; OS=$$(uname -s); if command -v apt >/dev/null 2>&1; then echo "📦 Using apt"; sudo apt update -y >/dev/null 2>&1 || true; sudo apt install -y direnv; elif command -v brew >/dev/null 2>&1; then echo "🍺 Using Homebrew"; brew install direnv; elif command -v dnf >/dev/null 2>&1; then echo "📦 Using dnf"; sudo dnf install -y direnv; elif command -v pacman >/dev/null 2>&1; then echo "📦 Using pacman"; sudo pacman -Sy --noconfirm direnv; elif command -v zypper >/dev/null 2>&1; then echo "📦 Using zypper"; sudo zypper install -y direnv; elif command -v scoop >/dev/null 2>&1; then echo "🪟 Using scoop (Windows)"; scoop install direnv; elif command -v choco >/dev/null 2>&1; then echo "🪟 Using choco (Windows)"; choco install direnv -y; else echo "❌ No supported package manager found. Install manually from https://direnv.net"; exit 1; fi; if command -v direnv >/dev/null 2>&1; then echo "🎉 direnv installed: $$(direnv version)"; echo "💡 Create a .envrc in a project and run: direnv allow"; echo "💡 To disable temporarily: export DISABLE_DIRENV=1"; else echo "❌ direnv installation appears to have failed"; exit 1; fi'
+
+# Test direnv integration in an isolated temp directory
+    # Interactive state-aware setup wizard (Unix shells)
+# Launch the interactive setup wizard for Unix shells.  This script
+# guides you through configuring shells, installing optional components
+# like VS Code settings, and enabling MCP/SSH integration.
+>>>>>>> 550e43d (feat: Add direnv integration for Bash, Zsh, and PowerShell with installation and testing support)
 setup:
     @bash scripts/setup-wizard.sh
 
