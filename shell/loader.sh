@@ -71,6 +71,9 @@ safe_source "$SHELL_CONFIG_ROOT/common/aliases.sh"
 # 3. Load common functions
 safe_source "$SHELL_CONFIG_ROOT/common/functions.sh"
 
+# 3b. Optional direnv integration (only if direnv installed)
+safe_source "$SHELL_CONFIG_ROOT/common/direnv.sh"
+
 # 4. Load platform-specific configuration
 if [[ "$CURRENT_PLATFORM" != "unknown" ]]; then
 	safe_source "$SHELL_CONFIG_ROOT/platform-specific/$CURRENT_PLATFORM.sh"

@@ -100,6 +100,83 @@ to suit your needs.
 
 ## 🧰 Additional Tools
 
+### direnv Integration (Bash, Zsh & PowerShell)
+
+The project includes **optional** support for [direnv](https://direnv.net), which
+automatically loads and unloads per-directory environment variables defined in
+`.envrc` files. If `direnv` is installed it is enabled automatically for:
+
+* `bash` / `zsh` via the modular loader (`shell/common/direnv.sh`)
+* `pwsh` (PowerShell 7) via logic in `shell/powershell/config.ps1`
+
+If it is not installed, the hooks quietly do nothing. You do **not** need to
+add manual `eval "$(direnv hook <shell>)"` lines to your personal rc/profile
+files—duplication could slow down shell startup.
+
+Install and enable (Linux / macOS examples):
+
+```bash
+sudo apt install -y direnv        # Debian/Ubuntu
+# or: brew install direnv          # Homebrew (macOS/Linux)
+# or: sudo dnf install -y direnv   # Fedora
+# or: sudo pacman -Sy --noconfirm direnv  # Arch
+# or: sudo zypper install -y direnv       # openSUSE
+
+# (Optional) prevent verbose logging
+export DIRENV_LOG_FORMAT=""
+
+Windows (in a Windows PowerShell or pwsh session):
+
+```powershell
+scoop install direnv   # Scoop
+# or
+choco install direnv -y
+```
+```
+
+To temporarily disable direnv without uninstalling it:
+
+```bash
+export DISABLE_DIRENV=1
+```
+
+To re‑enable, unset the variable:
+
+```bash
+unset DISABLE_DIRENV
+```
+
+Add project specific settings by creating a `.envrc` in the directory and then
+authorising it once:
+
+```bash
+echo 'export FOO=bar' > .envrc
+direnv allow
+```
+
+PowerShell notes:
+
+* Hook auto‑loads only once per session (guard: `DOTFILES_DIRENV_PWSH_INITIALIZED`).
+* You can still run `direnv status` or `direnv reload` manually.
+
+Helper functions (bash/zsh) added by the loader:
+
+* `direnv_quiet` – silence direnv logging (sets `DIRENV_LOG_FORMAT` empty)
+* `direnv_verbose` – restore default logging (unsets `DIRENV_LOG_FORMAT`)
+* `direnv_status` – shortcut wrapper around `direnv status`
+
+Examples:
+
+```bash
+direnv_verbose   # show load/unload events
+direnv_quiet     # suppress messages again
+direnv_status    # inspect current state
+```
+
+Because the hook logic is centralized, you should **not** add extra
+`direnv hook` invocations to your personal rc/profile files; duplication can
+cause redundant evaluations and slower startup.
+
 ### Post‑Commit Hook for Aliases
 
 The directory `scripts/git-hooks` now contains a sample **post‑commit** hook

@@ -129,3 +129,19 @@ function Find-Module {
 # PowerShell-specific aliases
 Set-Alias -Name psversion -Value Get-PowerShellVersion
 Set-Alias -Name isadmin -Value Test-Administrator
+
+# Optional direnv integration (if installed) - parity with bash/zsh
+if (-not $env:DISABLE_DIRENV -and -not $env:DOTFILES_DIRENV_PWSH_INITIALIZED) {
+    $env:DOTFILES_DIRENV_PWSH_INITIALIZED = 1
+    if (Get-Command direnv -ErrorAction SilentlyContinue) {
+        try {
+            # direnv hook outputs PowerShell code when given 'pwsh'
+            Invoke-Expression (direnv hook pwsh)
+            # Quiet logging unless explicitly required
+            if (-not $env:DIRENV_LOG_FORMAT) { $env:DIRENV_LOG_FORMAT = '' }
+        }
+        catch {
+            Write-Warning "direnv integration failed: $($_.Exception.Message)"
+        }
+    }
+}
