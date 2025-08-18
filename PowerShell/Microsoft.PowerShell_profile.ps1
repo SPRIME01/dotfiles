@@ -1,4 +1,16 @@
 # Determine DOTFILES_ROOT and PROJECTS_ROOT for this shell
+# Minimal early utility definitions (must come before modular load and theme init)
+if (-not (Get-Command Add-ToPath -ErrorAction SilentlyContinue)) {
+    function Add-ToPath {
+        param([Parameter(Mandatory)][string]$Path)
+        if ([string]::IsNullOrWhiteSpace($Path)) { return }
+        if (-not (Test-Path $Path)) { return }
+        $segments = $env:PATH -split ';'
+        if ($segments -notcontains $Path) {
+            $env:PATH = "$Path;" + $env:PATH
+        }
+    }
+}
 if (-not $env:DOTFILES_ROOT) {
     # Use the location of this profile to locate the repository root.  The profile resides in
     # $DOTFILES_ROOT\PowerShell\Microsoft.PowerShell_profile.ps1, so go up two directories.
@@ -46,10 +58,18 @@ if (-not (Test-Path $themePath)) {
     $themePath = Join-Path $env:DOTFILES_ROOT 'PowerShell/Themes/emodipt-extend.omp.json'
 }
 
-if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
-    oh-my-posh init pwsh --config "$themePath" | Invoke-Expression
+<<<<<<< HEAD
+if (-not (Get-Command oh-my-posh -ErrorAction SilentlyContinue)) {
+    Write-Warning "oh-my-posh not found on PATH. Install via: winget install JanDeDobbeleer.OhMyPosh or scoop install oh-my-posh"
+} elseif (-not (Test-Path $themePath)) {
+    Write-Warning "Theme file not found: $themePath"
 } else {
-    Write-Verbose "oh-my-posh not found; skipping prompt init" -Verbose:$false
+    try {
+        oh-my-posh init pwsh --config "$themePath" | Invoke-Expression
+    } catch {
+        Write-Warning "oh-my-posh initialization failed: $($_.Exception.Message)"
+    }
+}
 }
 Import-Module -Name Terminal-Icons -ErrorAction SilentlyContinue
 Import-Module PSReadLine -ErrorAction SilentlyContinue
