@@ -38,8 +38,13 @@ try {
     Write-Host "  WSL distro: $wslDistro $(if ($detectedWSLDistro) { '(detected)' } else { '(assumed)' })" -ForegroundColor White
     Write-Host "  WSL user: $wslUser $(if ($env:USER) { '(detected)' } else { '(assumed)' })" -ForegroundColor White
 
-    # Get the Windows PowerShell 7 profile path
-    $pwsh7ProfilePath = & pwsh -c '$PROFILE'
+    # Get the Windows PowerShell 7 profile path without loading profiles or emitting warnings
+    # Notes:
+    # -NoProfile avoids executing the user's profile (which can print warnings)
+    # -NoLogo/-NonInteractive reduce noise; redirect stderr to $null to drop any stray messages
+    $pwsh7ProfilePathRaw = & pwsh -NoProfile -NoLogo -NonInteractive -Command '$PROFILE' 2>$null
+    # In case anything still writes extra lines, take the last non-empty line and trim
+    $pwsh7ProfilePath = ($pwsh7ProfilePathRaw | Where-Object { $_ -and $_.Trim() -ne '' } | Select-Object -Last 1).Trim()
     Write-Host "PowerShell 7 profile path: $pwsh7ProfilePath" -ForegroundColor Yellow
 
     # Get the profile directory

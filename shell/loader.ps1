@@ -38,27 +38,27 @@ if ($Verbose) {
 
 # 1. Load common environment variables (PowerShell equivalent)
 $commonEnvPath = Join-Path $ShellConfigRoot "common/environment.ps1"
-Import-ConfigFile -FilePath $commonEnvPath -Description "common environment"
+[void](Import-ConfigFile -FilePath $commonEnvPath -Description "common environment")
 
 # 2. Load common aliases (PowerShell equivalent)
 $commonAliasPath = Join-Path $ShellConfigRoot "common/aliases.ps1"
-Import-ConfigFile -FilePath $commonAliasPath -Description "common aliases"
+[void](Import-ConfigFile -FilePath $commonAliasPath -Description "common aliases")
 
 # 3. Load common functions (PowerShell equivalent)
 $commonFunctionsPath = Join-Path $ShellConfigRoot "common/functions.ps1"
-Import-ConfigFile -FilePath $commonFunctionsPath -Description "common functions"
+[void](Import-ConfigFile -FilePath $commonFunctionsPath -Description "common functions")
 
 # 4. Load platform-specific configuration
 if ($CurrentPlatform -ne "unknown") {
     $platformConfigPath = Join-Path $ShellConfigRoot "platform-specific/$CurrentPlatform.ps1"
-    Import-ConfigFile -FilePath $platformConfigPath -Description "platform-specific configuration"
+    [void](Import-ConfigFile -FilePath $platformConfigPath -Description "platform-specific configuration")
 } else {
     Write-Warning "Unknown platform, skipping platform-specific configuration"
 }
 
 # 5. Load PowerShell-specific configuration
 $psConfigPath = Join-Path $ShellConfigRoot "powershell/config.ps1"
-Import-ConfigFile -FilePath $psConfigPath -Description "PowerShell-specific configuration"
+[void](Import-ConfigFile -FilePath $psConfigPath -Description "PowerShell-specific configuration")
 
 # Export variables for use by other scripts
 $env:SHELL_CONFIG_ROOT = $ShellConfigRoot

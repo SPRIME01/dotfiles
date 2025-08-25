@@ -1,8 +1,19 @@
 # Determine DOTFILES_ROOT and PROJECTS_ROOT for this shell
 # Minimal early utility definitions (must come before modular load and theme init)
+# Debug toggle: set $env:DOTFILES_PWSH_DEBUG=1 to enable debug lines.
+$__DotfilesPwshDebug = $false
+# Consider the session non-interactive if stdin is not a TTY or when explicitly disabled
+$__IsInteractive = $Host.UI.RawUI -ne $null -and ($PSVersionTable.PSEdition -ne 'Core' -or $Host.Name -ne 'ServerRemoteHost')
+if ($env:DOTFILES_PWSH_NONINTERACTIVE -in @('1','true','True','TRUE','yes','YES')) { $__IsInteractive = $false }
+if ($env:DOTFILES_PWSH_DEBUG -in @('0','false','False','FALSE','no','NO')) { $__DotfilesPwshDebug = $false }
+function __Dotfiles-Debug {
+    param([Parameter(Mandatory)][string]$Message)
+    if ($__DotfilesPwshDebug -and $__IsInteractive) { Write-Host $Message -ForegroundColor DarkCyan }
+}
 if (-not (Get-Command Add-ToPath -ErrorAction SilentlyContinue)) {
     function Add-ToPath {
-        param([Parameter(Mandatory)][string]$Path)
+        [CmdletBinding()]
+        param([Parameter(Mandatory)][Alias('Directory')][string]$Path)
         if ([string]::IsNullOrWhiteSpace($Path)) { return }
         if (-not (Test-Path $Path)) { return }
         $segments = $env:PATH -split ';'
@@ -17,10 +28,10 @@ if (-not $env:DOTFILES_ROOT) {
     $currentFilePath = $PSCommandPath
     $profileDir = Split-Path -Parent $currentFilePath
     $env:DOTFILES_ROOT = Split-Path -Parent $profileDir
+    __Dotfiles-Debug "🔍 Debug: DOTFILES_ROOT = $($env:DOTFILES_ROOT)"
 }
-if (-not $env:PROJECTS_ROOT) {
-    $env:PROJECTS_ROOT = Join-Path $HOME 'Projects'
-}
+if (-not $env:PROJECTS_ROOT) { $env:PROJECTS_ROOT = Join-Path $HOME 'Projects' }
+__Dotfiles-Debug "🔍 Debug: PROJECTS_ROOT = $($env:PROJECTS_ROOT)"
 
 # Ensure USERPROFILE is set (Linux pwsh may not define it) to avoid Join-Path null errors in modules/tests
 if (-not $env:USERPROFILE -or $env:USERPROFILE -eq '') {
@@ -29,9 +40,8 @@ if (-not $env:USERPROFILE -or $env:USERPROFILE -eq '') {
 
 # Load the new modular PowerShell configuration system
 $modularIntegration = Join-Path $env:DOTFILES_ROOT 'shell/integration.ps1'
-if (Test-Path $modularIntegration) {
-    . $modularIntegration
-}
+__Dotfiles-Debug "🔍 Debug: Looking for main profile at: $(Join-Path $env:DOTFILES_ROOT 'PowerShell/Microsoft.PowerShell_profile.ps1')"
+if (Test-Path $modularIntegration) { . $modularIntegration } else { __Dotfiles-Debug "🔍 Debug: modular integration script missing ($modularIntegration)" }
 
 # Load environment variables from .env files if the loader exists
 $envLoader = Join-Path $env:DOTFILES_ROOT 'PowerShell/Utils/Load-Env.ps1'
@@ -54,20 +64,20 @@ $themePath = Join-Path $env:DOTFILES_ROOT "PowerShell/Themes/$ompTheme"
 
 # Fallback to emodipt-extend if the theme doesn't exist
 if (-not (Test-Path $themePath)) {
-    Write-Warning "Theme '$ompTheme' not found, falling back to emodipt-extend.omp.json"
+    if ($__IsInteractive) { Write-Warning "Theme '$ompTheme' not found, falling back to emodipt-extend.omp.json" }
     $themePath = Join-Path $env:DOTFILES_ROOT 'PowerShell/Themes/emodipt-extend.omp.json'
 }
 
 <<<<<<< HEAD
 if (-not (Get-Command oh-my-posh -ErrorAction SilentlyContinue)) {
-    Write-Warning "oh-my-posh not found on PATH. Install via: winget install JanDeDobbeleer.OhMyPosh or scoop install oh-my-posh"
+    if ($__IsInteractive) { Write-Warning "oh-my-posh not found on PATH. Install via: winget install JanDeDobbeleer.OhMyPosh or scoop install oh-my-posh" }
 } elseif (-not (Test-Path $themePath)) {
-    Write-Warning "Theme file not found: $themePath"
+    if ($__IsInteractive) { Write-Warning "Theme file not found: $themePath" }
 } else {
     try {
         oh-my-posh init pwsh --config "$themePath" | Invoke-Expression
     } catch {
-        Write-Warning "oh-my-posh initialization failed: $($_.Exception.Message)"
+    if ($__IsInteractive) { Write-Warning "oh-my-posh initialization failed: $($_.Exception.Message)" }
     }
 }
 }
@@ -119,7 +129,7 @@ if (Test-Path $setThemeScript) {
     function gettheme { Get-OhMyPoshTheme @args }
     function listthemes { Set-OhMyPoshTheme -List @args }
 } else {
-    Write-Warning "Theme management script not found at: $setThemeScript"
+    if ($__IsInteractive) { Write-Warning "Theme management script not found at: $setThemeScript" }
     # Create basic fallback functions
     function settheme { Write-Host "Theme management not available - Set-OhMyPoshTheme.ps1 not found" -ForegroundColor Yellow }
     function gettheme { Write-Host "Theme management not available - Set-OhMyPoshTheme.ps1 not found" -ForegroundColor Yellow }
