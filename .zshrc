@@ -42,10 +42,12 @@ fi
 # Shared functions
 [[ -r "$DOTFILES_ROOT/.shell_functions.sh" ]] && source "$DOTFILES_ROOT/.shell_functions.sh"
 
-# SSH agent bridge (WSL-aware script handles idempotency/noise)
-[[ -r "$DOTFILES_ROOT/zsh/ssh-agent.zsh" ]] && source "$DOTFILES_ROOT/zsh/ssh-agent.zsh"
+# SSH agent bridge intentionally removed
 
-# Core shell options (compinit is invoked by oh-my-zsh)
+# Core shell options (compinit is handled by oh-my-zsh; run manually if not using OMZ)
+if [[ ! -r "$ZSH/oh-my-zsh.sh" ]]; then
+    autoload -U compinit && compinit
+fi
 setopt CORRECT
 setopt EXTENDED_GLOB
 HISTFILE=$HOME/.zsh_history

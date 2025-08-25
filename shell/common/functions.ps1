@@ -140,43 +140,22 @@ function Get-DiskUsage {
 }
 Set-Alias -Name usage -Value Get-DiskUsage
 
-# Path manipulation
+# Path manipulation (supports -Directory or legacy -Path)
 function Add-ToPath {
-    param(
-        [Parameter(Mandatory)]
-        [string]$Directory
+    [CmdletBinding()] param(
+        [Parameter(Mandatory)][Alias('Directory')][string]$Path,
+        [switch]$Quiet
     )
-
-    if (Test-Path $Directory) {
-        if ($env:PATH -notlike "*$Directory*") {
-            $env:PATH = "$Directory;$env:PATH"
-            Write-Host "Added $Directory to PATH" -ForegroundColor Green
-        } else {
-            Write-Host "$Directory is already in PATH" -ForegroundColor Yellow
-        }
-    } else {
-        Write-Warning "Directory does not exist: $Directory"
-    }
-}
-
-# Add directory to PATH if not already present
-function Add-ToPath {
-    param(
-        [Parameter(Mandatory)]
-        [string]$Directory
-    )
-
-    if (-not (Test-Path $Directory)) {
-        Write-Warning "Directory does not exist: $Directory"
+    if (-not (Test-Path $Path)) {
+        if (-not $Quiet) { Write-Warning "Directory does not exist: $Path" }
         return
     }
-
-    $currentPath = $env:PATH -split ';'
-    if ($Directory -notin $currentPath) {
-        $env:PATH = "$Directory;$env:PATH"
-        Write-Host "Added $Directory to PATH" -ForegroundColor Green
+    $segments = $env:PATH -split ';'
+    if ($segments -notcontains $Path) {
+        $env:PATH = "$Path;" + $env:PATH
+        if (-not $Quiet) { Write-Host "Added $Path to PATH" -ForegroundColor Green }
     } else {
-        Write-Host "$Directory is already in PATH" -ForegroundColor Yellow
+        if (-not $Quiet) { Write-Host "$Path is already in PATH" -ForegroundColor Yellow }
     }
 }
 

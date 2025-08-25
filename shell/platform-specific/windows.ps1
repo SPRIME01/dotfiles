@@ -95,7 +95,7 @@ $WindowsPaths = @(
 
 foreach ($WinPath in $WindowsPaths) {
     if (Test-Path $WinPath) {
-        Add-ToPath -Directory $WinPath
+    Add-ToPath -Directory $WinPath -Quiet
     }
 }
 

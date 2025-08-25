@@ -28,9 +28,14 @@ install-direnv:
 # Test direnv integration in an isolated temp directory
     # Interactive state-aware setup wizard (Unix shells)
 # Launch the interactive setup wizard for Unix shells.  This script
+<<<<<<< HEAD
 # guides you through configuring shells, installing optional components
 # like VS Code settings, and enabling MCP/SSH integration.
 >>>>>>> 550e43d (feat: Add direnv integration for Bash, Zsh, and PowerShell with installation and testing support)
+=======
+# guides you through configuring shells and installing optional components
+# like VS Code settings.
+>>>>>>> 8336c85 (Refactor dotfiles configuration and remove SSH agent bridge)
 setup:
     @bash scripts/setup-wizard.sh
 
@@ -71,8 +76,7 @@ setup-windows-integration:
     @echo "   • PowerShell 7 profile with dotfiles integration"
     @echo "   • WSL-Windows symlinks and functions"
     @echo ""
-    @echo "⚠️  SSH agent is disabled by default (npiperelay required)"
-    @echo "💡 To enable SSH agent: install npiperelay, then run 'just enable-ssh-agent'"
+    @echo "(SSH agent integration removed)"
 
 # Fix PowerShell 7 profile if it's not working correctly
 fix-pwsh7:
@@ -85,7 +89,11 @@ clean-old-powershell-profiles:
 
 # Diagnose shell startup issues
 diagnose-shell:
+<<<<<<< HEAD
     @bash scripts/diagnose-shell.sh
+=======
+    @bash -c 'echo "🔍 Diagnosing shell configuration issues..."; echo ""; echo "📋 Environment variable loading test:"; if source /home/sprime01/dotfiles/scripts/load_env.sh && load_env_file /home/sprime01/dotfiles/mcp/.env; then echo "✅ MCP .env loads successfully"; else echo "❌ MCP .env has issues"; fi; echo ""; echo "📋 Shell common configuration test:"; if P10K_INSTANT_PROMPT=1 source /home/sprime01/dotfiles/.shell_common.sh; then echo "✅ Shell common loads successfully"; else echo "❌ Shell common has issues"; fi; echo ""; echo "📋 Shell functions test:"; if zsh -c "source /home/sprime01/dotfiles/.shell_functions.sh" 2>/dev/null; then echo "✅ Shell functions load without errors"; else echo "❌ Shell functions have parse errors (alias conflicts)"; echo "💡 Run \"just fix-alias-conflicts\""; fi; echo ""; echo "📋 PowerShell profile status:"; WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d "\r" 2>/dev/null || echo "unknown"); PWSH7_PROFILE="/mnt/c/Users/$WIN_USER/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"; if [[ -f "$PWSH7_PROFILE" ]]; then echo "✅ PowerShell 7 profile exists"; else echo "❌ PowerShell 7 profile missing"; echo "💡 Run \"just setup-pwsh7\" to create it"; fi'
+>>>>>>> 8336c85 (Refactor dotfiles configuration and remove SSH agent bridge)
 
 # Fix environment loading issues
 fix-env-loading:
@@ -95,6 +103,7 @@ fix-env-loading:
 fix-alias-conflicts:
     @bash scripts/fix-alias-conflicts.sh
 
+<<<<<<< HEAD
 # Set up Windows SSH Agent to start automatically (requires npiperelay)
 setup-ssh-agent-windows:
     @bash scripts/setup-ssh-agent-windows.sh
@@ -165,3 +174,6 @@ fix-permissions:
 	@chmod +x tools/lint.sh scripts/install-dependencies.sh scripts/setup-pwsh7.sh || true
 	@git update-index --chmod=+x tools/lint.sh scripts/install-dependencies.sh scripts/setup-pwsh7.sh >/dev/null 2>&1 || true
 	@echo "✅ Permissions updated (if running in a git repo)."
+=======
+# (SSH-related tasks removed)
+>>>>>>> 8336c85 (Refactor dotfiles configuration and remove SSH agent bridge)

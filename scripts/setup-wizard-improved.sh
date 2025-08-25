@@ -101,52 +101,42 @@ configure_zsh=0
 configure_pwsh=0
 install_vscode=0
 enable_hook=0
-enable_bridge=0
 setup_projects=0
 setup_pwsh7_windows=0
-setup_ssh_agent_windows=0
 
 # Determine what to install based on mode
 if [[ "$RETRY_FAILED_ONLY" == "true" ]]; then
 	echo "🔄 Retrying failed components only..."
 
-	# Check each component and set flags based on failure status
-	if grep -q "^bash_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-		configure_bash=1
-		echo "🔄 Will retry: Bash configuration"
-	fi
-	if grep -q "^zsh_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-		configure_zsh=1
-		echo "🔄 Will retry: Zsh configuration"
-	fi
-	if grep -q "^pwsh_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-		configure_pwsh=1
-		echo "🔄 Will retry: PowerShell configuration"
-	fi
-	if grep -q "^vscode_settings=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-		install_vscode=1
-		echo "🔄 Will retry: VS Code settings"
-	fi
-	if grep -q "^git_hook=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-		enable_hook=1
-		echo "🔄 Will retry: Git hooks"
-	fi
-	if grep -q "^ssh_bridge=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-		enable_bridge=1
-		echo "🔄 Will retry: SSH bridge"
-	fi
-	if grep -q "^projects_setup=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-		setup_projects=1
-		echo "🔄 Will retry: Projects setup"
-	fi
-	if grep -q "^pwsh7_windows=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-		setup_pwsh7_windows=1
-		echo "🔄 Will retry: PowerShell 7 Windows integration"
-	fi
-	if grep -q "^ssh_agent_windows=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-		setup_ssh_agent_windows=1
-		echo "🔄 Will retry: Windows SSH Agent"
-	fi
+    # Check each component and set flags based on failure status
+    if grep -q "^bash_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+        configure_bash=1
+        echo "🔄 Will retry: Bash configuration"
+    fi
+    if grep -q "^zsh_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+        configure_zsh=1
+        echo "🔄 Will retry: Zsh configuration"
+    fi
+    if grep -q "^pwsh_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+        configure_pwsh=1
+        echo "🔄 Will retry: PowerShell configuration"
+    fi
+    if grep -q "^vscode_settings=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+        install_vscode=1
+        echo "🔄 Will retry: VS Code settings"
+    fi
+    if grep -q "^git_hook=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+        enable_hook=1
+        echo "🔄 Will retry: Git hooks"
+    fi
+    if grep -q "^projects_setup=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+        setup_projects=1
+        echo "🔄 Will retry: Projects setup"
+    fi
+    if grep -q "^pwsh7_windows=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+        setup_pwsh7_windows=1
+        echo "🔄 Will retry: PowerShell 7 Windows integration"
+    fi
 else
 	# Interactive prompting with smart state checking
 	echo "🤔 Let's determine what to install..."
@@ -177,10 +167,6 @@ else
 		enable_hook=1
 	fi
 
-	if smart_prompt_yes_no "ssh_bridge" "Enable WSL2 → Windows SSH agent bridge (WSL only)?" "y" "$FORCE_REINSTALL"; then
-		enable_bridge=1
-	fi
-
 	if smart_prompt_yes_no "projects_setup" "Set up projects directory with Windows symlink (WSL2 only)?" "y" "$FORCE_REINSTALL"; then
 		setup_projects=1
 	fi
@@ -195,19 +181,17 @@ else
 			echo "ℹ️  PowerShell 7 (pwsh.exe) not detected on Windows; skipping Windows PowerShell 7 setup."
 			mark_component_skipped "pwsh7_windows" "PowerShell 7 not available on Windows"
 		fi
-
-		if command -v powershell.exe >/dev/null 2>&1; then
-			if smart_prompt_yes_no "ssh_agent_windows" "Set up Windows SSH Agent for automatic startup?" "y" "$FORCE_REINSTALL"; then
-				setup_ssh_agent_windows=1
-			fi
-		else
-			echo "ℹ️  PowerShell not detected on Windows; skipping SSH Agent setup."
-			mark_component_skipped "ssh_agent_windows" "PowerShell not available on Windows"
-		fi
 	else
 		mark_component_skipped "pwsh7_windows" "Not in WSL2 environment"
 		mark_component_skipped "ssh_agent_windows" "Not in WSL2 environment"
 	fi
+=======
+    # (SSH agent setup removed)
+    else
+      mark_component_skipped "pwsh7_windows" "Not in WSL2 environment"
+      mark_component_skipped "ssh_agent_windows" "Not in WSL2 environment"
+    fi
+>>>>>>> 8336c85 (Refactor dotfiles configuration and remove SSH agent bridge)
 fi
 
 echo
@@ -278,12 +262,16 @@ if [ "$enable_hook" -eq 1 ]; then
 	fi
 fi
 
+<<<<<<< HEAD
 # SSH bridge setup (informational)
 if [ "$enable_bridge" -eq 1 ]; then
 	echo "ℹ️  SSH agent bridge will be configured in your shell startup files."
 	echo "    Make sure npiperelay is installed: scoop install npiperelay"
 	mark_component_installed "ssh_bridge"
 fi
+=======
+:
+>>>>>>> 8336c85 (Refactor dotfiles configuration and remove SSH agent bridge)
 
 # Projects directory setup with improved idempotency
 if [ "$setup_projects" -eq 1 ]; then
@@ -359,6 +347,7 @@ if [ "$setup_pwsh7_windows" -eq 1 ]; then
 	fi
 fi
 
+<<<<<<< HEAD
 # Windows SSH Agent setup
 if [ "$setup_ssh_agent_windows" -eq 1 ]; then
 	if [[ -f "$DOTFILES_ROOT/scripts/setup-ssh-agent-windows-simple.ps1" ]]; then
@@ -371,6 +360,9 @@ if [ "$setup_ssh_agent_windows" -eq 1 ]; then
 		overall_success=false
 	fi
 fi
+=======
+:
+>>>>>>> 8336c85 (Refactor dotfiles configuration and remove SSH agent bridge)
 
 # Summary
 echo
