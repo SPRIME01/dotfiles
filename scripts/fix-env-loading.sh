@@ -13,8 +13,8 @@ ln -sf "$DOTFILES_ROOT/.shell_functions.sh" ~/.shell_functions
 
 # Re-source in current shell if possible
 if [[ $- == *i* ]]; then
-  source ~/.shell_common || true
-  source ~/.shell_functions || true
+	source ~/.shell_common || true
+	source ~/.shell_functions || true
 fi
 
 echo "✅ Environment loading fix applied. Restart your shell."

@@ -9,8 +9,8 @@ echo "Testing simple read of .env file..."
 echo "Reading .env file directly with while loop (no IFS):"
 line_num=0
 while read -r line; do
-    ((line_num++))
-    echo "Line $line_num: '$line'"
-done < ./.env
+	((line_num++))
+	echo "Line $line_num: '$line'"
+done <./.env
 
 echo "Done."

@@ -10,8 +10,8 @@ echo ""
 
 # Check if we're in WSL2
 if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
-    echo "❌ This script must be run from WSL2"
-    exit 1
+	echo "❌ This script must be run from WSL2"
+	exit 1
 fi
 
 echo "This script will:"
@@ -24,16 +24,16 @@ echo ""
 read -p "Continue? (y/N) " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    exit 0
+	exit 0
 fi
 
 echo "📋 Step 1: Setting up WSL2 SSH server..."
 echo "======================================="
 if ./scripts/setup-wsl2-remote-access.sh; then
-    echo "✅ WSL2 SSH server setup complete"
+	echo "✅ WSL2 SSH server setup complete"
 else
-    echo "❌ WSL2 SSH server setup failed"
-    exit 1
+	echo "❌ WSL2 SSH server setup failed"
+	exit 1
 fi
 
 echo ""
@@ -46,15 +46,15 @@ echo ""
 read -p "Ready to configure Windows? (y/N) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-    if powershell.exe -ExecutionPolicy Bypass -File "$PWD/scripts/setup-wsl2-remote-windows.ps1"; then
-        echo "✅ Windows configuration complete"
-    else
-        echo "⚠️  Windows configuration may have failed"
-        echo "💡 You can run it manually later with: just setup-wsl2-remote-windows"
-    fi
+	if powershell.exe -ExecutionPolicy Bypass -File "$PWD/scripts/setup-wsl2-remote-windows.ps1"; then
+		echo "✅ Windows configuration complete"
+	else
+		echo "⚠️  Windows configuration may have failed"
+		echo "💡 You can run it manually later with: just setup-wsl2-remote-windows"
+	fi
 else
-    echo "⚠️  Skipping Windows configuration"
-    echo "💡 Run it later with: just setup-wsl2-remote-windows"
+	echo "⚠️  Skipping Windows configuration"
+	echo "💡 Run it later with: just setup-wsl2-remote-windows"
 fi
 
 echo ""
@@ -73,10 +73,10 @@ echo "   WSL2 IP: $WSL_IP"
 echo "   SSH Port: 2222"
 
 # Test SSH service
-if pgrep -x "sshd" > /dev/null; then
-    echo "✅ SSH daemon is running in WSL2"
+if pgrep -x "sshd" >/dev/null; then
+	echo "✅ SSH daemon is running in WSL2"
 else
-    echo "❌ SSH daemon is not running"
+	echo "❌ SSH daemon is not running"
 fi
 
 echo ""

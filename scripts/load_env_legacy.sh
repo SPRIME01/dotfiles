@@ -13,57 +13,57 @@ NEW_ENV_LOADER="$PROJECT_ROOT/lib/env-loader.sh"
 
 # Check if the new loader exists
 if [[ -f "$NEW_ENV_LOADER" ]]; then
-    # Source the new loader
-    source "$NEW_ENV_LOADER"
+	# Source the new loader
+	source "$NEW_ENV_LOADER"
 
-    # Provide backward compatibility for the old function name
-    load_env_file() {
-        echo "Warning: load_env_file() is deprecated. Use the new env-loader.sh system." >&2
-        local env_file="$1"
-        [[ -z "$env_file" || ! -f "$env_file" ]] && return 0
+	# Provide backward compatibility for the old function name
+	load_env_file() {
+		echo "Warning: load_env_file() is deprecated. Use the new env-loader.sh system." >&2
+		local env_file="$1"
+		[[ -z "$env_file" || ! -f "$env_file" ]] && return 0
 
-        # Use the new secure loading function
-        load_env_file_secure "$env_file"
-    }
+		# Use the new secure loading function
+		load_env_file_secure "$env_file"
+	}
 
-    # If script is executed directly, use new system
-    if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-        load_dotfiles_environment "$PROJECT_ROOT"
-    fi
+	# If script is executed directly, use new system
+	if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+		load_dotfiles_environment "$PROJECT_ROOT"
+	fi
 else
-    # Fallback to old implementation if new system not available
-    echo "Warning: New environment loading system not found, using legacy implementation." >&2
+	# Fallback to old implementation if new system not available
+	echo "Warning: New environment loading system not found, using legacy implementation." >&2
 
-    # Original load_env_file function (kept for absolute backward compatibility)
-    load_env_file() {
-        local env_file="$1"
-        [[ -z "$env_file" || ! -f "$env_file" ]] && return 0
+	# Original load_env_file function (kept for absolute backward compatibility)
+	load_env_file() {
+		local env_file="$1"
+		[[ -z "$env_file" || ! -f "$env_file" ]] && return 0
 
-        while IFS='=' read -r key value || [ -n "$key" ]; do
-            [[ -z "$key" || "$key" =~ ^[[:space:]]*# ]] && continue
+		while IFS='=' read -r key value || [ -n "$key" ]; do
+			[[ -z "$key" || "$key" =~ ^[[:space:]]*# ]] && continue
 
-            key="${key##*( )}"
-            key="${key%%*( )}"
-            value="${value##*( )}"
-            value="${value%%*( )}"
+			key="${key##*( )}"
+			key="${key%%*( )}"
+			value="${value##*( )}"
+			value="${value%%*( )}"
 
-            [[ -z "$key" ]] && continue
+			[[ -z "$key" ]] && continue
 
-            if [[ "$value" =~ ^\"(.*)\"$ ]]; then
-                value="${BASH_REMATCH[1]}"
-            elif [[ "$value" =~ ^\'(.*)\'$ ]]; then
-                value="${BASH_REMATCH[1]}"
-            fi
+			if [[ "$value" =~ ^\"(.*)\"$ ]]; then
+				value="${BASH_REMATCH[1]}"
+			elif [[ "$value" =~ ^\'(.*)\'$ ]]; then
+				value="${BASH_REMATCH[1]}"
+			fi
 
-            export "$key"="$value"
-        done < "$env_file"
-    }
+			export "$key"="$value"
+		done <"$env_file"
+	}
 
-    # If script is executed directly, load .env from repository root
-    if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-        env_file="$PROJECT_ROOT/.env"
-        if [[ -f "$env_file" ]]; then
-            load_env_file "$env_file"
-        fi
-    fi
+	# If script is executed directly, load .env from repository root
+	if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+		env_file="$PROJECT_ROOT/.env"
+		if [[ -f "$env_file" ]]; then
+			load_env_file "$env_file"
+		fi
+	fi
 fi
