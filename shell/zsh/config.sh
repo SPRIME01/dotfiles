@@ -2,6 +2,25 @@
 # Zsh-specific configuration
 # Part of the modular dotfiles configuration system
 
+# Suppress instant prompt warnings - must be set before instant prompt initialization
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
+
+# Enable Powerlevel10k instant prompt early.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# Oh My Zsh path
+export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
+
+# Initialize Oh My Zsh if available
+if [[ -r "$ZSH/oh-my-zsh.sh" ]]; then
+    source "$ZSH/oh-my-zsh.sh"
+fi
+
+# Powerlevel10k config
+[[ -r "$HOME/.p10k.zsh" ]] && source "$HOME/.p10k.zsh"
+
 # Zsh-specific history settings
 export HISTSIZE=50000
 export SAVEHIST=50000

@@ -1,4 +1,3 @@
-#!/bin/bash
 # Modular shell configuration loader
 # Part of the modular dotfiles configuration system
 #
@@ -8,12 +7,11 @@
 # 3. Shell-specific configuration (bash/zsh)
 
 # Determine the directory where this script is located
-if [[ -n "$BASH_VERSION" ]]; then
+# BASH_SOURCE is available in both Bash and Zsh, so we can simplify.
+if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
     SHELL_CONFIG_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-elif [[ -n "$ZSH_VERSION" ]]; then
-    SHELL_CONFIG_ROOT="$(cd "$(dirname "${(%):-%N}")" && pwd)"
 else
-    # Fallback for other shells
+    # Fallback for other shells (e.g. sh)
     SHELL_CONFIG_ROOT="$(cd "$(dirname "$0")" && pwd)"
 fi
 

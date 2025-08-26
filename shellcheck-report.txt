@@ -1,0 +1,838 @@
+
+In ./scripts/setup-wizard-improved.sh line 312:
+                    echo "✅ Windows symlink created at C:\\Users\\$WIN_USER\\projects"
+                         ^-- SC2028 (info): echo may not expand escape sequences. Use printf.
+
+
+In ./scripts/setup-wizard-improved.sh line 327:
+                        echo "✅ Created projects.bat at C:\\Users\\$WIN_USER\\projects.bat"
+                             ^-- SC2028 (info): echo may not expand escape sequences. Use printf.
+
+
+In ./scripts/setup-wizard-improved.sh line 329:
+                        echo "    mklink /D \"C:\\Users\\$WIN_USER\\projects\" \"$WSL_PROJECTS_WIN_PATH\""
+                             ^-- SC2028 (info): echo may not expand escape sequences. Use printf.
+
+
+In ./scripts/setup-projects-idempotent.sh line 51:
+        echo "✅ Windows symlink created at C:\\Users\\$WIN_USER\\projects"
+             ^-- SC2028 (info): echo may not expand escape sequences. Use printf.
+
+
+In ./scripts/setup-projects-idempotent.sh line 90:
+    echo "   mklink /D \"C:\\Users\\$WIN_USER\\projects\" \"$WSL_PROJECTS_WIN_PATH\""
+         ^-- SC2028 (info): echo may not expand escape sequences. Use printf.
+
+
+In ./scripts/setup-projects-idempotent.sh line 97:
+        echo "✅ Symlink: C:\\Users\\$WIN_USER\\projects → WSL2 projects"
+             ^-- SC2028 (info): echo may not expand escape sequences. Use printf.
+
+
+In ./scripts/fix-env-loading.sh line 16:
+  source ~/.shell_common || true
+         ^-------------^ SC1090 (warning): ShellCheck can't follow non-constant source. Use a directive to specify location.
+
+
+In ./scripts/fix-env-loading.sh line 17:
+  source ~/.shell_functions || true
+         ^----------------^ SC1090 (warning): ShellCheck can't follow non-constant source. Use a directive to specify location.
+
+
+In ./scripts/setup-ssh-agent-bridge.sh line 47:
+        if [[ -n "${ZSH_VERSION:-}" ]]; then
+        ^-- SC1009 (info): The mentioned syntax error was in this if expression.
+                                        ^-- SC1073 (error): Couldn't parse this then clause. Fix to allow more checks.
+
+
+In ./scripts/setup-ssh-agent-bridge.sh line 52:
+                >/dev/null 2>&1 &!
+                                  ^-- SC1035 (error): You are missing a required space after the !.
+                                  ^-- SC1072 (error): Expected a command. Fix any mentioned problems and try again.
+
+
+In ./scripts/setup-wizard.sh line 227:
+          echo "✅ Windows symlink created successfully at C:\\Users\\$WIN_USER\\projects"
+               ^-- SC2028 (info): echo may not expand escape sequences. Use printf.
+
+
+In ./scripts/setup-wizard.sh line 242:
+          echo "    mklink /D \"C:\\Users\\$WIN_USER\\projects\" \"$WSL_PROJECTS_WIN_PATH\""
+               ^-- SC2028 (info): echo may not expand escape sequences. Use printf.
+
+
+In ./scripts/setup-wizard.sh line 251:
+        echo "   3. Or open Windows Explorer and navigate to \\\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\projects"
+             ^-- SC2028 (info): echo may not expand escape sequences. Use printf.
+
+
+In ./scripts/setup-wizard.sh line 276:
+      PWSH7_PROFILE=$(pwsh.exe -c '$PROFILE' 2>/dev/null | tr -d '\r' 2>/dev/null)
+                                  ^--------^ SC2016 (info): Expressions don't expand in single quotes, use double quotes for that.
+
+
+In ./scripts/doctor.sh line 17:
+log() { [ "$VERBOSE" -eq 1 ] && echo "$*" || true; }
+                             ^-- SC2015 (info): Note that A && B || C is not if-then-else. C may run when A is true.
+
+
+In ./scripts/doctor.sh line 23:
+command -v zsh >/dev/null 2>&1 && ok "zsh present ($(zsh --version | head -n1))" || warn "zsh not found"
+                               ^-- SC2015 (info): Note that A && B || C is not if-then-else. C may run when A is true.
+
+
+In ./scripts/doctor.sh line 24:
+[ -d "$HOME/.oh-my-zsh" ] && ok "Oh My Zsh installed" || warn "Oh My Zsh not installed (~/.oh-my-zsh missing)"
+                          ^-- SC2015 (info): Note that A && B || C is not if-then-else. C may run when A is true.
+
+
+In ./scripts/doctor.sh line 25:
+command -v oh-my-posh >/dev/null 2>&1 && ok "oh-my-posh present" || warn "oh-my-posh not found"
+                                      ^-- SC2015 (info): Note that A && B || C is not if-then-else. C may run when A is true.
+
+
+In ./scripts/doctor.sh line 64:
+      jq empty "$DOTFILES_ROOT/mcp/servers.json" && ok "servers.json valid JSON" || err "servers.json invalid JSON"
+                                                 ^-- SC2015 (info): Note that A && B || C is not if-then-else. C may run when A is true.
+
+
+In ./scripts/doctor.sh line 125:
+echo "\nDone."
+     ^-------^ SC2028 (info): echo may not expand escape sequences. Use printf.
+
+
+In ./scripts/setup-wsl2-remote-access.sh line 1:
+
+^-- SC2148 (error): Tips depend on target shell and yours is unknown. Add a shebang or a 'shell' directive.
+
+
+In ./scripts/load_env.sh line 20:
+    source "$NEW_ENV_LOADER"
+           ^---------------^ SC1090 (warning): ShellCheck can't follow non-constant source. Use a directive to specify location.
+
+
+In ./scripts/migrate-to-modular.sh line 38:
+    if timeout 10s grep -r "$pattern" $search_paths 2>/dev/null | grep -v "$DOTFILES_ROOT" | head -3 >/dev/null 2>&1; then
+                                      ^-----------^ SC2086 (info): Double quote to prevent globbing and word splitting.
+
+Did you mean:
+    if timeout 10s grep -r "$pattern" "$search_paths" 2>/dev/null | grep -v "$DOTFILES_ROOT" | head -3 >/dev/null 2>&1; then
+
+
+In ./scripts/load_env_legacy.sh line 17:
+    source "$NEW_ENV_LOADER"
+           ^---------------^ SC1090 (warning): ShellCheck can't follow non-constant source. Use a directive to specify location.
+
+
+In ./.shell_common.sh line 42:
+  . "$DOTFILES_ROOT/lib/env-loader.sh"
+    ^-- SC1091 (info): Not following: dotfiles-main/lib/env-loader.sh was not specified as input (see shellcheck -x).
+
+
+In ./.shell_common.sh line 52:
+  . "$DOTFILES_ROOT/shell/loader.sh"
+    ^-- SC1091 (info): Not following: dotfiles-main/shell/loader.sh was not specified as input (see shellcheck -x).
+
+
+In ./.shell_common.sh line 82:
+    cd "$HOME" 2>/dev/null
+    ^--------------------^ SC2164 (warning): Use 'cd ... || exit' or 'cd ... || return' in case cd fails.
+
+Did you mean:
+    cd "$HOME" 2>/dev/null || exit
+
+
+In ./tools/profile-startup.sh line 11:
+        /usr/bin/time -f "%e" $shell_name -i -c exit 2>&1
+                              ^---------^ SC2086 (info): Double quote to prevent globbing and word splitting.
+
+Did you mean:
+        /usr/bin/time -f "%e" "$shell_name" -i -c exit 2>&1
+
+
+In ./install/vscode.sh line 95:
+            WINDOWS_VSCODE_DIR="/mnt/c/Users/$(powershell.exe -Command "Write-Host \$env:USERNAME" 2>/dev/null | tr -d '\r' || echo "$(whoami)")/AppData/Roaming/Code/User"
+                                                                                                                                    ^---------^ SC2005 (style): Useless echo? Instead of 'echo $(cmd)', just use 'cmd'.
+
+
+In ./install/vscode.sh line 181:
+        local backup_file="${target_file}.backup.$(date +%Y%m%d_%H%M%S)"
+              ^---------^ SC2155 (warning): Declare and assign separately to avoid masking return values.
+
+
+In ./.shell_functions.sh line 9:
+    mkdir -p "$1" && cd "$1"
+                     ^-----^ SC2164 (warning): Use 'cd ... || exit' or 'cd ... || return' in case cd fails.
+
+Did you mean:
+    mkdir -p "$1" && cd "$1" || exit
+
+
+In ./.shell_functions.sh line 26:
+        cd "$PROJECTS_ROOT/$1"
+        ^--------------------^ SC2164 (warning): Use 'cd ... || exit' or 'cd ... || return' in case cd fails.
+
+Did you mean:
+        cd "$PROJECTS_ROOT/$1" || exit
+
+
+In ./.shell_functions.sh line 36:
+    local pid=$(lsof -t -i:$1)
+          ^-^ SC2155 (warning): Declare and assign separately to avoid masking return values.
+                           ^-- SC2086 (info): Double quote to prevent globbing and word splitting.
+
+Did you mean:
+    local pid=$(lsof -t -i:"$1")
+
+
+In ./.shell_functions.sh line 38:
+        kill -9 $pid
+                ^--^ SC2086 (info): Double quote to prevent globbing and word splitting.
+
+Did you mean:
+        kill -9 "$pid"
+
+
+In ./.shell_functions.sh line 182:
+        cat "$DOTFILES_ROOT/mcp/servers.json" | jq '.' 2>/dev/null || cat "$DOTFILES_ROOT/mcp/servers.json"
+            ^-- SC2002 (style): Useless cat. Consider 'cmd < file | ..' or 'cmd file | ..' instead.
+
+
+In ./.shell_functions.sh line 200:
+    local note_file="$HOME/notes/$(date +%Y-%m-%d).md"
+          ^-------^ SC2155 (warning): Declare and assign separately to avoid masking return values.
+
+
+In ./lib/platform-detection.sh line 38:
+    echo "$(cd "$script_dir/.." && pwd)"
+         ^-----------------------------^ SC2005 (style): Useless echo? Instead of 'echo $(cmd)', just use 'cmd'.
+
+
+In ./lib/state-management.sh line 119:
+    init_state_file
+    ^-------------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./lib/state-management.sh line 120:
+    grep "=failed" "$DOTFILES_STATE_FILE" 2>/dev/null | cut -d'=' -f1 || true
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+                                                                         ^--^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./lib/env-loader.sh line 15:
+. "$SCRIPT_DIR/error-handling.sh" 2>/dev/null || true
+  ^-----------------------------^ SC1091 (info): Not following: ./error-handling.sh was not specified as input (see shellcheck -x).
+
+
+In ./lib/env-loader.sh line 16:
+. "$SCRIPT_DIR/platform-detection.sh" 2>/dev/null || true
+  ^-- SC1091 (info): Not following: ./platform-detection.sh was not specified as input (see shellcheck -x).
+
+
+In ./lib/env-loader.sh line 17:
+. "$SCRIPT_DIR/validation.sh" 2>/dev/null || true
+  ^-------------------------^ SC1091 (info): Not following: ./validation.sh was not specified as input (see shellcheck -x).
+
+
+In ./lib/error-handling.sh line 12:
+    local bash_lineno=$2
+          ^---------^ SC2034 (warning): bash_lineno appears unused. Verify use (or export if used externally).
+
+
+In ./lib/error-handling.sh line 14:
+    local funcname=("${4:-}")
+          ^------^ SC2034 (warning): funcname appears unused. Verify use (or export if used externally).
+
+
+In ./lib/error-handling.sh line 53:
+        if ! (source "$file") >/dev/null 2>&1; then
+                     ^-----^ SC1090 (warning): ShellCheck can't follow non-constant source. Use a directive to specify location.
+
+
+In ./lib/error-handling.sh line 64:
+        if ! source "$file"; then
+                    ^-----^ SC1090 (warning): ShellCheck can't follow non-constant source. Use a directive to specify location.
+
+
+In ./shell/bash/config.sh line 20:
+    source /etc/bash_completion
+           ^------------------^ SC1091 (info): Not following: /etc/bash_completion was not specified as input (see shellcheck -x).
+
+
+In ./shell/bash/config.sh line 22:
+    source /usr/share/bash-completion/bash_completion
+           ^-- SC1091 (info): Not following: /usr/share/bash-completion/bash_completion was not specified as input (see shellcheck -x).
+
+
+In ./shell/bash/config.sh line 25:
+    source /usr/local/etc/bash_completion
+           ^----------------------------^ SC1091 (info): Not following: /usr/local/etc/bash_completion was not specified as input (see shellcheck -x).
+
+
+In ./shell/bash/config.sh line 30:
+    source /usr/share/bash-completion/completions/git
+           ^-- SC1091 (info): Not following: /usr/share/bash-completion/completions/git was not specified as input (see shellcheck -x).
+
+
+In ./shell/bash/config.sh line 32:
+    source /usr/local/etc/bash_completion.d/git-completion.bash
+           ^-- SC1091 (info): Not following: /usr/local/etc/bash_completion.d/git-completion.bash was not specified as input (see shellcheck -x).
+
+
+In ./shell/bash/config.sh line 38:
+        source ~/.bashrc
+               ^-------^ SC1090 (warning): ShellCheck can't follow non-constant source. Use a directive to specify location.
+
+
+In ./shell/bash/config.sh line 41:
+        echo "~/.bashrc not found"
+              ^-----------------^ SC2088 (warning): Tilde does not expand in quotes. Use $HOME.
+
+
+In ./shell/loader.sh line 14:
+    SHELL_CONFIG_ROOT="$(cd "$(dirname "${(%):-%N}")" && pwd)"
+                                          ^-----^ SC2296 (error): Parameter expansions can't start with (. Double check syntax.
+
+
+In ./shell/loader.sh line 49:
+        source "$file"
+               ^-----^ SC1090 (warning): ShellCheck can't follow non-constant source. Use a directive to specify location.
+
+
+In ./shell/zsh/config.sh line 1:
+#!/bin/zsh
+^-- SC1071 (error): ShellCheck only supports sh/bash/dash/ksh scripts. Sorry!
+
+
+In ./shell/common/functions.sh line 11:
+    mkdir -p "$1" && cd "$1"
+                     ^-----^ SC2164 (warning): Use 'cd ... || exit' or 'cd ... || return' in case cd fails.
+
+Did you mean:
+    mkdir -p "$1" && cd "$1" || exit
+
+
+In ./shell/common/functions.sh line 97:
+    local backup_name="${1}.bak.$(date +%Y%m%d_%H%M%S)"
+          ^---------^ SC2155 (warning): Declare and assign separately to avoid masking return values.
+
+
+In ./shell/common/functions.sh line 104:
+    local note_file="$HOME/.notes/$(date +%Y-%m-%d).md"
+          ^-------^ SC2155 (warning): Declare and assign separately to avoid masking return values.
+
+
+In ./shell/common/functions.sh line 123:
+    ps aux | grep -i "$1" | grep -v grep
+    ^----^ SC2009 (info): Consider using pgrep instead of grepping ps output.
+
+
+In ./shell/common/functions.sh line 132:
+    ps aux | grep -i "$1" | grep -v grep | awk '{print $4 "% " $11}'
+    ^----^ SC2009 (info): Consider using pgrep instead of grepping ps output.
+
+
+In ./shell/common/functions.sh line 163:
+    export PATH=$(echo "$PATH" | sed -e "s|:$1||g" -e "s|$1:||g" -e "s|$1||g")
+           ^--^ SC2155 (warning): Declare and assign separately to avoid masking return values.
+
+
+In ./shell/platform-specific/linux.sh line 107:
+    export DISPLAY=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2}'):0.0
+           ^-----^ SC2155 (warning): Declare and assign separately to avoid masking return values.
+                         ^--------------^ SC2002 (style): Useless cat. Consider 'cmd < file | ..' or 'cmd file | ..' instead.
+
+
+In ./shell/platform-specific/macos.sh line 78:
+    local filename="screenshot_$(date +%Y%m%d_%H%M%S).png"
+          ^------^ SC2155 (warning): Declare and assign separately to avoid masking return values.
+
+
+In ./shell/platform-specific/macos.sh line 84:
+    local filename="screenshot_$(date +%Y%m%d_%H%M%S).png"
+          ^------^ SC2155 (warning): Declare and assign separately to avoid masking return values.
+
+
+In ./test/test-environment-loading.sh line 5:
+source "$(dirname "${BASH_SOURCE[0]}")/framework.sh"
+       ^-- SC1091 (info): Not following: ./framework.sh was not specified as input (see shellcheck -x).
+
+
+In ./test/test-environment-loading.sh line 14:
+    expected_root="$(cd "$(dirname "$BASH_SOURCE")/.." && pwd)"
+                                    ^----------^ SC2128 (warning): Expanding an array without an index only gives the first element.
+
+
+In ./test/test-environment-loading.sh line 16:
+                'echo "$DOTFILES_ROOT"' \
+                ^---------------------^ SC2016 (info): Expressions don't expand in single quotes, use double quotes for that.
+
+
+In ./test/test-environment-loading.sh line 22:
+    if [[ ! -f "$(dirname "$BASH_SOURCE")/../.env" ]]; then
+                           ^----------^ SC2128 (warning): Expanding an array without an index only gives the first element.
+
+
+In ./test/test-environment-loading.sh line 26:
+                '[[ -n "$GEMINI_API_KEY" ]] && echo "SET" || echo "UNSET"' \
+                ^-- SC2016 (info): Expressions don't expand in single quotes, use double quotes for that.
+
+
+In ./test/test-environment-loading.sh line 31:
+                'echo "$PROJECTS_ROOT"' \
+                ^---------------------^ SC2016 (info): Expressions don't expand in single quotes, use double quotes for that.
+
+
+In ./test/test-environment-loading.sh line 36:
+                '[[ -n "$DOTFILES_PLATFORM" ]] && echo "SET" || echo "UNSET"' \
+                ^-- SC2016 (info): Expressions don't expand in single quotes, use double quotes for that.
+
+
+In ./test/test-environment-loading.sh line 41:
+                '[[ -n "$DOTFILES_SHELL" ]] && echo "SET" || echo "UNSET"' \
+                ^-- SC2016 (info): Expressions don't expand in single quotes, use double quotes for that.
+
+
+In ./test/test-environment-loading.sh line 48:
+    cd "$(dirname "$0")/.."
+    ^---------------------^ SC2164 (warning): Use 'cd ... || exit' or 'cd ... || return' in case cd fails.
+
+Did you mean:
+    cd "$(dirname "$0")/.." || exit
+
+
+In ./test/test-environment.sh line 5:
+source "$(dirname "${BASH_SOURCE[0]}")/framework.sh"
+       ^-- SC1091 (info): Not following: ./framework.sh was not specified as input (see shellcheck -x).
+
+
+In ./test/test-environment.sh line 13:
+    expected_root="$(cd "$(dirname "$BASH_SOURCE")/.." && pwd)"
+                                    ^----------^ SC2128 (warning): Expanding an array without an index only gives the first element.
+
+
+In ./test/test-environment.sh line 15:
+                'echo "$DOTFILES_ROOT"' \
+                ^---------------------^ SC2016 (info): Expressions don't expand in single quotes, use double quotes for that.
+
+
+In ./test/test-environment.sh line 20:
+    if [[ ! -f "$(dirname "$BASH_SOURCE")/../.env" ]]; then
+                           ^----------^ SC2128 (warning): Expanding an array without an index only gives the first element.
+
+
+In ./test/test-environment.sh line 24:
+                '[[ -n "$GEMINI_API_KEY" ]] && echo "SET" || echo "UNSET"' \
+                ^-- SC2016 (info): Expressions don't expand in single quotes, use double quotes for that.
+
+
+In ./test/test-environment.sh line 29:
+                'echo "$PROJECTS_ROOT"' \
+                ^---------------------^ SC2016 (info): Expressions don't expand in single quotes, use double quotes for that.
+
+
+In ./test/test-environment.sh line 34:
+                '[[ -n "$DOTFILES_PLATFORM" ]] && echo "SET" || echo "UNSET"' \
+                ^-- SC2016 (info): Expressions don't expand in single quotes, use double quotes for that.
+
+
+In ./test/test-environment.sh line 39:
+                '[[ -n "$DOTFILES_SHELL" ]] && echo "SET" || echo "UNSET"' \
+                ^-- SC2016 (info): Expressions don't expand in single quotes, use double quotes for that.
+
+
+In ./test/test-environment.sh line 46:
+    cd "$(dirname "$0")/.."
+    ^---------------------^ SC2164 (warning): Use 'cd ... || exit' or 'cd ... || return' in case cd fails.
+
+Did you mean:
+    cd "$(dirname "$0")/.." || exit
+
+
+In ./test/test-vscode-integration.sh line 5:
+source "$(dirname "${BASH_SOURCE[0]}")/framework.sh"
+       ^-- SC1091 (info): Not following: ./framework.sh was not specified as input (see shellcheck -x).
+
+
+In ./test/test-vscode-integration.sh line 13:
+    [[ -f "$DOTFILES_DIR/.config/Code/User/settings.json" ]]
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 18:
+    [[ -f "$DOTFILES_DIR/.config/Code/User/settings.linux.json" ]] && \
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 19:
+    [[ -f "$DOTFILES_DIR/.config/Code/User/settings.windows.json" ]] && \
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 20:
+    [[ -f "$DOTFILES_DIR/.config/Code/User/settings.darwin.json" ]] && \
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 21:
+    [[ -f "$DOTFILES_DIR/.config/Code/User/settings.wsl.json" ]]
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 26:
+    [[ -f "$DOTFILES_DIR/install/vscode.sh" ]] && \
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 27:
+    [[ -x "$DOTFILES_DIR/install/vscode.sh" ]]
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 32:
+    if command -v jq &> /dev/null; then
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+       ^------------------------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 33:
+        jq empty "$DOTFILES_DIR/.config/Code/User/settings.json" 2>/dev/null
+        ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 35:
+        echo "⚠️ jq not available, skipping JSON validation"
+        ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 36:
+        return 0
+        ^------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 42:
+    if command -v jq &> /dev/null; then
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+       ^------------------------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 43:
+        local result=0
+        ^------------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 44:
+        for platform in linux windows darwin wsl; do
+        ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 45:
+            if ! jq empty "$DOTFILES_DIR/.config/Code/User/settings.$platform.json" 2>/dev/null; then
+            ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+                 ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 46:
+                echo "❌ Invalid JSON in settings.$platform.json"
+                ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 47:
+                result=1
+                ^------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 50:
+        return $result
+        ^------------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+               ^-----^ SC2086 (info): Double quote to prevent globbing and word splitting.
+
+Did you mean:
+        return "$result"
+
+
+In ./test/test-vscode-integration.sh line 52:
+        echo "⚠️ jq not available, skipping JSON validation"
+        ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 53:
+        return 0
+        ^------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 59:
+    local context
+    ^-----------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 60:
+    context=$(bash -c "source '$DOTFILES_DIR/install/vscode.sh'; detect_context" 2>/dev/null)
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+              ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 61:
+    [[ "$context" != "unknown" && -n "$context" ]]
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 67:
+    local temp_dir
+    ^------------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 68:
+    temp_dir=$(mktemp -d)
+    ^-------------------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+               ^-------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 71:
+    export HOME="$temp_dir"
+    ^---------------------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 72:
+    mkdir -p "$temp_dir/.config/Code/User"
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 75:
+    if bash -c "
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+       ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 80:
+        if [[ -f "$temp_dir/.config/Code/User/settings.json" ]]; then
+        ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+           ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 81:
+            rm -rf "$temp_dir"
+            ^----------------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 82:
+            return 0
+            ^------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 86:
+    rm -rf "$temp_dir"
+    ^----------------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 87:
+    return 1
+    ^------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 92:
+    if command -v jq &> /dev/null; then
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+       ^------------------------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 93:
+        local temp_dir
+        ^------------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 94:
+        temp_dir=$(mktemp -d)
+        ^-------------------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+                   ^-------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 97:
+        echo '{"a": 1, "b": 2}' > "$temp_dir/base.json"
+        ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 98:
+        echo '{"b": 3, "c": 4}' > "$temp_dir/override.json"
+        ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 101:
+        jq -s '.[0] * .[1]' "$temp_dir/base.json" "$temp_dir/override.json" > "$temp_dir/merged.json"
+        ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 104:
+        local result=0
+        ^------------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 105:
+        if ! jq -e '.a == 1 and .b == 3 and .c == 4' "$temp_dir/merged.json" &>/dev/null; then
+        ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+             ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 106:
+            result=1
+            ^------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 109:
+        rm -rf "$temp_dir"
+        ^----------------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 110:
+        return $result
+        ^------------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+               ^-----^ SC2086 (info): Double quote to prevent globbing and word splitting.
+
+Did you mean:
+        return "$result"
+
+
+In ./test/test-vscode-integration.sh line 112:
+        echo "⚠️ jq not available, skipping JSON merge test"
+        ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 113:
+        return 0
+        ^------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 119:
+    grep -q "vscode.sh" "$DOTFILES_DIR/bootstrap.sh"
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 124:
+    if ! grep -q "C:\\\\" "$DOTFILES_DIR/.config/Code/User/settings.json" && \
+    ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+         ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 125:
+       ! grep -q "AppData" "$DOTFILES_DIR/.config/Code/User/settings.json"; then
+         ^-- SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 126:
+        return 0
+        ^------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 128:
+        return 1
+        ^------^ SC2317 (info): Command appears to be unreachable. Check usage (or ignore if invoked indirectly).
+
+
+In ./test/test-vscode-integration.sh line 139:
+                '[[ -f "'$DOTFILES_DIR'/.config/Code/User/settings.json" ]]; echo $?' \
+                         ^-----------^ SC2086 (info): Double quote to prevent globbing and word splitting.
+
+Did you mean:
+                '[[ -f "'"$DOTFILES_DIR"'/.config/Code/User/settings.json" ]]; echo $?' \
+
+
+In ./test/test-vscode-integration.sh line 143:
+                '[[ -f "'$DOTFILES_DIR'/.config/Code/User/settings.linux.json" && -f "'$DOTFILES_DIR'/.config/Code/User/settings.windows.json" && -f "'$DOTFILES_DIR'/.config/Code/User/settings.darwin.json" && -f "'$DOTFILES_DIR'/.config/Code/User/settings.wsl.json" ]]; echo $?' \
+                         ^-----------^ SC2086 (info): Double quote to prevent globbing and word splitting.
+                                                                                       ^-----------^ SC2086 (info): Double quote to prevent globbing and word splitting.
+                                                                                                                                                       ^-----------^ SC2086 (info): Double quote to prevent globbing and word splitting.
+                                                                                                                                                                                                                      ^-----------^ SC2086 (info): Double quote to prevent globbing and word splitting.
+
+Did you mean:
+                '[[ -f "'"$DOTFILES_DIR"'/.config/Code/User/settings.linux.json" && -f "'"$DOTFILES_DIR"'/.config/Code/User/settings.windows.json" && -f "'"$DOTFILES_DIR"'/.config/Code/User/settings.darwin.json" && -f "'"$DOTFILES_DIR"'/.config/Code/User/settings.wsl.json" ]]; echo $?' \
+
+
+In ./test/test-vscode-integration.sh line 147:
+                '[[ -x "'$DOTFILES_DIR'/install/vscode.sh" ]]; echo $?' \
+                         ^-----------^ SC2086 (info): Double quote to prevent globbing and word splitting.
+
+Did you mean:
+                '[[ -x "'"$DOTFILES_DIR"'/install/vscode.sh" ]]; echo $?' \
+
+
+In ./test/test-vscode-integration.sh line 151:
+                'if command -v jq >/dev/null 2>&1; then jq empty "'$DOTFILES_DIR'/.config/Code/User/settings.json" >/dev/null 2>&1; echo $?; else echo 0; fi' \
+                                                                   ^-----------^ SC2086 (info): Double quote to prevent globbing and word splitting.
+
+Did you mean:
+                'if command -v jq >/dev/null 2>&1; then jq empty "'"$DOTFILES_DIR"'/.config/Code/User/settings.json" >/dev/null 2>&1; echo $?; else echo 0; fi' \
+
+
+In ./test/test-vscode-integration.sh line 155:
+                'if command -v jq >/dev/null 2>&1; then ok=0; for p in linux windows darwin wsl; do jq empty "'$DOTFILES_DIR'/.config/Code/User/settings.$p.json" >/dev/null 2>&1 || ok=1; done; if [[ $ok -eq 0 ]]; then echo 0; else echo 1; fi; else echo 0; fi' \
+                                                                                                               ^-----------^ SC2086 (info): Double quote to prevent globbing and word splitting.
+                                                                                                                            ^-- SC2016 (info): Expressions don't expand in single quotes, use double quotes for that.
+
+Did you mean:
+                'if command -v jq >/dev/null 2>&1; then ok=0; for p in linux windows darwin wsl; do jq empty "'"$DOTFILES_DIR"'/.config/Code/User/settings.$p.json" >/dev/null 2>&1 || ok=1; done; if [[ $ok -eq 0 ]]; then echo 0; else echo 1; fi; else echo 0; fi' \
+
+
+In ./test/test-vscode-integration.sh line 159:
+                'source "'$DOTFILES_DIR'/install/vscode.sh" >/dev/null 2>&1; c=$(detect_context); [[ -n "$c" && "$c" != "unknown" ]]; echo $?' \
+                          ^-----------^ SC2086 (info): Double quote to prevent globbing and word splitting.
+                                       ^-- SC2016 (info): Expressions don't expand in single quotes, use double quotes for that.
+
+Did you mean:
+                'source "'"$DOTFILES_DIR"'/install/vscode.sh" >/dev/null 2>&1; c=$(detect_context); [[ -n "$c" && "$c" != "unknown" ]]; echo $?' \
+
+
+In ./test/test-vscode-integration.sh line 171:
+                'grep -q "vscode.sh" "'$DOTFILES_DIR'/bootstrap.sh" >/dev/null 2>&1; echo $?' \
+                                       ^-----------^ SC2086 (info): Double quote to prevent globbing and word splitting.
+
+Did you mean:
+                'grep -q "vscode.sh" "'"$DOTFILES_DIR"'/bootstrap.sh" >/dev/null 2>&1; echo $?' \
+
+
+In ./test/test-vscode-integration.sh line 175:
+                '(! grep -q "C:\\\\" "'$DOTFILES_DIR'/.config/Code/User/settings.json" && ! grep -q "AppData" "'$DOTFILES_DIR'/.config/Code/User/settings.json"); echo $?' \
+                                       ^-----------^ SC2086 (info): Double quote to prevent globbing and word splitting.
+                                                                                                                ^-----------^ SC2086 (info): Double quote to prevent globbing and word splitting.
+
+Did you mean:
+                '(! grep -q "C:\\\\" "'"$DOTFILES_DIR"'/.config/Code/User/settings.json" && ! grep -q "AppData" "'"$DOTFILES_DIR"'/.config/Code/User/settings.json"); echo $?' \
+
+
+In ./update.sh line 15:
+CURRENT_BRANCH=$(git -C "$DOTFILES_DIR" rev-parse --abbrev-ref HEAD)
+^------------^ SC2034 (warning): CURRENT_BRANCH appears unused. Verify use (or export if used externally).
+
+
+In ./mcp/mcp-bridge-wrapper.sh line 6:
+    source "$HOME/dotfiles/mcp/.env"
+           ^-----------------------^ SC1091 (info): Not following: ./dotfiles/mcp/.env was not specified as input (see shellcheck -x).
+
+
+In ./mcp/migrate-vscode-settings.sh line 41:
+    local temp_file=$(mktemp)
+          ^-------^ SC2155 (warning): Declare and assign separately to avoid masking return values.
+
+
+In ./mcp/migrate-vscode-settings.sh line 79:
+    source "$HOME/dotfiles/mcp/.env"
+           ^-----------------------^ SC1091 (info): Not following: mcp/.env was not specified as input (see shellcheck -x).
+
+
+In ./mcp/mcp-helper.sh line 8:
+    source "$HOME/dotfiles/mcp/.env"
+           ^-----------------------^ SC1091 (info): Not following: mcp/.env was not specified as input (see shellcheck -x).
+
+
+In ./mcp/test-mcp-integration.sh line 27:
+source "$HOME/dotfiles/mcp/.env"
+       ^-----------------------^ SC1091 (info): Not following: mcp/.env was not specified as input (see shellcheck -x).
+
+
+In ./install_zsh.sh line 100:
+        font_name=$(echo "$font" | sed 's/%20/ /g')
+                    ^----------------------------^ SC2001 (style): See if you can use ${variable//search/replace} instead.
+
+For more information:
+  https://www.shellcheck.net/wiki/SC1035 -- You are missing a required space ...
+  https://www.shellcheck.net/wiki/SC1071 -- ShellCheck only supports sh/bash/...
+  https://www.shellcheck.net/wiki/SC2148 -- Tips depend on target shell and y...
