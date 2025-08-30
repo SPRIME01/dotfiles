@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Helper script to generate VS Code MCP server configuration
 # This script reads environment variables and generates the proper VS Code settings
 

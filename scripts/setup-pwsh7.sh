@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Sets up the PowerShell 7 profile for Windows from a WSL2 environment.
 #

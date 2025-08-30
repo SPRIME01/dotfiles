@@ -93,3 +93,10 @@ export PATH
 if [[ ${DOTFILES_DEBUG:-0} == 1 ]]; then
     echo "[dotfiles] zsh profile loaded (DOTFILES_ROOT=$DOTFILES_ROOT, ZSH=$ZSH)"
 fi
+
+# >>> WSL→Windows SSH agent bridge (BEGIN) >>>
+export WINUSER="sprim"
+export NPIPERELAY="/mnt/c//Users/sprim/scoop/shims/npiperelay.exe"
+export SSH_AUTH_SOCK="/home/sprime01/.ssh/agent.sock"
+"/home/sprime01/.local/bin/win-ssh-agent-bridge" >/dev/null 2>&1 || true
+# <<< WSL→Windows SSH agent bridge (END) <<<

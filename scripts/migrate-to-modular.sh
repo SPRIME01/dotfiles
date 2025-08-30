@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Migration helper script for transitioning to the new modular dotfiles system
 # This script helps identify and update any custom scripts or configurations
 # that might be using the old system
