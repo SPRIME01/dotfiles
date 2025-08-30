@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Wrapper script to run MCP bridge with environment variables
 
 # Source MCP environment if available

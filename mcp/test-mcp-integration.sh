@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Quick test script to verify MCP integration
 
 echo "🧪 Testing MCP Integration..."

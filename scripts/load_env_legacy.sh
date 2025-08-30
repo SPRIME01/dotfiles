@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Legacy system compatibility bridge
 # This file provides backward compatibility while transitioning to the new modular system
 

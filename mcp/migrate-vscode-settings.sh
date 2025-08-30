@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Migration script to update VS Code settings.json with environment-based MCP configuration
 # This script will backup your current settings and update them to use environment variables
 

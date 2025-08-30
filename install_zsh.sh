@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # dotfiles/install_zsh.sh
 # Install Oh My Zsh and plugins for WSL2/Linux
 # Version: 1.0

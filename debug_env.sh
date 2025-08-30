@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 load_env_file() {
 	local env_file="$1"
 	echo "Loading env file: $env_file"

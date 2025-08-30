@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Dotfiles Installation Wizard
 # Phase 4.1 Configuration Management

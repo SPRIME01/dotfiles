@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # VS Code Settings Installation Script
 # Part of dotfiles project - cross-platform VS Code configuration
