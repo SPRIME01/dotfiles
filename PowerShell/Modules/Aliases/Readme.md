@@ -44,7 +44,7 @@ The `updatealiases` command simplifies adding new functions to this module.
 
 **Usage:**
 
-1.  Create your new function and save it as a `.ps1` file (e.g., `My-CoolFunction.ps1`) inside the `Aliases` module directory (`C:\Users\sprim\OneDrive\MyDocuments\PowerShell\Modules\Aliases`).
+1.  Create your new function and save it as a `.ps1` file (e.g., `My-CoolFunction.ps1`) inside the `Aliases` module directory (for example: `C:\Users\sprim\Documents\PowerShell\Modules\Aliases`).
 2.  Open your PowerShell terminal.
 3.  Run the command:
     ```powershell
@@ -58,7 +58,7 @@ The `updatealiases` command simplifies adding new functions to this module.
 
 ## Installation/Setup
 
-1.  Place the `Aliases` folder (containing `Aliases.psm1` and all the function `.ps1` files) into one of your PowerShell module paths (e.g., `C:\Users\sprim\OneDrive\MyDocuments\PowerShell\Modules`).
+1.  Place the `Aliases` folder (containing `Aliases.psm1` and all the function `.ps1` files) into one of your PowerShell module paths (for example: `C:\Users\sprim\Documents\PowerShell\Modules`).
 2.  Ensure your PowerShell profile (`Microsoft.PowerShell_profile.ps1`) imports the module, typically with `Import-Module Aliases`.
 
 ## Backup Mechanism

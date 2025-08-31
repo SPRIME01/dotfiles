@@ -13,12 +13,18 @@ function __Dotfiles-Debug {
 if (-not (Get-Command Add-ToPath -ErrorAction SilentlyContinue)) {
     function Add-ToPath {
         [CmdletBinding()]
-        param([Parameter(Mandatory)][Alias('Directory')][string]$Path)
+        param(
+            [Parameter(Mandatory)][Alias('Directory')][string]$Path,
+            [switch]$Quiet
+        )
         if ([string]::IsNullOrWhiteSpace($Path)) { return }
-        if (-not (Test-Path $Path)) { return }
+        if (-not (Test-Path $Path)) { if (-not $Quiet) { Write-Verbose "Path not found: $Path" } ; return }
         $segments = $env:PATH -split ';'
         if ($segments -notcontains $Path) {
             $env:PATH = "$Path;" + $env:PATH
+            if (-not $Quiet) { Write-Verbose "Added $Path to PATH" }
+        } else {
+            if (-not $Quiet) { Write-Verbose "Already in PATH: $Path" }
         }
     }
 }
@@ -58,7 +64,7 @@ if (Test-Path $envLoader) {
 
 # Basic PowerShell setup - must come first
 # Oh My Posh Theme Selection - can be overridden by environment variable
-$defaultTheme = "powerlevel10k_classic.omp.json"
+$defaultTheme = "powerlevel10k_modern.omp.json"
 $ompTheme = if ($env:OMP_THEME) { $env:OMP_THEME } else { $defaultTheme }
 $themePath = Join-Path $env:DOTFILES_ROOT "PowerShell/Themes/$ompTheme"
 
@@ -68,18 +74,15 @@ if (-not (Test-Path $themePath)) {
     $themePath = Join-Path $env:DOTFILES_ROOT 'PowerShell/Themes/emodipt-extend.omp.json'
 }
 
-<<<<<<< HEAD
+# Initialize Oh My Posh if available
 if (-not (Get-Command oh-my-posh -ErrorAction SilentlyContinue)) {
     if ($__IsInteractive) { Write-Warning "oh-my-posh not found on PATH. Install via: winget install JanDeDobbeleer.OhMyPosh or scoop install oh-my-posh" }
-} elseif (-not (Test-Path $themePath)) {
-    if ($__IsInteractive) { Write-Warning "Theme file not found: $themePath" }
 } else {
     try {
         oh-my-posh init pwsh --config "$themePath" | Invoke-Expression
     } catch {
-    if ($__IsInteractive) { Write-Warning "oh-my-posh initialization failed: $($_.Exception.Message)" }
+        if ($__IsInteractive) { Write-Warning "oh-my-posh initialization failed: $($_.Exception.Message)" }
     }
-}
 }
 Import-Module -Name Terminal-Icons -ErrorAction SilentlyContinue
 Import-Module PSReadLine -ErrorAction SilentlyContinue

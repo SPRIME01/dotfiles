@@ -74,7 +74,7 @@ This documentation describes a unified shell configuration system that works acr
 - `projects` function using `$env:PROJECTS_ROOT`
 - PNPM configuration
 
-**Location**: `~/dotfiles/PowerShell/Microsoft.PowerShell_profile.ps1` (symlinked to OneDrive profile location)
+**Location**: `~/dotfiles/PowerShell/Microsoft.PowerShell_profile.ps1` (Windows `$PROFILE` is a symlink or loader that points to this file)
 
 #### Theme Configuration (`.shell_theme_common.ps1`)
 **Purpose**: PowerShell-specific theming and module management
@@ -100,7 +100,7 @@ This documentation describes a unified shell configuration system that works acr
 - **Command**: `New-Item -ItemType SymbolicLink -Path "$HOME\Projects" -Target $wslProjectsPath`
 
 ### Profile Symlinks
-- **PowerShell**: OneDrive profile → dotfiles repository
+- **PowerShell**: Windows `$PROFILE` points to the dotfiles repository (no OneDrive dependency)
 - **WSL**: `~/.zshrc` → `~/dotfiles/.zshrc`
 - **Purpose**: Single source of truth for all configurations
 
