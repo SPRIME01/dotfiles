@@ -6,7 +6,9 @@
 param(
     [string]$WSLDistro = $null,
     [string]$WSLUser = $null,
-    [switch]$Force
+    [switch]$Force,
+    [switch]$DryRun,
+    [switch]$RequireSymlink
 )
 
 Write-Host "🔧 Setting up Windows PowerShell 7 profile..." -ForegroundColor Cyan
@@ -17,20 +19,25 @@ try {
     $detectedWSLDistro = $env:WSL_DISTRO_NAME
 
     # Use provided parameters or detect/assume values
-    $wslDistro = if ($WSLDistro) {
-        $WSLDistro
-    } elseif ($detectedWSLDistro) {
-        $detectedWSLDistro
+    # Discover default WSL distro reliably
+    if ($WSLDistro) {
+        $wslDistro = $WSLDistro
     } else {
-        "Ubuntu-24.04"  # Common default
+        try {
+            $wslList = & wsl.exe -l -v 2>$null
+            $wslDistro = ($wslList | Where-Object { $_ -match '\*' } | ForEach-Object { ($_ -split '\s+')[1] } | Select-Object -First 1)
+            if (-not $wslDistro) { $wslDistro = 'Ubuntu-24.04' }
+        } catch { $wslDistro = 'Ubuntu-24.04' }
     }
 
-    $wslUser = if ($WSLUser) {
-        $WSLUser
-    } elseif ($env:USER) {
-        $env:USER
+    # Discover WSL username by asking the distro directly (fallback to Windows username)
+    if ($WSLUser) {
+        $wslUser = $WSLUser
     } else {
-        $windowsUser.ToLower()  # Assume WSL user matches Windows user (common case)
+        try {
+            $wslUser = (& wsl.exe -d $wslDistro -e sh -lc 'echo -n $USER' 2>$null)
+            if (-not $wslUser -or $wslUser.Trim() -eq '') { $wslUser = $windowsUser.ToLower() }
+        } catch { $wslUser = $windowsUser.ToLower() }
     }
 
     Write-Host "🔍 Environment detection:" -ForegroundColor Cyan
@@ -50,10 +57,14 @@ try {
     # Get the profile directory
     $profileDir = Split-Path -Parent $pwsh7ProfilePath
 
+    if ($DryRun) {
+        Write-Host "📝 (dry-run) Would ensure profile directory exists: $profileDir" -ForegroundColor DarkGray
+    } else {
     # Create the profile directory if it doesn't exist
     if (-not (Test-Path $profileDir)) {
         New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
         Write-Host "✅ Created profile directory: $profileDir" -ForegroundColor Green
+    }
     }
 
     # Determine the best path to dotfiles - prefer WSL path for consistency
@@ -76,32 +87,78 @@ try {
         $wslDotfilesPath
     }
 
-    # Create the profile content that sources the main profile
-    $profileContent = @"
+    # If running in a non-interactive test context, allow early exit after ensuring paths
+    if ($env:DOTFILES_PWSH_NONINTERACTIVE -in @('1','true','True','TRUE','yes','YES')) {
+        Write-Host "(non-interactive) Skipping interactive profile loading" -ForegroundColor DarkGray
+    }
+
+    # Prefer creating a Windows symlink at $PROFILE that points to the repo profile in WSL
+    # Check Developer Mode status to inform user
+    $devKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock'
+    $devMode = (Get-ItemProperty -Path $devKey -Name 'AllowDevelopmentWithoutDevLicense' -ErrorAction SilentlyContinue).AllowDevelopmentWithoutDevLicense
+    if (-not $devMode -or $devMode -eq 0) {
+        Write-Warning "Windows Developer Mode appears OFF; symlink may require elevation."
+        Write-Host "Enable Settings → For Developers → Developer Mode for best results." -ForegroundColor Yellow
+    }
+    $targetProfile = Join-Path $dotfilesPath 'PowerShell\Microsoft.PowerShell_profile.ps1'
+    $createdSymlink = $false
+    if ($DryRun) {
+        Write-Host "📝 (dry-run) Would create symbolic link:" -ForegroundColor DarkGray
+        Write-Host "     Path:   $pwsh7ProfilePath" -ForegroundColor DarkGray
+        Write-Host "     Target: $targetProfile" -ForegroundColor DarkGray
+        Write-Host "📝 (dry-run) If symlink creation fails, would write loader profile instead" -ForegroundColor DarkGray
+    } else {
+        try {
+            if (Test-Path $pwsh7ProfilePath) {
+                $existing = Get-Item $pwsh7ProfilePath -ErrorAction SilentlyContinue
+                if ($existing -and -not $existing.LinkType) {
+                    # Remove regular file to allow symlink creation
+                    Remove-Item -Path $pwsh7ProfilePath -Force -ErrorAction SilentlyContinue
+                }
+            }
+            New-Item -ItemType SymbolicLink -Path $pwsh7ProfilePath -Target $targetProfile -Force | Out-Null
+            Write-Host "✅ Created symbolic link: $pwsh7ProfilePath -> $targetProfile" -ForegroundColor Green
+            $createdSymlink = $true
+        } catch {
+            Write-Warning "Could not create symbolic link (developer mode or elevation may be required): $($_.Exception.Message)"
+            $createdSymlink = $false
+        }
+    }
+
+    if (-not $createdSymlink) {
+        if ($RequireSymlink) {
+            throw "Required symlink could not be created; aborting as requested."
+        }
+        # Fallback: write a tiny loader profile that points to the repo
+        $profileContent = @"
 # Windows PowerShell 7 Profile - Auto-generated $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
-# This profile sources the main PowerShell profile from the dotfiles repository
+# This profile loads the main PowerShell profile from the dotfiles repository
 # Generated for: Windows user '$windowsUser', WSL user '$wslUser', WSL distro '$wslDistro'
 
 # Set DOTFILES_ROOT for Windows
 `$env:DOTFILES_ROOT = "$dotfilesPath"
 
-# Set PROJECTS_ROOT for Windows (ensure Projects directory exists)
+# Set PROJECTS_ROOT for Windows (path only; avoid creating it here)
 if (-not `$env:PROJECTS_ROOT) {
     `$env:PROJECTS_ROOT = Join-Path `$env:USERPROFILE 'projects'
 }
 
-# Ensure projects directory exists
-if (-not (Test-Path `$env:PROJECTS_ROOT)) {
-    New-Item -ItemType Directory -Path `$env:PROJECTS_ROOT -Force | Out-Null
+    # Source the main profile
+`$mainProfile = Join-Path `$env:DOTFILES_ROOT 'PowerShell\Microsoft.PowerShell_profile.ps1'
+
+# Gently wake WSL and wait for UNC availability (race-proof)
+try { wsl.exe -l -q *> `$null } catch { }
+
+`$maxAttempts = 12
+`$delayMs = 250
+for (`$i = 0; `$i -lt `$maxAttempts -and -not (Test-Path `$mainProfile); `$i++) {
+    if (`$i -eq 0) { Write-Host "⏳ Waiting for WSL path..." -ForegroundColor DarkGray }
+    Start-Sleep -Milliseconds `$delayMs
 }
 
-# Debug information (comment out in production)
-Write-Host "🔍 Debug: DOTFILES_ROOT = `$env:DOTFILES_ROOT" -ForegroundColor DarkGray
-Write-Host "🔍 Debug: PROJECTS_ROOT = `$env:PROJECTS_ROOT" -ForegroundColor DarkGray
-
-# Source the main profile
-`$mainProfile = Join-Path `$env:DOTFILES_ROOT 'PowerShell\Microsoft.PowerShell_profile.ps1'
-Write-Host "🔍 Debug: Looking for main profile at: `$mainProfile" -ForegroundColor DarkGray
+if (-not (Test-Path `$mainProfile)) {
+    Write-Warning "WSL UNC not available after `$([int](`$maxAttempts*`$delayMs/1000))s; continuing with fallback if needed."
+}
 
 if (Test-Path `$mainProfile) {
     try {
@@ -126,14 +183,41 @@ if (Test-Path `$mainProfile) {
 }
 "@
 
-    # Write the profile
-    try {
-        Set-Content -Path $pwsh7ProfilePath -Value $profileContent -Encoding utf8
-        Write-Host "✅ Created PowerShell 7 profile at: $pwsh7ProfilePath" -ForegroundColor Green
-    } catch {
-        # Fallback for older PowerShell versions that don't support -Encoding utf8
-        Set-Content -Path $pwsh7ProfilePath -Value $profileContent
-        Write-Host "✅ Created PowerShell 7 profile at: $pwsh7ProfilePath" -ForegroundColor Green
+        if ($DryRun) {
+            Write-Host "📝 (dry-run) Would write loader profile to: $pwsh7ProfilePath" -ForegroundColor DarkGray
+        } else {
+            # Write the loader profile
+            try {
+                Set-Content -Path $pwsh7ProfilePath -Value $profileContent -Encoding utf8
+                Write-Host "✅ Created PowerShell 7 loader profile at: $pwsh7ProfilePath" -ForegroundColor Green
+            } catch {
+                # Fallback for older PowerShell versions that don't support -Encoding utf8
+                Set-Content -Path $pwsh7ProfilePath -Value $profileContent
+                Write-Host "✅ Created PowerShell 7 loader profile at: $pwsh7ProfilePath" -ForegroundColor Green
+            }
+        }
+    }
+
+    # Clean up old/duplicate profile locations (backup and remove)
+    Write-Host "🧹 Cleaning up old profile locations..." -ForegroundColor Cyan
+    $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+    $candidates = @()
+    $candidates += Join-Path (Join-Path $env:USERPROFILE 'Documents\PowerShell') 'Microsoft.PowerShell_profile.ps1'
+    # OneDrive paths intentionally omitted to avoid coupling to OneDrive
+    # Legacy WindowsPowerShell profiles (not used by pwsh, but can confuse)
+    $candidates += Join-Path (Join-Path $env:USERPROFILE 'Documents\WindowsPowerShell') 'Microsoft.PowerShell_profile.ps1'
+    # OneDrive paths intentionally omitted to avoid coupling to OneDrive
+
+    foreach ($path in $candidates | Select-Object -Unique) {
+        try {
+            if ((Test-Path $path) -and ($path -ne $pwsh7ProfilePath)) {
+                $backup = "$path.backup.$timestamp"
+                Move-Item -Path $path -Destination $backup -Force
+                Write-Host "  ✅ Backed up: $path → $backup" -ForegroundColor Green
+            }
+        } catch {
+            Write-Warning "  ⚠️  Could not process $path: $($_.Exception.Message)"
+        }
     }
 
     Write-Host "`n✨ Setup complete!" -ForegroundColor Green

@@ -67,9 +67,8 @@ try {
         & (Get-Command -Name Get-ChildItem -CommandType Cmdlet) @PSBoundParameters
     }
 
-    # Set aliases to point to the new function
-    Set-Alias -Name ls -Value Get-ChildItem -Force
-    Set-Alias -Name dir -Value Get-ChildItem -Force
+    # Avoid re-defining built-in aliases like 'ls' and 'dir' which may be AllScope/ReadOnly
+    # Built-in aliases already point to Get-ChildItem, and will route to our function
 
     # PSReadLine: Check if already loaded by VS Code or other means
     if (-not (Get-Module -Name PSReadLine -ErrorAction SilentlyContinue)) {

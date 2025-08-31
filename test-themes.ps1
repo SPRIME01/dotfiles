@@ -6,7 +6,7 @@
 Write-Host "🧪 Testing theme system..." -ForegroundColor Cyan
 
 # Test theme files exist
-$themesPath = "$HOME\dotfiles\PowerShell\Themes"
+$themesPath = Join-Path $env:DOTFILES_ROOT 'PowerShell/Themes'
 $requiredThemes = @(
     "powerlevel10k_classic.omp.json",
     "powerlevel10k_modern.omp.json",

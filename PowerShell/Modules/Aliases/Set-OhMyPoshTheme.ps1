@@ -30,7 +30,8 @@ function Set-OhMyPoshTheme {
         [switch]$List
     )
 
-    $themesPath = "$HOME\dotfiles\PowerShell\Themes"
+    # Use DOTFILES_ROOT so Windows sessions can resolve themes via WSL UNC
+    $themesPath = Join-Path $env:DOTFILES_ROOT 'PowerShell/Themes'
 
     if ($List) {
         Write-Host "📎 Available Oh My Posh themes:" -ForegroundColor Cyan
@@ -48,7 +49,7 @@ function Set-OhMyPoshTheme {
         return
     }
 
-    $themeFile = "$themesPath\$ThemeName.omp.json"
+    $themeFile = Join-Path $themesPath "$ThemeName.omp.json"
     if (-not (Test-Path $themeFile)) {
         Write-Host "❌ Theme '$ThemeName' not found!" -ForegroundColor Red
         Write-Host "Available themes:" -ForegroundColor Yellow

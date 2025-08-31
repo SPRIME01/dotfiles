@@ -189,21 +189,17 @@ configure_zsh=0
 configure_pwsh=0
 install_vscode=0
 enable_hook=0
-<<<<<<< HEAD
-enable_bridge=0
 setup_projects=0
 setup_pwsh7_windows=0
-<<<<<<< HEAD
-setup_ssh_agent_windows=0
 
 if [[ "$RETRY_FAILED_ONLY" == true ]]; then
 	echo "🔄 Retrying only failed components..."
-	for c in bash_config zsh_config pwsh_config vscode_settings git_hook ssh_bridge projects_setup pwsh7_windows ssh_agent_windows; do
+	for c in bash_config zsh_config pwsh_config vscode_settings git_hook projects_setup pwsh7_windows; do
 		if grep -q "^${c}=failed" "${DOTFILES_STATE_FILE}" 2>/dev/null; then
 			case $c in
 			bash_config) configure_bash=1 ;; zsh_config) configure_zsh=1 ;; pwsh_config) configure_pwsh=1 ;;
-			vscode_settings) install_vscode=1 ;; git_hook) enable_hook=1 ;; ssh_bridge) enable_bridge=1 ;;
-			projects_setup) setup_projects=1 ;; pwsh7_windows) setup_pwsh7_windows=1 ;; ssh_agent_windows) setup_ssh_agent_windows=1 ;;
+			vscode_settings) install_vscode=1 ;; git_hook) enable_hook=1 ;;
+			projects_setup) setup_projects=1 ;; pwsh7_windows) setup_pwsh7_windows=1 ;;
 			esac
 			echo "🔄 Will retry: $c"
 		fi
@@ -220,29 +216,17 @@ else
 	fi
 	smart_prompt_yes_no vscode_settings "Install VS Code settings?" y "$FORCE_REINSTALL" && install_vscode=1
 	smart_prompt_yes_no git_hook "Install post-commit alias hook?" y "$FORCE_REINSTALL" && enable_hook=1
-	smart_prompt_yes_no ssh_bridge "Enable WSL→Windows SSH agent bridge?" y "$FORCE_REINSTALL" && enable_bridge=1
 	smart_prompt_yes_no projects_setup "Setup projects directory (WSL2)?" y "$FORCE_REINSTALL" && setup_projects=1
 	if [[ -n ${WSL_DISTRO_NAME:-} ]] && command -v cmd.exe >/dev/null 2>&1; then
-		command -v pwsh.exe >/dev/null 2>&1 && smart_prompt_yes_no pwsh7_windows "Setup Windows pwsh7 profile?" y "$FORCE_REINSTALL" && setup_pwsh7_windows=1 || mark_component_skipped pwsh7_windows "pwsh7 not on Windows"
-		command -v powershell.exe >/dev/null 2>&1 && smart_prompt_yes_no ssh_agent_windows "Setup Windows SSH Agent?" y "$FORCE_REINSTALL" && setup_ssh_agent_windows=1 || mark_component_skipped ssh_agent_windows "Windows PowerShell missing"
+		if command -v pwsh.exe >/dev/null 2>&1; then
+			smart_prompt_yes_no pwsh7_windows "Setup Windows pwsh7 profile?" y "$FORCE_REINSTALL" && setup_pwsh7_windows=1 || mark_component_skipped pwsh7_windows "pwsh7 not on Windows"
+		else
+			mark_component_skipped pwsh7_windows "pwsh7 not on Windows"
+		fi
 	else
 		mark_component_skipped pwsh7_windows "Not WSL"
-		mark_component_skipped ssh_agent_windows "Not WSL"
 	fi
 fi
-=======
-if [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v cmd.exe >/dev/null 2>&1; then
-  if command -v pwsh.exe >/dev/null 2>&1; then
-    if prompt_yes_no "Set up PowerShell 7 profile for Windows integration?" "y"; then
-      setup_pwsh7_windows=1
-    fi
-  else
-    echo "ℹ️  PowerShell 7 (pwsh.exe) not detected on Windows; skipping Windows PowerShell 7 setup."
-  fi
-fi
-
-# Windows SSH Agent setup removed
->>>>>>> 8336c85 (Refactor dotfiles configuration and remove SSH agent bridge)
 
 # Apply selections
 echo
@@ -297,14 +281,7 @@ if ((enable_hook)); then
 		overall_success=false
 	fi
 fi
-=======
-# SSH agent bridge messaging removed
->>>>>>> 8336c85 (Refactor dotfiles configuration and remove SSH agent bridge)
-
-if ((enable_bridge)); then
-	echo "ℹ️  SSH agent bridge will rely on shell startup configuration."
-	mark_component_installed ssh_bridge
-fi
+:
 
 if ((setup_projects)); then
 	echo "▶️  Ensuring projects directory"
@@ -349,18 +326,6 @@ EOF
 	fi
 fi
 
-<<<<<<< HEAD
-((setup_pwsh7_windows)) && safe_execute pwsh7_windows "Setting up PowerShell 7 Windows integration" "bash '$DOTFILES_ROOT/scripts/setup-pwsh7.sh'" || true
-if ((setup_ssh_agent_windows)); then
-	if [[ -f "$DOTFILES_ROOT/scripts/setup-ssh-agent-windows-simple.ps1" ]]; then
-		safe_execute ssh_agent_windows "Setting up Windows SSH Agent" "powershell.exe -ExecutionPolicy Bypass -File '$DOTFILES_ROOT/scripts/setup-ssh-agent-windows-simple.ps1'" || overall_success=false
-	else
-		echo "⚠️  SSH Agent setup script missing"
-		mark_component_failed ssh_agent_windows missing
-		overall_success=false
-	fi
-fi
-=======
 # Set up PowerShell 7 Windows integration
 if [ "$setup_pwsh7_windows" -eq 1 ]; then
   echo "▶️  Setting up PowerShell 7 Windows integration..."
@@ -434,8 +399,6 @@ EOF
   fi
 fi
 
-# Windows SSH Agent setup removed
->>>>>>> 8336c85 (Refactor dotfiles configuration and remove SSH agent bridge)
 
 echo
 echo "=================================================="

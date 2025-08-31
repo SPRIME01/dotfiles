@@ -181,17 +181,9 @@ else
 			echo "ℹ️  PowerShell 7 (pwsh.exe) not detected on Windows; skipping Windows PowerShell 7 setup."
 			mark_component_skipped "pwsh7_windows" "PowerShell 7 not available on Windows"
 		fi
-	else
-		mark_component_skipped "pwsh7_windows" "Not in WSL2 environment"
-		mark_component_skipped "ssh_agent_windows" "Not in WSL2 environment"
-	fi
-=======
-    # (SSH agent setup removed)
-    else
-      mark_component_skipped "pwsh7_windows" "Not in WSL2 environment"
-      mark_component_skipped "ssh_agent_windows" "Not in WSL2 environment"
-    fi
->>>>>>> 8336c85 (Refactor dotfiles configuration and remove SSH agent bridge)
+        else
+            mark_component_skipped "pwsh7_windows" "Not in WSL2 environment"
+        fi
 fi
 
 echo
@@ -262,16 +254,7 @@ if [ "$enable_hook" -eq 1 ]; then
 	fi
 fi
 
-<<<<<<< HEAD
-# SSH bridge setup (informational)
-if [ "$enable_bridge" -eq 1 ]; then
-	echo "ℹ️  SSH agent bridge will be configured in your shell startup files."
-	echo "    Make sure npiperelay is installed: scoop install npiperelay"
-	mark_component_installed "ssh_bridge"
-fi
-=======
 :
->>>>>>> 8336c85 (Refactor dotfiles configuration and remove SSH agent bridge)
 
 # Projects directory setup with improved idempotency
 if [ "$setup_projects" -eq 1 ]; then
@@ -347,22 +330,7 @@ if [ "$setup_pwsh7_windows" -eq 1 ]; then
 	fi
 fi
 
-<<<<<<< HEAD
-# Windows SSH Agent setup
-if [ "$setup_ssh_agent_windows" -eq 1 ]; then
-	if [[ -f "$DOTFILES_ROOT/scripts/setup-ssh-agent-windows-simple.ps1" ]]; then
-		if ! safe_execute "ssh_agent_windows" "Setting up Windows SSH Agent" "powershell.exe -ExecutionPolicy Bypass -File '$DOTFILES_ROOT/scripts/setup-ssh-agent-windows-simple.ps1'"; then
-			overall_success=false
-		fi
-	else
-		echo "⚠️  SSH Agent setup script not found"
-		mark_component_failed "ssh_agent_windows" "setup script not found"
-		overall_success=false
-	fi
-fi
-=======
 :
->>>>>>> 8336c85 (Refactor dotfiles configuration and remove SSH agent bridge)
 
 # Summary
 echo
