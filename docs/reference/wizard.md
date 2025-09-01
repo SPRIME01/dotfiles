@@ -32,4 +32,4 @@ Each component checks state and skips unless forced or failed previously.
 ## Related Docs
 - `docs/AI_INDEX.md`
 - `docs/naming.md`
-- `docs/env-schema.md`
+- `env-schema.md`

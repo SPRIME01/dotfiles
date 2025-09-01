@@ -18,7 +18,7 @@ Defines cadence for reviewing and updating dotfiles components.
 
 ## As Needed
 - Security patches for dependencies.
-- Add new environment variables to `docs/env-schema.md`.
+- Add new environment variables to `env-schema.md`.
 
 ## Roles
 - Maintainer (you): triage PRs, approve Dependabot, curate backlog.
