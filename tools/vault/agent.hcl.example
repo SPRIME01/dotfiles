@@ -1,0 +1,22 @@
+# Example Vault Agent config for direnv file sink
+# Adjust address, auth method, role, and sink path (absolute path required)
+
+auto_auth {
+  method "oidc" {
+    mount_path = "auth/oidc"
+    config = { role = "dev-shell" }
+  }
+  sink "file" {
+    config = {
+      path = "/home/youruser/.cache/vault/dotfiles.env"  # change to your absolute path
+      format = "env"
+    }
+  }
+}
+
+vault {
+  address = "https://vault.example.com"
+}
+
+log_level = "info"
+

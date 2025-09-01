@@ -25,6 +25,9 @@ Authoritative list of environment variables consumed by these dotfiles. Use this
 | LOG_LEVEL | false | `20` | Numeric log threshold: 10=DEBUG, 20=INFO, 30=WARN, 40=ERROR | `lib/log.sh` |
 | LOG_LEVEL_NAME | false | (empty) | Case-insensitive alias for LOG_LEVEL (DEBUG/INFO/WARN/ERROR) | `lib/log.sh` |
 | GEMINI_API_KEY | false | (empty) | Example secret loaded from private .env for AI tooling | loaders, tests |
+| DOTFILES_SKIP_SECRET_FILES | false | (empty) | When "1" skips global loading of `.env` and `mcp/.env` (prefer direnv scoping) | `lib/env-loader.sh` |
+| DOTFILES_SKIP_ENV_FILE | false | (empty) | When "1" skips global loading of `.env` | `lib/env-loader.sh` |
+| DOTFILES_SKIP_MCP_ENV | false | (empty) | When "1" skips global loading of `mcp/.env` | `lib/env-loader.sh` |
 
 ## Defaults and Resolution
 - Relative defaults (e.g., `mcp/servers.json`, `.p10k.zsh`) resolve against `DOTFILES_ROOT` unless noted otherwise.

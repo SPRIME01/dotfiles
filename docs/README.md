@@ -20,3 +20,5 @@ Quick links:
 - Quick Start (Windows agent): `docs/tutorials/ssh-agent-quick-start.md`
 - SSH bridge cheatsheet: `docs/how-to/ssh-agent-bridge-cheatsheet.md`
 - Environment schema (reference): `docs/reference/env-schema.md`
+ - direnv setup (how‑to): `docs/how-to/direnv.md`
+ - Vault + direnv (how‑to): `docs/how-to/vault.md`

@@ -1,0 +1,30 @@
+# direnv + Vault example (Agent sink + CLI fallback)
+
+set -euo pipefail
+umask 077
+export DIRENV_LOG_FORMAT=""
+
+# Core repo env
+dotenv_if_exists .env
+dotenv_if_exists mcp/.env
+
+# Vault Agent sink (preferred)
+VAULT_SINK_PATH=${VAULT_SINK_PATH:-"$HOME/.cache/vault/dotfiles.env"}
+watch_file "$VAULT_SINK_PATH"
+dotenv_if_exists "$VAULT_SINK_PATH"
+
+# CLI fallback (optional) — requires `vault` and `jq`; customize the KV path
+if command -v vault >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+  if vault token lookup >/dev/null 2>&1; then
+    direnv_load bash -c '
+      set -euo pipefail
+      vault kv get -format=json kv/data/myapp \
+        | jq -r '.data.data | to_entries[] | "export \(.key)=\(.value)"'
+    '
+  fi
+fi
+
+# Repo-local PATH
+PATH_add "$PWD/scripts"
+PATH_add "$PWD/tools"
+

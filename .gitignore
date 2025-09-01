@@ -21,6 +21,7 @@ mcp/.env
 .env.local
 .env.production
 .env.development
+.envrc.local
 
 # GPG keys
 *.gpg

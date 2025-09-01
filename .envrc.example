@@ -1,0 +1,72 @@
+# direnv configuration for this dotfiles repo
+#
+# Usage:
+#   1. Copy to .envrc and adjust as needed
+#   2. Run: direnv allow
+#
+# Goals:
+#   - Load repo-scoped env from .env and mcp/.env (if present)
+#   - Keep secrets scoped to this directory/session
+#   - Add helpful paths/utilities for this repo only
+#   - Be quiet by default; easy to toggle verbosity
+
+# Fail fast and keep changes local to this directory
+set -euo pipefail
+
+# Quiet direnv unless explicitly changed via direnv_verbose helper
+export DIRENV_LOG_FORMAT=""
+
+# Ensure any files created from this session are private by default
+umask 077
+
+# Let direnv re-load if these files change
+watch_file .env
+watch_file mcp/.env
+watch_file .envrc.local
+
+# Load environment from dotenv-style files if present (no code execution)
+# - Order: defaults -> .env -> mcp/.env
+# - .env and mcp/.env are expected to be gitignored
+dotenv_if_exists .env.defaults
+dotenv_if_exists .env
+dotenv_if_exists mcp/.env
+
+# Ensure DOTFILES_ROOT is set (defensive in case a shell started here bypassed loaders)
+if [ -z "${DOTFILES_ROOT:-}" ]; then
+  export DOTFILES_ROOT=$(pwd -P)
+fi
+
+# Prepend common local paths for this repo only
+PATH_add "$PWD/scripts"
+PATH_add "$PWD/tools"
+
+# Optional: language/runtime integrations (uncomment if you use them)
+#
+# 1) ASDF version manager (if installed)
+# if command -v asdf >/dev/null 2>&1; then use asdf; fi
+#
+# 2) Python: activate venv if present, else create ephemeral layout
+# if [ -d .venv ]; then
+#   layout python .venv
+# elif [ -f requirements.txt ] || [ -f pyproject.toml ]; then
+#   layout python
+# fi
+#
+# 3) Node.js: prefer Volta if available
+# if [ -d "$HOME/.volta" ]; then
+#   export VOLTA_HOME="$HOME/.volta"
+#   PATH_add "$VOLTA_HOME/bin"
+# fi
+
+# Example: constrain what you export (uncomment to whitelist)
+# export -n  # stop exporting by default; then opt-in below
+# export PROJECTS_ROOT
+# export GEMINI_API_KEY
+
+# Tip: `direnv allow` is required only once per repo unless .envrc changes
+
+# Personal overrides (not committed)
+if [ -f .envrc.local ]; then
+  # shellcheck disable=SC1091
+  source .envrc.local
+fi
