@@ -1,0 +1,39 @@
+# ~/.config/direnv/direnvrc (example)
+# Global policy and helpers for direnv
+
+# Be quiet by default; override per-repo if you want chatter
+export DIRENV_LOG_FORMAT=""
+
+# Warn about potentially insecure dotenv permissions
+ensure_mode600() {
+  local f=$1
+  [ -f "$f" ] || return 0
+  local m
+  m=$(stat -c %a "$f" 2>/dev/null || stat -f %Lp "$f" 2>/dev/null || echo "")
+  if [ -n "$m" ] && [ "$m" != "600" ] && [ "$m" != "400" ]; then
+    log_error "dotenv file $f permissions are $m (recommend 600)"
+  fi
+}
+
+# Strict dotenv loader: refuse obviously risky files
+dotenv_strict() {
+  local f=${1:-.env}
+  [ -f "$f" ] || return 0
+  ensure_mode600 "$f"
+  # rudimentary guard: deny lines with backticks or subshells
+  if egrep -q "[`$]\\(|\\)`" "$f"; then
+    log_error "Refusing to load $f due to suspicious content"
+    return 1
+  fi
+  dotenv "$f"
+}
+
+# Convenience: add local bins safely
+path_if_exists() {
+  local p=$1
+  [ -d "$p" ] && PATH_add "$p"
+}
+
+# Toolchain helpers (opt-in in .envrc)
+use_asdf_if_present() { command -v asdf >/dev/null 2>&1 && use asdf || true; }
+
