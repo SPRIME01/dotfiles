@@ -104,6 +104,13 @@ setup-windows-integration:
     @echo ""
     @echo "(SSH agent integration removed)"
 
+# Move Windows Documents off OneDrive and point $PROFILE to the repo (elevated)
+move-docs-off-onedrive-admin:
+    @bash scripts/run-move-docs-admin.sh
+
+move-docs-off-onedrive-dry:
+    @bash scripts/run-move-docs-dry.sh
+
 # Fix PowerShell 7 profile if it's not working correctly
 fix-pwsh7:
     @echo "🔧 Diagnosing and fixing PowerShell 7 profile issues..."
