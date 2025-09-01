@@ -210,7 +210,8 @@ This script checks if you are running in WSL2, starts
 `wsl-ssh-agent-relay` and `socat` as needed, and exports `SSH_AUTH_SOCK` to
 point at a Unix socket inside your WSL home directory.  It is sourced by
 both `.bashrc` and `.zshrc` automatically, so there is no need to copy
-lengthy bridging code into your profiles.  See [docs/ssh.md](ssh.md) for
+lengthy bridging code into your profiles. See the tutorial in
+[WSL2 + Windows SSH Agent](../tutorials/ssh.md) for
 detailed instructions.
 
 ---

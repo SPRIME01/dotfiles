@@ -33,7 +33,7 @@ Cross-shell (Bash/Zsh/PowerShell) developer environment bootstrap: prompts, them
 Entry: `scripts/run-tests.sh`. New provisioning & idempotency tests located under `test/` (e.g., `test-setup-projects-idempotent.sh`). PowerShell tests auto-skip if `pwsh` missing.
 
 ## Key Environment Variables
-See `docs/env-schema.md` for authoritative list.
+See `env-schema.md` for the authoritative list.
 
 ## Architectural Decisions
 ADRs under `docs/adr/` (ADR 0001 defines component manifest + headers).
