@@ -215,24 +215,22 @@ ssh-bridge-preflight:
     @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; bash ssh-agent-bridge/preflight.sh'
 
 ssh-bridge-install-windows:
-    @bash -c '
-      set -e;
-      if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi;
-      if [[ ! -f "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" ]]; then echo "❌ Missing ssh-agent-bridge/install-win-ssh-agent.ps1"; exit 1; fi;
-      WIN_PATH=$(wslpath -w "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1");
-      echo "🪟 Installing Windows ssh-agent + manifest...";
-      powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" -Verbose
-    '
+    #!/usr/bin/env bash
+    set -e
+    if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi
+    if [[ ! -f "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" ]]; then echo "❌ Missing ssh-agent-bridge/install-win-ssh-agent.ps1"; exit 1; fi
+    WIN_PATH=$(wslpath -w "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1")
+    echo "🪟 Installing Windows ssh-agent + manifest..."
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" -Verbose
 
 ssh-bridge-install-windows-dry-run:
-    @bash -c '
-      set -e;
-      if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi;
-      if [[ ! -f "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" ]]; then echo "❌ Missing ssh-agent-bridge/install-win-ssh-agent.ps1"; exit 1; fi;
-      WIN_PATH=$(wslpath -w "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1");
-      echo "🧪 Dry-run: Windows ssh-agent install...";
-      powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" -DryRun -Verbose || true
-    '
+    #!/usr/bin/env bash
+    set -e
+    if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi
+    if [[ ! -f "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" ]]; then echo "❌ Missing ssh-agent-bridge/install-win-ssh-agent.ps1"; exit 1; fi
+    WIN_PATH=$(wslpath -w "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1")
+    echo "🧪 Dry-run: Windows ssh-agent install..."
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" -DryRun -Verbose || true
 
 ssh-bridge-install-wsl:
     @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; echo "🐧 Installing WSL bridge..."; bash ssh-agent-bridge/install-wsl-agent-bridge.sh --verbose'
@@ -283,26 +281,26 @@ ssh-bridge-lan-bootstrap-dry-run:
 
 # LAN bootstrap with explicit parameters
 ssh-bridge-lan-bootstrap-custom hosts="" pubkey="" only="" exclude="" jobs="4" timeout="8" resume="0" disable_pw_auth="0" dry_run="0" verbose="1":
-    @bash -c 'set -euo pipefail; [[ -z "${WSL_DISTRO_NAME:-}" ]] && { echo "❌ This must be run inside WSL"; exit 1; };
-    args=();
-    [[ "{{dry_run}}" == "1" ]] && args+=(--dry-run);
-    [[ "{{verbose}}" ]] && args+=(--verbose);
-    [[ -n "{{hosts}}" ]] && args+=(--hosts "{{hosts}}");
-    [[ -n "{{pubkey}}" ]] && args+=(--pubkey "{{pubkey}}");
-    [[ -n "{{only}}" ]] && args+=(--only "{{only}}");
-    [[ -n "{{exclude}}" ]] && args+=(--exclude "{{exclude}}");
-    [[ -n "{{jobs}}" ]] && args+=(--jobs "{{jobs}}");
-    [[ -n "{{timeout}}" ]] && args+=(--timeout "{{timeout}}");
-    [[ "{{resume}}" == "1" ]] && args+=(--resume);
-    if [[ "{{disable_pw_auth}}" == "1" ]]; then
-      args+=(--disable-password-auth)
-    fi
-    echo "🌐 LAN bootstrap with args: ${args[*]}";
+    #!/usr/bin/env bash
+    set -euo pipefail
+    [[ -z "${WSL_DISTRO_NAME:-}" ]] && { echo "❌ This must be run inside WSL"; exit 1; }
+    args=()
+    [[ "{{dry_run}}" == "1" ]] && args+=(--dry-run)
+    [[ "{{verbose}}" ]] && args+=(--verbose)
+    [[ -n "{{hosts}}" ]] && args+=(--hosts "{{hosts}}")
+    [[ -n "{{pubkey}}" ]] && args+=(--pubkey "{{pubkey}}")
+    [[ -n "{{only}}" ]] && args+=(--only "{{only}}")
+    [[ -n "{{exclude}}" ]] && args+=(--exclude "{{exclude}}")
+    [[ -n "{{jobs}}" ]] && args+=(--jobs "{{jobs}}")
+    [[ -n "{{timeout}}" ]] && args+=(--timeout "{{timeout}}")
+    [[ "{{resume}}" == "1" ]] && args+=(--resume)
+    [[ "{{disable_pw_auth}}" == "1" ]] && args+=(--disable-password-auth)
+    echo "🌐 LAN bootstrap with args: ${args[*]}"
     if [[ "{{dry_run}}" == "1" ]]; then
-      bash ssh-agent-bridge/lan-bootstrap.sh "${args[@]}" || true
+        bash ssh-agent-bridge/lan-bootstrap.sh "${args[@]}" || true
     else
-      exec bash ssh-agent-bridge/lan-bootstrap.sh "${args[@]}"
-    fi'
+        exec bash ssh-agent-bridge/lan-bootstrap.sh "${args[@]}"
+    fi
 
 # LAN bootstrap with raw passthrough flags
 ssh-bridge-lan-bootstrap-args *ARGS:
@@ -314,8 +312,11 @@ ssh-bridge-cleanup-old-keys DIR:
 
 # Rotate Windows key then (optionally) install bridge and deploy to hosts
 ssh-bridge-rotate-deploy:
-    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; echo "🔄 Rotating key in Windows, then deploying..."; bash ssh-agent-bridge/full-rotate-and-deploy.sh --verbose'
+    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; SCRIPT="$PWD/ssh-agent-bridge/full-rotate-and-deploy.sh"; if [[ ! -f "$SCRIPT" ]]; then echo "❌ Missing $SCRIPT"; exit 2; fi; echo "🔄 Rotating key in Windows, then deploying..."; bash "$SCRIPT" --verbose'
+
+ssh-bridge-rotate-deploy-dry-run:
+    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; SCRIPT="$PWD/ssh-agent-bridge/full-rotate-and-deploy.sh"; if [[ ! -f "$SCRIPT" ]]; then echo "❌ Missing $SCRIPT"; exit 2; fi; echo "🧪 Dry-run: rotate key in Windows, then simulate deploy..."; bash "$SCRIPT" --dry-run --verbose || true'
 
 # Rotate+deploy with raw passthrough flags (e.g. --dry-run, --skip-bridge, --only)
 ssh-bridge-rotate-deploy-args *ARGS:
-    @bash -c 'set -e; [[ -z "${WSL_DISTRO_NAME:-}" ]] && { echo "❌ Run inside WSL"; exit 1; }; echo "🔄 Rotate+deploy (passthrough): {{ARGS}}"; bash ssh-agent-bridge/full-rotate-and-deploy.sh {{ARGS}}'
+    @bash -c 'set -e; [[ -z "${WSL_DISTRO_NAME:-}" ]] && { echo "❌ Run inside WSL"; exit 1; }; SCRIPT="$PWD/ssh-agent-bridge/full-rotate-and-deploy.sh"; if [[ ! -f "$SCRIPT" ]]; then echo "❌ Missing $SCRIPT"; exit 2; fi; echo "🔄 Rotate+deploy (passthrough): {{ARGS}}"; bash "$SCRIPT" {{ARGS}}'

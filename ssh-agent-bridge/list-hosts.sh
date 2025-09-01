@@ -1,4 +1,3 @@
-\
 #!/usr/bin/env bash
 # list-hosts.sh — Preview expanded Host targets from ~/.ssh/config
 set -euo pipefail

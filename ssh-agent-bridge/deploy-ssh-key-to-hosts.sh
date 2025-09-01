@@ -92,34 +92,67 @@ to_wsl_path() { # convert C:\foo\bar -> /mnt/c/foo/bar if needed
   fi
 }
 manifest="$(detect_manifest)"
-[[ -f "$manifest" ]] || { log "Manifest not found at $manifest. Run install-win-ssh-agent.ps1 first." "ERROR"; exit 1; }
-
-# Try jq, fallback to grep/sed
-if command -v jq >/dev/null 2>&1; then
-  ssh_key_win="$(jq -r '.ssh_key_path' "$manifest" 2>/dev/null || true)"
-else
-  ssh_key_win="$(grep -oE '"ssh_key_path"\s*:\s*"[^"]+"' "$manifest" | sed -E 's/.*:\s*"([^"]+)"/\1/')"
-fi
-ssh_key_wsl="$(to_wsl_path "$ssh_key_win")"
-pubkey="${ssh_key_wsl}.pub"
-if [[ ! -f "$pubkey" ]]; then
-  # Regenerate .pub from private key if missing
-  if [[ -f "$ssh_key_wsl" ]]; then
-    runeq "ssh-keygen -y -f \"$ssh_key_wsl\" > \"$pubkey\""
+if [[ ! -f "$manifest" ]]; then
+  if (( DRY_RUN )); then
+    log "Manifest not found at $manifest. (dry-run) Continuing without it." "WARN"
+    manifest=""
+  else
+    log "Manifest not found at $manifest. Run install-win-ssh-agent.ps1 first." "ERROR"
+    exit 1
   fi
 fi
-[[ -f "$pubkey" ]] || { log "Public key not found at $pubkey." "ERROR"; exit 1; }
-log "Using public key: $pubkey"
+
+# Try jq, fallback to grep/sed
+ssh_key_win=""
+ssh_key_wsl=""
+pubkey=""
+if [[ -n "$manifest" && -f "$manifest" ]]; then
+  if command -v jq >/dev/null 2>&1; then
+    ssh_key_win="$(jq -r '.ssh_key_path' "$manifest" 2>/dev/null || true)"
+  else
+    ssh_key_win="$(grep -oE '"ssh_key_path"\s*:\s*"[^"]+"' "$manifest" | sed -E 's/.*:\s*"([^"]+)"/\1/')"
+  fi
+  ssh_key_wsl="$(to_wsl_path "$ssh_key_win")"
+  pubkey="${ssh_key_wsl}.pub"
+  if [[ ! -f "$pubkey" ]]; then
+    # Regenerate .pub from private key if missing
+    if [[ -f "$ssh_key_wsl" ]]; then
+      runeq "ssh-keygen -y -f \"$ssh_key_wsl\" > \"$pubkey\""
+    fi
+  fi
+fi
+if [[ -z "$pubkey" || ! -f "$pubkey" ]]; then
+  if [[ -f "$HOME/.ssh/id_ed25519.pub" ]]; then
+    pubkey="$HOME/.ssh/id_ed25519.pub"
+  fi
+fi
+if [[ -z "$pubkey" || ! -f "$pubkey" ]]; then
+  if (( DRY_RUN )); then
+    log "Public key not found; (dry-run) continuing without key." "WARN"
+  else
+    log "Public key not found at $pubkey." "ERROR"; exit 1
+  fi
+else
+  log "Using public key: $pubkey"
+fi
 
 # -------- Build host list from ~/.ssh/config --------
 ssh_config="$HOME/.ssh/config"
-[[ -f "$ssh_config" ]] || { log "No ~/.ssh/config found; nothing to do." "ERROR"; exit 1; }
-mapfile -t all_hosts < <(
-  awk 'tolower($1)=="host"{for(i=2;i<=NF;i++) if($i!="*") print $i}' "$ssh_config" \
-  | tr -d '\r' \
-  | sed -E 's/^[[:space:]]+|[[:space:]]+$//g' \
-  | sort -u
-)
+if [[ ! -f "$ssh_config" ]]; then
+  if (( DRY_RUN )); then
+    log "No ~/.ssh/config found; (dry-run) nothing to do." "WARN"
+    mapfile -t all_hosts < <(printf "")
+  else
+    log "No ~/.ssh/config found; nothing to do." "ERROR"; exit 1
+  fi
+else
+  mapfile -t all_hosts < <(
+    awk 'tolower($1)=="host"{for(i=2;i<=NF;i++) if($i!="*") print $i}' "$ssh_config" \
+    | tr -d '\r' \
+    | sed -E 's/^[[:space:]]+|[[:space:]]+$//g' \
+    | sort -u
+  )
+fi
 
 # Filters
 filter_hosts() {
@@ -137,7 +170,20 @@ filter_hosts() {
   done
 }
 mapfile -t hosts < <(filter_hosts)
-[[ ${#hosts[@]} -gt 0 ]] || { log "Host filter produced no targets." "ERROR"; exit 1; }
+if [[ ${#hosts[@]} -eq 0 ]]; then
+  if (( DRY_RUN )); then
+    log "Host filter produced no targets. (dry-run) Exiting successfully." "WARN"
+    echo
+    log "===== SUMMARY ====="
+    echo "Hosts processed: 0"
+    echo "Completed:       0"
+    echo "Failures:        0"
+    log "Details in $logfile"
+    exit 0
+  else
+    log "Host filter produced no targets." "ERROR"; exit 1
+  fi
+fi
 log "Target hosts (${#hosts[@]}): ${hosts[*]}"
 
 # -------- Discover old keys to remove (by exact blob match) --------
