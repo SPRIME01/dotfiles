@@ -1,4 +1,3 @@
-\
 #!/usr/bin/env bash
 # uninstall-wsl-bridge.sh — Cleanly remove WSL bridge edits
 set -euo pipefail

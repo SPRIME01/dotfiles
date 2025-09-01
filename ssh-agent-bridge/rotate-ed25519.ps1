@@ -76,7 +76,10 @@ Step {
 $KeyPath = Join-Path $SshDir "id_ed25519"
 
 # Create a new ed25519 key (empty passphrase by default; change -N "" to prompt)
-Step { ssh-keygen -t ed25519 -C "$($env:USERNAME)@$(hostname)" -f $KeyPath -N "" } "Generate new ed25519"
+# Use cmd.exe to ensure an empty -N argument is preserved on Windows PowerShell
+$comment = "$($env:USERNAME)@$(hostname)"
+$cmdline = ('ssh-keygen -t ed25519 -C "{0}" -f "{1}" -N ""' -f $comment, $KeyPath)
+Step { cmd.exe /c $cmdline } "Generate new ed25519"
 
 # Load into Windows agent (idempotent)
 Step { ssh-add $KeyPath | Out-Null } "Load key into Windows ssh-agent"
