@@ -63,14 +63,49 @@ setup-projects:
 
 # Set up PowerShell 7 profile for Windows (requires PowerShell 7 installed)
 setup-pwsh7:
-    @bash scripts/setup-pwsh7.sh
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "🪟 Setting up PowerShell 7 profile for Windows..."
+    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
+        echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."
+        echo "💡 Run from WSL to configure the Windows-side PowerShell profile."
+        exit 0
+    fi
+    if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then
+        echo "❌ Neither powershell.exe nor pwsh.exe is available from WSL."
+        echo "💡 Ensure Windows PowerShell or PowerShell 7 is installed and accessible."
+        exit 1
+    fi
+    bash scripts/setup-pwsh7.sh
 
 setup-pwsh7-dry-run:
-    @bash scripts/setup-pwsh7.sh --dry-run
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "🪟(dry-run) Setting up PowerShell 7 profile for Windows..."
+    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
+        echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."
+        exit 0
+    fi
+    if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then
+        echo "❌ Neither powershell.exe nor pwsh.exe is available from WSL."
+        exit 0
+    fi
+    bash scripts/setup-pwsh7.sh --dry-run
 
 # Force symlink for Windows $PROFILE (fails if symlink can't be created)
 setup-pwsh7-symlink:
-    @bash scripts/setup-pwsh7.sh --require-symlink
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "🪟 Forcing Windows $PROFILE symlink..."
+    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
+        echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."
+        exit 0
+    fi
+    if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then
+        echo "❌ Neither powershell.exe nor pwsh.exe is available from WSL."
+        exit 1
+    fi
+    bash scripts/setup-pwsh7.sh --require-symlink
 
 # Windows Developer Mode helpers (run from WSL)
 devmode-status:
@@ -84,27 +119,82 @@ devmode-disable:
 
 # Force symlink via elevated Windows PowerShell (UAC prompt expected)
 setup-pwsh7-symlink-admin:
-    @bash -c 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "\\wsl.localhost\\Ubuntu-24.04\\home\\sprime01\\dotfiles\\scripts\\invoke-elevated-symlink.ps1" -Target "\\wsl.localhost\\Ubuntu-24.04\\home\\sprime01\\dotfiles\\PowerShell\\Microsoft.PowerShell_profile.ps1"'
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "🪟 Forcing Windows $PROFILE symlink via elevated PowerShell (UAC prompt expected)..."
+    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
+        echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."
+        exit 0
+    fi
+    if ! command -v powershell.exe >/dev/null 2>&1; then
+        echo "❌ powershell.exe not available from WSL."
+        exit 1
+    fi
+    # Build UNC path to this repo under WSL: \\wsl.localhost\<distro>\<path>
+    REPO_UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}$(pwd | sed 's|^/|\\|; s|/|\\|g')"
+    SCRIPT_UNC="${REPO_UNC}\\scripts\\invoke-elevated-symlink.ps1"
+    TARGET_UNC="${REPO_UNC}\\PowerShell\\Microsoft.PowerShell_profile.ps1"
+    echo "🔗 Script: ${SCRIPT_UNC}"
+    echo "🎯 Target: ${TARGET_UNC}"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${SCRIPT_UNC}" -Target "${TARGET_UNC}"
 
 # Verify Windows PowerShell profile links to this repo and theme resolves
 verify-windows-profile:
-    @bash scripts/verify-windows-profile.sh
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
+        echo "ℹ️  This verification targets WSL; run from WSL."
+        exit 0
+    fi
+    if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then
+        echo "❌ Neither powershell.exe nor pwsh.exe available from WSL."
+        exit 1
+    fi
+    bash scripts/verify-windows-profile.sh
 
 # Verify Oh My Posh theme resolution and binary availability on Windows
 verify-windows-theme:
-    @bash scripts/verify-windows-theme.sh
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
+        echo "ℹ️  This verification targets WSL; run from WSL."
+        exit 0
+    fi
+    if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then
+        echo "❌ Neither powershell.exe nor pwsh.exe available from WSL."
+        exit 1
+    fi
+    bash scripts/verify-windows-theme.sh
 
 # List available Oh My Posh themes on Windows
 list-windows-themes:
-    @bash -c 'powershell.exe -NoProfile -NonInteractive -Command "\
-        $themes = Get-ChildItem -LiteralPath (Join-Path $env:DOTFILES_ROOT ''PowerShell\Themes'') -Filter *.omp.json -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name; \
-        if ($themes) { $themes | ForEach-Object { Write-Host \" - \$_\" } } else { Write-Warning \"No themes found\" }\
-    " | tr -d "\r"'
+    #!/usr/bin/env bash
+    set -euo pipefail
+    UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}\\home\\${USER}\\dotfiles"
+    powershell.exe -NoProfile -NonInteractive -Command "\
+        if (-not \$env:DOTFILES_ROOT -or [string]::IsNullOrWhiteSpace(\$env:DOTFILES_ROOT)) { \$env:DOTFILES_ROOT = '$UNC' } ; \
+        \$themes = Get-ChildItem -LiteralPath (Join-Path \$env:DOTFILES_ROOT 'PowerShell\Themes') -Filter *.omp.json -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name ; \
+        if (\$themes) { \$themes | ForEach-Object { Write-Host (\" - \" + \$_) } } else { Write-Warning \"No themes found\" }\
+    " | tr -d "\r"
 
 # Set OMP_THEME for Windows (persistent) and reinitialize current pwsh if present
 # Usage: just set-windows-theme powerlevel10k_modern
 set-windows-theme THEME:
-    @bash -c 'powershell.exe -NoProfile -Command "param([string]\$t); if (-not \$t) { Write-Error \"Missing theme name\"; exit 1 }; if (\$t -notmatch \"\\.omp\\.json$\") { \$t = \$t + \".omp.json\" }; $root = $env:DOTFILES_ROOT; if ([string]::IsNullOrWhiteSpace($root)) { $root = \"\\\\wsl.localhost\\\\Ubuntu-24.04\\\\home\\\\sprime01\\\\dotfiles\" }; $themePath = Join-Path $root (Join-Path \"PowerShell\\Themes\" \$t); if (-not (Test-Path $themePath)) { Write-Error (\"Theme not found: \" + $themePath); exit 2 }; try { Set-ItemProperty -Path \"HKCU:\\Environment\" -Name \"OMP_THEME\" -Value \$t -ErrorAction Stop } catch { }; [Environment]::SetEnvironmentVariable(\"OMP_THEME\", \$t, \"User\") | Out-Null; Write-Host (\"✅ Set OMP_THEME=\" + \$t) -ForegroundColor Green; if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) { try { oh-my-posh init pwsh --config $themePath | Invoke-Expression; Write-Host \"🎨 Reinitialized prompt for this shell\" -ForegroundColor Green } catch { Write-Warning \$_.Exception.Message } } else { Write-Warning \"oh-my-posh not found on PATH\" }" -- '{{THEME}}'
+    #!/usr/bin/env bash
+    set -euo pipefail
+    UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}\\home\\${USER}\\dotfiles"
+    THEME_STR='{{THEME}}'
+    powershell.exe -NoProfile -Command "\
+        \$t = '$THEME_STR'; if (-not \$t) { Write-Error 'Missing theme name'; exit 1 }; if (\$t -notmatch '\\.omp\\.json$') { \$t = \$t + '.omp.json' }; \
+        \$root = \$env:DOTFILES_ROOT; if ([string]::IsNullOrWhiteSpace(\$root)) { \$root = '$UNC' }; \
+        \$themePath = Join-Path \$root (Join-Path 'PowerShell\\Themes' \$t); \
+        if (-not (Test-Path \$themePath)) { Write-Error ('Theme not found: ' + \$themePath); exit 2 }; \
+        try { Set-ItemProperty -Path 'HKCU:\\Environment' -Name 'OMP_THEME' -Value \$t -ErrorAction Stop } catch { }; \
+        [Environment]::SetEnvironmentVariable('OMP_THEME', \$t, 'User') | Out-Null; \
+        Write-Host ('✅ Set OMP_THEME=' + \$t) -ForegroundColor Green; \
+        if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) { \
+            try { oh-my-posh init pwsh --config \$themePath | Invoke-Expression; Write-Host '🎨 Reinitialized prompt for this shell' -ForegroundColor Green } catch { Write-Warning \$_.Exception.Message } \
+        } else { Write-Warning 'oh-my-posh not found on PATH' }"
 
 # Complete Windows integration setup (combines multiple setup tasks)
 setup-windows-integration:
@@ -135,7 +225,44 @@ fix-pwsh7:
 
 # Clean up old PowerShell profiles that might conflict
 clean-old-powershell-profiles:
-    @bash -c 'echo "🧹 Cleaning up old PowerShell profiles..."; PWSH7_PROFILE=$$(pwsh.exe -NoProfile -Command \''$PROFILE'\' 2>/dev/null | tr -d "\r" 2>/dev/null); if [[ -n "$$PWSH7_PROFILE" ]]; then PWSH7_PROFILE_WSL=$$(echo "$$PWSH7_PROFILE" | sed "s|^C:\\|/mnt/c/|; s|\\\\|/|g"); if [[ -f "$$PWSH7_PROFILE_WSL" ]]; then BACKUP_NAME="$$PWSH7_PROFILE_WSL.backup.$$(date +%Y%m%d_%H%M%S)"; mv "$$PWSH7_PROFILE_WSL" "$$BACKUP_NAME"; echo "✅ Backed up profile to: $$BACKUP_NAME"; else echo "ℹ️  No existing PowerShell 7 profile found at $$PWSH7_PROFILE"; fi; else echo "❌ Could not determine PowerShell 7 profile path"; fi; echo "🎉 PowerShell profile cleanup complete!"'
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "🧹 Cleaning up old PowerShell profiles..."
+
+    # Guard: this recipe is intended for WSL
+    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
+        echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."
+        echo "💡 Run from WSL if you want to clean Windows-side PowerShell profiles."
+        exit 0
+    fi
+
+    PWSH7_PROFILE=""
+    if command -v pwsh.exe >/dev/null 2>&1; then
+        PWSH7_PROFILE=$(pwsh.exe -NoProfile -Command '$PROFILE' 2>/dev/null | tr -d '\r' || true)
+    elif command -v powershell.exe >/dev/null 2>&1; then
+        PWSH7_PROFILE=$(powershell.exe -NoProfile -Command '$PROFILE' 2>/dev/null | tr -d '\r' || true)
+    else
+        echo "❌ Neither pwsh.exe nor powershell.exe found on the Windows side."
+        echo "💡 Install PowerShell (pwsh) or ensure Windows PowerShell is available."
+        exit 0
+    fi
+
+    if [[ -n "${PWSH7_PROFILE}" ]]; then
+        # Map Windows path (e.g. C:\Users\Name\...) to WSL mount (/mnt/c/Users/Name/...)
+        PWSH7_PROFILE_WSL=$(printf "%s" "${PWSH7_PROFILE}" | sed -E -e 's|^([A-Za-z]):\\\\|/mnt/\L\1/|' -e 's|\\\\|/|g')
+        if [[ -f "${PWSH7_PROFILE_WSL}" ]]; then
+            BACKUP_NAME="${PWSH7_PROFILE_WSL}.backup.$(date +%Y%m%d_%H%M%S)"
+            mv "${PWSH7_PROFILE_WSL}" "${BACKUP_NAME}"
+            echo "✅ Backed up profile to: ${BACKUP_NAME}"
+        else
+            echo "ℹ️  No existing PowerShell 7 profile found at ${PWSH7_PROFILE}"
+        fi
+    else
+        echo "❌ Could not determine PowerShell profile path from Windows PowerShell"
+        echo '💡 Try launching PowerShell on Windows and check $PROFILE there.'
+    fi
+
+    echo "🎉 PowerShell profile cleanup complete!"
 
 # Diagnose shell startup issues
 diagnose-shell:
