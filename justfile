@@ -2,6 +2,9 @@
 
 # Display a list of available tasks when no target is specified.
 default:
+    @echo "=== SSH Agent Bridge (pinned) ==="
+    @just ssh-bridge-help
+    @echo ""
     @just --list
 
 test:
@@ -180,3 +183,125 @@ fix-permissions:
     @chmod +x tools/lint.sh scripts/install-dependencies.sh scripts/setup-pwsh7.sh || true
     @git update-index --chmod=+x tools/lint.sh scripts/install-dependencies.sh scripts/setup-pwsh7.sh >/dev/null 2>&1 || true
     @echo "✅ Permissions updated (if running in a git repo)."
+
+
+# ============================================================================
+# SSH Agent Bridge (WSL2 ↔ Windows)
+# Helpers around scripts in ssh-agent-bridge/
+# ============================================================================
+
+ssh-bridge-help:
+    @echo "SSH Agent Bridge commands:"
+    @echo "  just ssh-bridge-preflight                 # Check manifest, npiperelay, agent keys"
+    @echo "  just ssh-bridge-install-windows           # Configure Windows ssh-agent + manifest"
+    @echo "  just ssh-bridge-install-windows-dry-run   # Dry-run Windows install"
+    @echo "  just ssh-bridge-install-wsl               # Install WSL bridge block + helper"
+    @echo "  just ssh-bridge-install-wsl-dry-run       # Dry-run WSL bridge install"
+    @echo "  just ssh-bridge-uninstall                 # Remove bridge and helper"
+    @echo "  just ssh-bridge-fix-config                # Normalize ~/.ssh/config on WSL"
+    @echo "  just ssh-bridge-fix-config-dry-run        # Dry-run config fixes"
+    @echo "  just ssh-bridge-fix-config-no-acl         # Fix config without touching ACLs"
+    @echo "  just ssh-bridge-fix-perms                 # Normalize ~/.ssh perms quickly"
+    @echo "  just ssh-bridge-list-hosts                # Show hosts from ~/.ssh/config"
+    @echo "  just ssh-bridge-deploy                    # Push key to hosts, verify, cleanup"
+    @echo "  just ssh-bridge-deploy-dry-run            # Dry-run deploy"
+    @echo "  just ssh-bridge-lan-bootstrap             # Bootstrap LAN hosts from hosts.txt"
+    @echo "  just ssh-bridge-lan-bootstrap-dry-run     # Dry-run LAN bootstrap"
+    @echo "  just ssh-bridge-cleanup-old-keys DIR=/path # Remove old pubkeys on hosts"
+    @echo "  just ssh-bridge-rotate-deploy             # Rotate Windows key then deploy"
+
+# --- Checks & installers ---
+ssh-bridge-preflight:
+    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; bash ssh-agent-bridge/preflight.sh'
+
+ssh-bridge-install-windows:
+    @bash -c 'set -e; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi; echo "🪟 Installing Windows ssh-agent + manifest..."; powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" -Verbose'
+
+ssh-bridge-install-windows-dry-run:
+    @bash -c 'set -e; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi; echo "🧪 Dry-run: Windows ssh-agent install..."; powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" -DryRun -Verbose || true'
+
+ssh-bridge-install-wsl:
+    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; echo "🐧 Installing WSL bridge..."; bash ssh-agent-bridge/install-wsl-agent-bridge.sh --verbose'
+
+ssh-bridge-install-wsl-dry-run:
+    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; echo "🧪 Dry-run: WSL bridge install..."; bash ssh-agent-bridge/install-wsl-agent-bridge.sh --dry-run --verbose || true'
+
+ssh-bridge-uninstall:
+    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; echo "🧹 Uninstalling WSL bridge..."; bash ssh-agent-bridge/uninstall-wsl-bridge.sh'
+
+# --- WSL config & perms helpers ---
+ssh-bridge-fix-config:
+    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; bash ssh-agent-bridge/fix-wsl-ssh-config.sh'
+
+ssh-bridge-fix-config-dry-run:
+    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; bash ssh-agent-bridge/fix-wsl-ssh-config.sh --dry-run'
+
+ssh-bridge-fix-config-no-acl:
+    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; bash ssh-agent-bridge/fix-wsl-ssh-config.sh --no-acl'
+
+ssh-bridge-fix-perms:
+    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; bash ssh-agent-bridge/fix-perms-and-clean-wsl-ssh.sh'
+
+ssh-bridge-list-hosts:
+    @bash -c 'set -e; bash ssh-agent-bridge/list-hosts.sh'
+
+# --- Deployment workflows ---
+ssh-bridge-deploy:
+    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; echo "🚀 Deploying key to hosts (see ~/.ssh/logs)..."; bash ssh-agent-bridge/deploy-ssh-key-to-hosts.sh --verbose'
+
+ssh-bridge-deploy-dry-run:
+    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; echo "🧪 Dry-run: deploy to hosts..."; bash ssh-agent-bridge/deploy-ssh-key-to-hosts.sh --dry-run --verbose || true'
+
+# Deploy with explicit parameters (safe defaults). Quote values with spaces.
+ssh-bridge-deploy-custom only="" exclude="" jobs="4" timeout="8" resume="0" old_keys_dir="" dry_run="0" verbose="1":
+    @bash -c 'set -euo pipefail; [[ -z "${WSL_DISTRO_NAME:-}" ]] && { echo "❌ This must be run inside WSL"; exit 1; }; args=(); [[ "{{dry_run}}" == "1" ]] && args+=(--dry-run); [[ "{{verbose}}" ]] && args+=(--verbose); [[ -n "{{only}}" ]] && args+=(--only "{{only}}"); [[ -n "{{exclude}}" ]] && args+=(--exclude "{{exclude}}"); [[ -n "{{jobs}}" ]] && args+=(--jobs "{{jobs}}"); [[ -n "{{timeout}}" ]] && args+=(--timeout "{{timeout}}"); [[ "{{resume}}" == "1" ]] && args+=(--resume); [[ -n "{{old_keys_dir}}" ]] && args+=(--old-keys-dir "{{old_keys_dir}}"); echo "🚀 Deploying with args: ${args[*]}"; if [[ "{{dry_run}}" == "1" ]]; then bash ssh-agent-bridge/deploy-ssh-key-to-hosts.sh "${args[@]}" || true; else exec bash ssh-agent-bridge/deploy-ssh-key-to-hosts.sh "${args[@]}"; fi'
+
+# Deploy with raw passthrough flags
+ssh-bridge-deploy-args *ARGS:
+    @bash -c 'set -e; [[ -z "${WSL_DISTRO_NAME:-}" ]] && { echo "❌ Run inside WSL"; exit 1; }; echo "🚀 Deploy (passthrough): {{ARGS}}"; bash ssh-agent-bridge/deploy-ssh-key-to-hosts.sh {{ARGS}}'
+
+# Bootstrap hosts listed in ssh-agent-bridge/hosts.txt for initial trust
+ssh-bridge-lan-bootstrap:
+    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; echo "🌐 LAN bootstrap from hosts.txt..."; bash ssh-agent-bridge/lan-bootstrap.sh --verbose'
+
+ssh-bridge-lan-bootstrap-dry-run:
+    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; echo "🧪 Dry-run: LAN bootstrap..."; bash ssh-agent-bridge/lan-bootstrap.sh --dry-run --verbose || true'
+
+# LAN bootstrap with explicit parameters
+ssh-bridge-lan-bootstrap-custom hosts="" pubkey="" only="" exclude="" jobs="4" timeout="8" resume="0" disable_pw_auth="0" dry_run="0" verbose="1":
+    @bash -c 'set -euo pipefail; [[ -z "${WSL_DISTRO_NAME:-}" ]] && { echo "❌ This must be run inside WSL"; exit 1; };
+    args=();
+    [[ "{{dry_run}}" == "1" ]] && args+=(--dry-run);
+    [[ "{{verbose}}" ]] && args+=(--verbose);
+    [[ -n "{{hosts}}" ]] && args+=(--hosts "{{hosts}}");
+    [[ -n "{{pubkey}}" ]] && args+=(--pubkey "{{pubkey}}");
+    [[ -n "{{only}}" ]] && args+=(--only "{{only}}");
+    [[ -n "{{exclude}}" ]] && args+=(--exclude "{{exclude}}");
+    [[ -n "{{jobs}}" ]] && args+=(--jobs "{{jobs}}");
+    [[ -n "{{timeout}}" ]] && args+=(--timeout "{{timeout}}");
+    [[ "{{resume}}" == "1" ]] && args+=(--resume);
+    if [[ "{{disable_pw_auth}}" == "1" ]]; then
+      args+=(--disable-password-auth)
+    fi
+    echo "🌐 LAN bootstrap with args: ${args[*]}";
+    if [[ "{{dry_run}}" == "1" ]]; then
+      bash ssh-agent-bridge/lan-bootstrap.sh "${args[@]}" || true
+    else
+      exec bash ssh-agent-bridge/lan-bootstrap.sh "${args[@]}"
+    fi'
+
+# LAN bootstrap with raw passthrough flags
+ssh-bridge-lan-bootstrap-args *ARGS:
+    @bash -c 'set -e; [[ -z "${WSL_DISTRO_NAME:-}" ]] && { echo "❌ Run inside WSL"; exit 1; }; echo "🌐 LAN bootstrap (passthrough): {{ARGS}}"; bash ssh-agent-bridge/lan-bootstrap.sh {{ARGS}}'
+
+# Remove old public keys from hosts after verification; requires DIR env var
+ssh-bridge-cleanup-old-keys DIR:
+    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; if [[ -z "${DIR:-}" ]]; then echo "Usage: just ssh-bridge-cleanup-old-keys DIR=/path/to/backup"; exit 2; fi; echo "🧼 Cleaning old keys from hosts..."; bash ssh-agent-bridge/cleanup-old-keys.sh --old-keys-dir "${DIR}"'
+
+# Rotate Windows key then (optionally) install bridge and deploy to hosts
+ssh-bridge-rotate-deploy:
+    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; echo "🔄 Rotating key in Windows, then deploying..."; bash ssh-agent-bridge/full-rotate-and-deploy.sh --verbose'
+
+# Rotate+deploy with raw passthrough flags (e.g. --dry-run, --skip-bridge, --only)
+ssh-bridge-rotate-deploy-args *ARGS:
+    @bash -c 'set -e; [[ -z "${WSL_DISTRO_NAME:-}" ]] && { echo "❌ Run inside WSL"; exit 1; }; echo "🔄 Rotate+deploy (passthrough): {{ARGS}}"; bash ssh-agent-bridge/full-rotate-and-deploy.sh {{ARGS}}'
