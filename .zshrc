@@ -13,6 +13,11 @@ if [[ -z ${DOTFILES_ROOT:-} ]]; then
     DOTFILES_ROOT="$HOME/dotfiles"
 fi
 
+# Make interactive shells resilient to strict mode from system files
+if [[ $- == *i* ]]; then
+    unsetopt errexit nounset pipefail 2>/dev/null
+fi
+
 # Always source shared configuration first
 if [[ -r "$DOTFILES_ROOT/.shell_common.sh" ]]; then
     source "$DOTFILES_ROOT/.shell_common.sh"
@@ -35,6 +40,7 @@ fi
 [[ -r "$DOTFILES_ROOT/zsh/prompt.zsh" ]] && source "$DOTFILES_ROOT/zsh/prompt.zsh"
 
 # Initialize Oh My Zsh if available
+export ZSH_DISABLE_COMPFIX="true"
 if [[ -r "$ZSH/oh-my-zsh.sh" ]]; then
     source "$ZSH/oh-my-zsh.sh"
 fi

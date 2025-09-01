@@ -1,10 +1,24 @@
 #!/usr/bin/env bash
 
-# --- Determine Dotfiles Root ---
+# --- Determine Dotfiles Root (bash + zsh safe) ---
 # Always derive DOTFILES_ROOT from the location of this file to ensure accuracy.
-# This allows the repository to live anywhere on the filesystem and fixes issues
-# where DOTFILES_ROOT might be incorrectly set from previous sessions.
-DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Handles being sourced from either bash or zsh without relying on PWD.
+if [[ -n "${DOTFILES_ROOT:-}" && -d "${DOTFILES_ROOT}/.git" ]] || [[ -f "${DOTFILES_ROOT:-}/.shell_common.sh" ]]; then
+    : # Respect pre-set DOTFILES_ROOT if it looks valid
+else
+    if [[ -n "${ZSH_VERSION:-}" ]]; then
+        # In zsh, ${(%):-%N} expands to the current script path even when sourced
+        # Use eval so this branch remains portable when parsed by bash
+        eval '___df_script_path="${(%):-%N}"'
+        DOTFILES_ROOT="$(cd "$(dirname "${___df_script_path:-$0}")" && pwd)"
+        unset ___df_script_path
+    elif [[ -n "${BASH_VERSION:-}" ]]; then
+        DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
+    else
+        # Fallback: guess common location
+        DOTFILES_ROOT="${HOME}/dotfiles"
+    fi
+fi
 export DOTFILES_ROOT
 
 # Debug output if requested
