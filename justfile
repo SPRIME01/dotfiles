@@ -215,10 +215,24 @@ ssh-bridge-preflight:
     @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; bash ssh-agent-bridge/preflight.sh'
 
 ssh-bridge-install-windows:
-    @bash -c 'set -e; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi; echo "🪟 Installing Windows ssh-agent + manifest..."; powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" -Verbose'
+    @bash -c '
+      set -e;
+      if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi;
+      if [[ ! -f "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" ]]; then echo "❌ Missing ssh-agent-bridge/install-win-ssh-agent.ps1"; exit 1; fi;
+      WIN_PATH=$(wslpath -w "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1");
+      echo "🪟 Installing Windows ssh-agent + manifest...";
+      powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" -Verbose
+    '
 
 ssh-bridge-install-windows-dry-run:
-    @bash -c 'set -e; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi; echo "🧪 Dry-run: Windows ssh-agent install..."; powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" -DryRun -Verbose || true'
+    @bash -c '
+      set -e;
+      if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi;
+      if [[ ! -f "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" ]]; then echo "❌ Missing ssh-agent-bridge/install-win-ssh-agent.ps1"; exit 1; fi;
+      WIN_PATH=$(wslpath -w "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1");
+      echo "🧪 Dry-run: Windows ssh-agent install...";
+      powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" -DryRun -Verbose || true
+    '
 
 ssh-bridge-install-wsl:
     @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; echo "🐧 Installing WSL bridge..."; bash ssh-agent-bridge/install-wsl-agent-bridge.sh --verbose'
