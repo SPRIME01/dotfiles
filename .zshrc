@@ -48,7 +48,11 @@ fi
 # Shared functions
 [[ -r "$DOTFILES_ROOT/.shell_functions.sh" ]] && source "$DOTFILES_ROOT/.shell_functions.sh"
 
-# SSH agent bridge intentionally removed
+# SSH agent bridge (single initializer)
+if [[ -f "$HOME/dotfiles/scripts/setup-ssh-agent-bridge.sh" ]]; then
+    # shellcheck source=dotfiles-main/scripts/setup-ssh-agent-bridge.sh
+    source "$HOME/dotfiles/scripts/setup-ssh-agent-bridge.sh"
+fi
 
 # Core shell options (compinit is handled by oh-my-zsh; run manually if not using OMZ)
 if [[ ! -r "$ZSH/oh-my-zsh.sh" ]]; then
@@ -100,9 +104,3 @@ if [[ ${DOTFILES_DEBUG:-0} == 1 ]]; then
     echo "[dotfiles] zsh profile loaded (DOTFILES_ROOT=$DOTFILES_ROOT, ZSH=$ZSH)"
 fi
 
-# >>> WSL→Windows SSH agent bridge (BEGIN) >>>
-export WINUSER="sprim"
-export NPIPERELAY="/mnt/c//Users/sprim/scoop/shims/npiperelay.exe"
-export SSH_AUTH_SOCK="/home/sprime01/.ssh/agent.sock"
-"/home/sprime01/.local/bin/win-ssh-agent-bridge" >/dev/null 2>&1 || true
-# <<< WSL→Windows SSH agent bridge (END) <<<

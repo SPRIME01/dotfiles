@@ -8,7 +8,8 @@
 # WSL2 and if the socket is not already active.
 
 # Path to the Unix socket that will be used by SSH clients inside WSL
-export SSH_AUTH_SOCK="${SSH_AUTH_SOCK:-$HOME/.ssh/wsl-ssh-agent.sock}"
+# Standardize on ~/.ssh/agent.sock to match other tooling in this repo.
+export SSH_AUTH_SOCK="${SSH_AUTH_SOCK:-$HOME/.ssh/agent.sock}"
 
 setup_ssh_agent_bridge() {
 	# Only run on WSL2

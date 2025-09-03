@@ -134,70 +134,55 @@ esac
 # and then perform the per-feature setup steps. This reduces duplication and
 # centralizes platform-specific behavior for easier maintenance.
 if [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v cmd.exe >/dev/null 2>&1; then
-	# Get Windows username safely (do this once)
-	WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r' 2>/dev/null)
+    # Get Windows username safely (do this once)
+    WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r' 2>/dev/null)
 
-	if [[ -n "$WIN_USER" ]]; then
-        
-		# --- Kubernetes (kubectl) ---
-		WIN_KUBE_CONFIG="/mnt/c/Users/$WIN_USER/.kube/config"
-		LOCAL_KUBE_DIR="$HOME/.kube"
-		LOCAL_KUBE_CONFIG="$LOCAL_KUBE_DIR/config"
+    if [[ -n "$WIN_USER" ]]; then
+        # --- Kubernetes (kubectl) ---
+        WIN_KUBE_CONFIG="/mnt/c/Users/$WIN_USER/.kube/config"
+        LOCAL_KUBE_DIR="$HOME/.kube"
+        LOCAL_KUBE_CONFIG="$LOCAL_KUBE_DIR/config"
 
-		if [[ -f "$WIN_KUBE_CONFIG" ]]; then
-			[[ ! -d "$LOCAL_KUBE_DIR" ]] && mkdir -p "$LOCAL_KUBE_DIR" 2>/dev/null
-			if [[ ! -L "$LOCAL_KUBE_CONFIG" ]] || [[ "$(readlink "$LOCAL_KUBE_CONFIG" 2>/dev/null)" != "$WIN_KUBE_CONFIG" ]]; then
-				ln -sf "$WIN_KUBE_CONFIG" "$LOCAL_KUBE_CONFIG" 2>/dev/null
-			fi
-			[[ -f "$LOCAL_KUBE_CONFIG" ]] && chmod 600 "$LOCAL_KUBE_CONFIG" 2>/dev/null
-		fi
+        if [[ -f "$WIN_KUBE_CONFIG" ]]; then
+            [[ ! -d "$LOCAL_KUBE_DIR" ]] && mkdir -p "$LOCAL_KUBE_DIR" 2>/dev/null
+            if [[ ! -L "$LOCAL_KUBE_CONFIG" ]] || [[ "$(readlink "$LOCAL_KUBE_CONFIG" 2>/dev/null)" != "$WIN_KUBE_CONFIG" ]]; then
+                ln -sf "$WIN_KUBE_CONFIG" "$LOCAL_KUBE_CONFIG" 2>/dev/null
+            fi
+            [[ -f "$LOCAL_KUBE_CONFIG" ]] && chmod 600 "$LOCAL_KUBE_CONFIG" 2>/dev/null
+        fi
 
-		# --- SSH Keys ---
-		WIN_SSH_DIR="/mnt/c/Users/$WIN_USER/.ssh"
-		LOCAL_SSH_DIR="$HOME/.ssh"
-		[[ ! -d "$LOCAL_SSH_DIR" ]] && mkdir -p "$LOCAL_SSH_DIR" 2>/dev/null
+        # --- SSH (best practice for WSL) ---
+        # Keep ~/.ssh as native ext4 files to satisfy OpenSSH StrictModes.
+        # Do NOT symlink private keys or config from /mnt/c.
+        LOCAL_SSH_DIR="$HOME/.ssh"
+        [[ ! -d "$LOCAL_SSH_DIR" ]] && mkdir -p "$LOCAL_SSH_DIR" 2>/dev/null
+        chmod 700 "$LOCAL_SSH_DIR" 2>/dev/null || true
+        # If known_hosts is missing, copy once from Windows for convenience.
+        if [[ ! -e "$LOCAL_SSH_DIR/known_hosts" ]]; then
+            WIN_KNOWN_HOSTS="/mnt/c/Users/$WIN_USER/.ssh/known_hosts"
+            [[ -f "$WIN_KNOWN_HOSTS" ]] && cp "$WIN_KNOWN_HOSTS" "$LOCAL_SSH_DIR/known_hosts" 2>/dev/null || true
+            [[ -f "$LOCAL_SSH_DIR/known_hosts" ]] && chmod 644 "$LOCAL_SSH_DIR/known_hosts" 2>/dev/null || true
+        fi
 
-		declare -a ssh_files=("id_rsa" "id_rsa.pub" "id_ed25519" "id_ed25519.pub" "known_hosts" "config")
-		for ssh_file in "${ssh_files[@]}"; do
-			WIN_SSH_FILE="$WIN_SSH_DIR/$ssh_file"
-			LOCAL_SSH_FILE="$LOCAL_SSH_DIR/$ssh_file"
-			if [[ -f "$WIN_SSH_FILE" ]]; then
-				if [[ ! -L "$LOCAL_SSH_FILE" ]] || [[ "$(readlink "$LOCAL_SSH_FILE" 2>/dev/null)" != "$WIN_SSH_FILE" ]]; then
-					ln -sf "$WIN_SSH_FILE" "$LOCAL_SSH_FILE" 2>/dev/null
-				fi
-				case "$ssh_file" in
-				id_rsa | id_ed25519)
-					chmod 600 "$LOCAL_SSH_FILE" 2>/dev/null
-					;;
-				*.pub)
-					chmod 644 "$LOCAL_SSH_FILE" 2>/dev/null
-					;;
-				known_hosts | config)
-					chmod 644 "$LOCAL_SSH_FILE" 2>/dev/null
-					;;
-				esac
-			fi
-		done
+        # --- Projects Directory Windows Symlink ---
+        [[ ! -d "$PROJECTS_ROOT" ]] && mkdir -p "$PROJECTS_ROOT" 2>/dev/null
+        WIN_USER_HOME="/mnt/c/Users/$WIN_USER"
+        WIN_PROJECTS_LINK="$WIN_USER_HOME/projects"
 
-		# --- Projects Directory Windows Symlink ---
-		[[ ! -d "$PROJECTS_ROOT" ]] && mkdir -p "$PROJECTS_ROOT" 2>/dev/null
-		WIN_USER_HOME="/mnt/c/Users/$WIN_USER"
-		WIN_PROJECTS_LINK="$WIN_USER_HOME/projects"
-
-		if [[ -d "$PROJECTS_ROOT" ]] && [[ ! -e "$WIN_PROJECTS_LINK" ]]; then
-			WSL_PROJECTS_WIN_PATH="\\\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\projects"
-			if cmd.exe /c "mklink /D \"C:\\Users\\$WIN_USER\\projects\" \"$WSL_PROJECTS_WIN_PATH\"" >/dev/null 2>&1; then
-				true
-			else
-				BATCH_FILE="$WIN_USER_HOME/projects.bat"
-				cat >"$BATCH_FILE" 2>/dev/null <<'EOF'
+        if [[ -d "$PROJECTS_ROOT" ]] && [[ ! -e "$WIN_PROJECTS_LINK" ]]; then
+            WSL_PROJECTS_WIN_PATH="\\\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\projects"
+            if cmd.exe /c "mklink /D \"C:\\Users\\$WIN_USER\\projects\" \"$WSL_PROJECTS_WIN_PATH\"" >/dev/null 2>&1; then
+                true
+            else
+                BATCH_FILE="$WIN_USER_HOME/projects.bat"
+                cat >"$BATCH_FILE" 2>/dev/null <<'EOF'
 @echo off
 REM Navigate to WSL2 projects directory
 cd /d "\\wsl.localhost\Ubuntu\home\%USERNAME%\projects"
 cmd /k
 EOF
-				chmod +x "$BATCH_FILE" 2>/dev/null
-			fi
-		fi
-	fi
+                chmod +x "$BATCH_FILE" 2>/dev/null
+            fi
+        fi
+    fi
 fi
