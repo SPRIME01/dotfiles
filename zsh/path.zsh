@@ -11,10 +11,9 @@ if [[ -d "$HOME/.local/bin" ]]; then
 	esac
 fi
 
-# Volta (Node version manager)
+# Volta (Node version manager) - PATH injection deprecated in favor of Mise
 if [[ -d "$HOME/.volta" ]]; then
 	export VOLTA_HOME="$HOME/.volta"
-	export PATH="$VOLTA_HOME/bin:$PATH"
 fi
 
 # Pulumi (Infrastructure as Code)
