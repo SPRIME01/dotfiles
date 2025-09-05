@@ -17,17 +17,17 @@ plugins=(
     command-not-found
     history-substring-search
     colored-man-pages
+    direnv
 )
-
 # Include community plugins only if installed
-_zsh_custom_plugins_dir="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins"
-if [[ -d "$_zsh_custom_plugins_dir/zsh-autosuggestions" ]]; then
-    plugins+=(zsh-autosuggestions)
-fi
-
-# zsh-syntax-highlighting should be last
-if [[ -d "$_zsh_custom_plugins_dir/zsh-syntax-highlighting" ]]; then
-    plugins+=(zsh-syntax-highlighting)
-fi
-
-unset _zsh_custom_plugins_dir
+# _zsh_custom_plugins_dir="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins"
+# if [[ -d "$_zsh_custom_plugins_dir/zsh-autosuggestions" ]]; then
+#     plugins+=(zsh-autosuggestions)
+# fi
+#
+# # zsh-syntax-highlighting should be last
+# if [[ -d "$_zsh_custom_plugins_dir/zsh-syntax-highlighting" ]]; then
+#     plugins+=(zsh-syntax-highlighting)
+# fi
+#
+# unset _zsh_custom_plugins_dir
