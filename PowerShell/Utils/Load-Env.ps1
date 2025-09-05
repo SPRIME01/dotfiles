@@ -25,8 +25,9 @@
 # --- Node.js Version Management (Volta) ---
 # Note: Volta PATH injection has been deprecated in favor of Mise
 # Keep VOLTA_HOME export for compatibility with existing Volta installations
-if (Test-Path "$HOME\.volta") {
-    $env:VOLTA_HOME = "$HOME\.volta"
+$voltaHome = Join-Path $HOME ".volta"
+if (Test-Path -LiteralPath $voltaHome) {
+    $env:VOLTA_HOME = $voltaHome
 }
 
 # --- Snap Package Manager ---
