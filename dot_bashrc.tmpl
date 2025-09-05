@@ -14,7 +14,8 @@ shopt -s histappend checkwinsize
 {{ template "templates/partials/projects_path.tmpl" . }}
 
 {{ if eq .chezmoi.os "linux" }}
-{{   if or (eq .chezmoi.kernel.release "microsoft") (hasPrefix "microsoft" .chezmoi.kernel.release) }}
+{{-   $rel := lower .chezmoi.kernel.release -}}
+{{   if or (contains $rel "microsoft") (hasPrefix $rel "microsoft") (ne (env "WSL_DISTRO_NAME") "") }}
 {{/* WSL-specific PATH configuration */}}
 {{ template "templates/partials/wsl_path.tmpl" . }}
 {{   end }}
