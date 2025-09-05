@@ -117,24 +117,44 @@ test_mise_idempotence() {
     echo "🧪 Testing mise install idempotence"
     ((TESTS_RUN++))
 
-    # Skip if mise is not installed
+    # Skip if not explicitly allowed
+    if [[ "${MISE_TEST_ALLOW_INSTALL:-0}" != "1" ]]; then
+        echo "⚠️  skipping idempotence test (set MISE_TEST_ALLOW_INSTALL=1 to enable)"
+        ((TESTS_SKIPPED++))
+        return 0
+    fi
+
+    # Require chezmoi and mise
+    if ! command -v chezmoi >/dev/null 2>&1; then
+        echo "⚠️  chezmoi not installed, skipping idempotence test"
+        ((TESTS_SKIPPED++))
+        return 0
+    fi
     if ! command -v mise >/dev/null 2>&1; then
         echo "⚠️  mise not installed, skipping idempotence test"
         ((TESTS_SKIPPED++))
         return 0
     fi
 
-    # Trust the mise config to avoid trust warnings
-    mise trust >/dev/null 2>&1 || true
+    # Render config to a temp destination
+    local tmpdest
+    tmpdest="$(mktemp -d)"
+    trap 'rm -rf "$tmpdest"' RETURN
+    chezmoi apply --source "$PWD" --destination "$tmpdest" >/dev/null 2>&1 || {
+        echo "❌ failed to render .mise.toml to temp destination"
+        FAILED_TESTS+=("mise idempotence - render failed")
+        ((TESTS_FAILED++))
+        return 1
+    }
 
     # First run - capture output
     local first_output
-    first_output=$(mise install 2>&1)
+    first_output=$(MISE_CONFIG_FILE="$tmpdest/.mise.toml" MISE_DATA_DIR="$tmpdest/.local/share/mise" mise install 2>&1)
     local first_exit_code=$?
 
     # Second run - should be no-op
     local second_output
-    second_output=$(mise install 2>&1)
+    second_output=$(MISE_CONFIG_FILE="$tmpdest/.mise.toml" MISE_DATA_DIR="$tmpdest/.local/share/mise" mise install 2>&1)
     local second_exit_code=$?
 
     if [[ $first_exit_code -eq 0 && $second_exit_code -eq 0 ]]; then
