@@ -94,14 +94,31 @@ test_mise_dry_run() {
     echo "🧪 Testing mise install --dry-run"
     ((TESTS_RUN++))
 
-    # Skip if mise is not installed
+    # Require chezmoi (to materialize .mise.toml) and mise
+    if ! command -v chezmoi >/dev/null 2>&1; then
+        echo "⚠️  chezmoi not installed, skipping dry-run test"
+        ((TESTS_SKIPPED++))
+        return 0
+    fi
     if ! command -v mise >/dev/null 2>&1; then
         echo "⚠️  mise not installed, skipping dry-run test"
         ((TESTS_SKIPPED++))
         return 0
     fi
 
-    if mise install --dry-run >/dev/null 2>&1; then
+    local tmpdest
+    tmpdest="$(mktemp -d)"
+    trap 'rm -rf "$tmpdest"' RETURN
+    if ! chezmoi apply --source "$PWD" --destination "$tmpdest" >/dev/null 2>&1; then
+        echo "❌ failed to render .mise.toml to temp destination"
+        FAILED_TESTS+=("mise dry-run - render failed")
+        ((TESTS_FAILED++))
+        return 1
+    fi
+
+    MISE_CONFIG_FILE="$tmpdest/.mise.toml" MISE_DATA_DIR="$tmpdest/.local/share/mise" \
+      mise install --dry-run >/dev/null 2>&1
+    if [[ $? -eq 0 ]]; then
         echo "✅ mise install --dry-run succeeded"
         ((TESTS_PASSED++))
         return 0
