@@ -1,16 +1,23 @@
 {
     "mcpServers": {
         "ref-tools-mcp": {
+{
+    "mcpServers": {
+        "ref-tools-mcp": {
             "command": "wsl",
             "args": [
-                "npx",
-                "-y",
-                "@smithery/cli@latest",
-                "run",
-                "@ref-tools/ref-tools-mcp",
-                "--key",
-                "${SMITHERY_KEY}"
-            ]
+                "--",
+                "bash",
+                "-lc",
+                "npx -y @smithery/cli@latest run @ref-tools/ref-tools-mcp --key \"$SMITHERY_KEY\""
+            ],
+            "env": {
+                "SMITHERY_KEY": "${SMITHERY_KEY}",
+                "WSLENV": "SMITHERY_KEY/u"
+            }
+        }
+    }
+}
         }
     }
 }
