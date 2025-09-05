@@ -1,7 +1,6 @@
-# Manage Windows Profile from WSL with chezmoi
+# Manage Windows Profile from WSL
 
-These commands let you preview and apply Windows-side changes (e.g., PowerShell profile) from WSL.
-
+Use these commands to preview and apply Windows-side changes (for example, your PowerShell profile) from WSL.
 Prerequisites
 - WSL access to Windows (`powershell.exe` available from WSL)
 - chezmoi installed in WSL

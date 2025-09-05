@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # test/test-no-deprecated-loaders.sh - Test for deprecated loader references
 
+set -euo pipefail
+
 # Load test framework
 source "$(dirname "$0")/framework.sh"
-
 test_no_deprecated_loaders_in_shell_config() {
     echo "🧪 Testing shell config files for deprecated loader references..."
 

@@ -15,6 +15,13 @@ test_projects_path_included_once() {
     local zshrc_includes_projects
     local bashrc_includes_projects
 
+    if [[ ! -f "$PWD/dot_zshrc.tmpl" ]] || [[ ! -f "$PWD/dot_bashrc.tmpl" ]]; then
+        echo "❌ Template files not found"
+        FAILED_TESTS+=("Missing template files")
+        ((TESTS_FAILED++))
+        return 1
+    fi
+
     zshrc_includes_projects=$(grep -c "projects_path.tmpl" "$PWD/dot_zshrc.tmpl")
     bashrc_includes_projects=$(grep -c "projects_path.tmpl" "$PWD/dot_bashrc.tmpl")
 
