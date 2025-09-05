@@ -1,0 +1,29 @@
+# Global Justfile (managed by chezmoi)
+
+default:
+	@echo "Global tasks: bootstrap | lint | format | direnv-install"
+
+# Bootstrap development environment
+bootstrap:
+	chezmoi apply
+	@command -v mise >/dev/null 2>&1 && mise install || true
+	@echo "Environment ready"
+
+# Lint placeholder (customize per-language locally)
+lint:
+	@echo "No global lint configured; add project-specific linters"
+
+# Format placeholder
+format:
+	@echo "No global formatter configured; add project-specific formatters"
+
+# Install direnv across platforms (simple variant)
+direnv-install:
+	@bash -c 'set -euo pipefail; if command -v direnv >/dev/null 2>&1; then echo "✅ direnv: $$(direnv version)"; exit 0; fi; if command -v apt >/dev/null 2>&1; then sudo apt update -y >/dev/null 2>&1 || true; sudo apt install -y direnv; elif command -v dnf >/dev/null 2>&1; then sudo dnf install -y direnv; elif command -v pacman >/dev/null 2>&1; then sudo pacman -Sy --noconfirm direnv; elif command -v zypper >/dev/null 2>&1; then sudo zypper install -y direnv; elif command -v brew >/dev/null 2>&1; then brew install direnv; elif command -v scoop >/dev/null 2>&1; then scoop install direnv; elif command -v choco >/dev/null 2>&1; then choco install direnv -y; else echo "❌ No supported package manager found. Install manually from https://direnv.net"; exit 1; fi'
+
+# ===== Windows chezmoi helpers (run from WSL) =====
+windows-chezmoi-diff SRC="${HOME}/dotfiles":
+	@bash -lc 'bash "$HOME/dotfiles/scripts/windows-chezmoi-diff.sh" "{{SRC}}"'
+
+windows-chezmoi-apply SRC="${HOME}/dotfiles":
+	@bash -lc 'bash "$HOME/dotfiles/scripts/windows-chezmoi-apply.sh" "{{SRC}}"'

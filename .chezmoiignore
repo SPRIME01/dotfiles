@@ -1,0 +1,17 @@
+# Chezmoi ignore policy (whitelist)
+#
+# Deny-by-default for safety: only include explicit templates intended to
+# land in $HOME. This prevents project files from being copied into $HOME.
+
+*
+!.chezmoiignore
+!dot_*
+!AppData/**
+!Documents/**
+
+# Exclude problematic Windows symlink if present; managed via scripts
+/Documents/PowerShell/Microsoft.PowerShell_profile.ps1
+
+# Add more exceptions as needed, e.g. run_* scripts:
+# !run_*
+# !run_once_*

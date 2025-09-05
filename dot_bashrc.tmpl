@@ -1,0 +1,17 @@
+# Managed by chezmoi - Bash rc (WSL fallback)
+# Minimal, idempotent, and safe-by-default.
+
+# History hygiene
+export HISTCONTROL=ignoreboth:erasedups
+export HISTIGNORE="ls:cd:cd -:pwd:exit:date:* --help"
+export HISTTIMEFORMAT='%F %T '
+shopt -s histappend checkwinsize
+
+{{ template "templates/partials/direnv_hook.tmpl" . }}
+
+{{ template "templates/partials/ssh_agent_bridge.tmpl" . }}
+
+{{ template "templates/partials/projects_path.tmpl" . }}
+
+# End of minimal template — extend via ~/.bashrc.local as needed
+[[ -f "$HOME/.bashrc.local" ]] && source "$HOME/.bashrc.local"

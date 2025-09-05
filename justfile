@@ -461,3 +461,13 @@ ssh-bridge-rotate-deploy-dry-run:
 # Rotate+deploy with raw passthrough flags (e.g. --dry-run, --skip-bridge, --only)
 ssh-bridge-rotate-deploy-args *ARGS:
     @bash -c 'set -e; [[ -z "${WSL_DISTRO_NAME:-}" ]] && { echo "❌ Run inside WSL"; exit 1; }; SCRIPT="$PWD/ssh-agent-bridge/full-rotate-and-deploy.sh"; if [[ ! -f "$SCRIPT" ]]; then echo "❌ Missing $SCRIPT"; exit 2; fi; echo "🔄 Rotate+deploy (passthrough): {{ARGS}}"; bash "$SCRIPT" {{ARGS}}'
+
+# ============================================================================
+# Chezmoi helpers for Windows (run from WSL)
+# ============================================================================
+
+windows-chezmoi-diff SRC="${PWD}":
+	@bash scripts/windows-chezmoi-diff.sh "{{SRC}}"
+
+windows-chezmoi-apply SRC="${PWD}":
+	@bash scripts/windows-chezmoi-apply.sh "{{SRC}}"

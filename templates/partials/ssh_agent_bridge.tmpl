@@ -1,0 +1,5 @@
+{{/* SSH agent bridge setup for WSL */}}
+# SSH agent bridge (WSL optional)
+if [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
+  export SSH_AUTH_SOCK="${SSH_AUTH_SOCK:-$HOME/.ssh/agent.sock}"
+fi

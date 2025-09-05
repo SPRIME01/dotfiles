@@ -1,0 +1,6 @@
+{{/* Common direnv hook setup */}}
+# Direnv (project-scoped environments)
+if command -v direnv >/dev/null 2>&1; then
+  eval "$(direnv hook {{ .chezmoi.shell }})"
+  [[ -z "${DIRENV_LOG_FORMAT:-}" ]] && export DIRENV_LOG_FORMAT=""
+fi

@@ -1,0 +1,18 @@
+# Managed by chezmoi - Zsh rc (WSL primary)
+# Minimal, idempotent, and safe-by-default. Extend via separate files as needed.
+
+# Oh My Zsh (optional)
+if [[ -d "${ZSH:-$HOME/.oh-my-zsh}" ]]; then
+  export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
+  # Load framework if available; plugins/themes configured separately
+  source "$ZSH/oh-my-zsh.sh"
+fi
+
+{{ template "templates/partials/direnv_hook.tmpl" . }}
+
+{{ template "templates/partials/ssh_agent_bridge.tmpl" . }}
+
+{{ template "templates/partials/projects_path.tmpl" . }}
+
+# End of minimal template — extend via ~/.zshrc.local as needed
+[[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
