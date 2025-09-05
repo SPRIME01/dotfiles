@@ -1,4 +1,7 @@
-# Copilot Coding Agent Onboarding for dotfiles
+# DEPRECATED — Copilot Coding Agent Onboarding for dotfiles
+
+> This document is retained for historical reference. The canonical, maintained guide lives at:
+> .github/copilot-instructions.md
 
 This repository contains portable shell configuration and setup tooling for Bash/Zsh (Linux/WSL2) and PowerShell 7 (Windows). It centralizes environment variables, aliases/functions, prompt themes, VS Code settings, MCP (Model Context Protocol) configuration, and remote/SSH integration.
 
