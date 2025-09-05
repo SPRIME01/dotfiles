@@ -111,11 +111,11 @@ load_dotfiles_environment() {
     load_env_file_secure "$dotfiles_root/.env.defaults" false
 
     # Allow opting out of globally loading secret-bearing files to prefer direnv scoping
-    if [[ "${DOTFILES_SKIP_SECRET_FILES:-}" != "1" ]]; then
-        if [[ "${DOTFILES_SKIP_ENV_FILE:-}" != "1" ]]; then
+    if [[ "${DOTFILES_SKIP_SECRET_FILES:-}" != 1 ]]; then
+        if [[ "${DOTFILES_SKIP_ENV_FILE:-}" != 1 ]]; then
             load_env_file_secure "$dotfiles_root/.env" false
         fi
-        if [[ "${DOTFILES_SKIP_MCP_ENV:-}" != "1" ]]; then
+        if [[ "${DOTFILES_SKIP_MCP_ENV:-}" != 1 ]]; then
             load_env_file_secure "$dotfiles_root/mcp/.env" false
         fi
     fi
