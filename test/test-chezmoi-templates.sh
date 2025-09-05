@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # test/test-chezmoi-templates.sh - Test Chezmoi template functionality
 
-# set -euo pipefail  # Temporarily disabled for debugging
-set -u  # Only set -u for now
+set -euo pipefail
 
 # Source the test framework
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
