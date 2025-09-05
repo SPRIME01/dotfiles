@@ -41,6 +41,11 @@ fi
 echo "• Initializing chezmoi with local source"
 set -x
 chezmoi init --source="$SOURCE_DIR"
+if [[ $? -ne 0 ]]; then
+  echo "ERROR: 'chezmoi init' failed. Please check your source directory and try again."
+  echo "You can run 'chezmoi init --source=\"$SOURCE_DIR\"' manually for more details."
+  exit 1
+fi
 if [[ "$DRY_RUN" == "1" ]]; then
   # Prefer diff in dry-run to avoid any interactive behavior
   chezmoi diff --source="$SOURCE_DIR" --verbose
