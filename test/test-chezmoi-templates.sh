@@ -144,7 +144,7 @@ test_direnv_hooks_present() {
     fi
 
     # Check PowerShell profile for direnv hook (if present)
-    if echo "$output" | grep -q "PowerShell.*profile" && ! echo "$output" | grep -A 10 "PowerShell.*profile" | grep -q "direnv hook pwsh"; then
+    if echo "$output" | grep -q "PowerShell.*Microsoft\.PowerShell_profile\.ps1" && ! echo "$output" | grep -A 10 "PowerShell.*Microsoft\.PowerShell_profile\.ps1" | grep -q "direnv hook pwsh"; then
         missing_hooks+=("PowerShell direnv hook")
     fi
 
@@ -190,8 +190,10 @@ test_envrc_mise_pattern() {
 
     # Verify the order: mise should come before dotenv
     local mise_line dotenv_line
-    mise_line=$(grep -n "use mise" ".envrc" | cut -d: -f1)
-    dotenv_line=$(grep -n "dotenv" ".envrc" | cut -d: -f1)
+    # Get the first occurrence of each pattern, ignoring comment lines for dotenv
+    mise_line=$(grep -n "use mise" ".envrc" | head -1 | cut -d: -f1)
+    # For dotenv, find the first non-comment line containing "dotenv"
+    dotenv_line=$(grep -n "dotenv" ".envrc" | grep -v ":#" | head -1 | cut -d: -f1)
 
     if [[ -z "$mise_line" || -z "$dotenv_line" ]]; then
         echo "❌ Could not determine line numbers for mise/dotenv"
@@ -222,6 +224,7 @@ main() {
     test_chezmoi_idempotence
     test_target_files_present
     test_direnv_hooks_present
+    test_envrc_mise_pattern
 
     test_summary
     exit $?
