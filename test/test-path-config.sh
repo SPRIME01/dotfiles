@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # test/test-path-config.sh - Test PATH configuration in templates
 
-set +euo pipefail
+set -euo pipefail
 
 # Source the test framework
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
