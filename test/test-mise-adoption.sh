@@ -78,7 +78,7 @@ test_mise_config_present() {
     fi
 
     # Check if chezmoi manages the mise config file
-    if chezmoi managed | grep -q "dot_mise\.toml"; then
+    if chezmoi managed --source "$PWD" | grep -q "dot_mise\.toml"; then
         echo "✅ mise config file is managed by chezmoi"
         ((TESTS_PASSED++))
         return 0

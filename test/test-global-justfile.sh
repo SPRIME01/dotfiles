@@ -75,10 +75,13 @@ test_bootstrap_recipe_content() {
     fi
 
     # Extract bootstrap recipe content using a more robust method
+    # Extract bootstrap recipe content using a more robust method
     local bootstrap_content
-    bootstrap_content=$(sed -n '/^bootstrap:/,/^[[:alnum:]]/p' "dot_justfile" | head -n -1)
+    # Handle both cases: recipe followed by another recipe or at EOF
+    bootstrap_content=$(awk '/^bootstrap:/{flag=1;next}/^[a-z_-]+.*:/{flag=0}flag' "dot_justfile")
     if [[ -z "$bootstrap_content" ]]; then
-        bootstrap_content=$(sed -n '/^bootstrap:/,/^$/p' "dot_justfile")
+        # If empty, try extracting from bootstrap to EOF
+        bootstrap_content=$(sed -n '/^bootstrap:/,$p' "dot_justfile" | tail -n +2)
     fi
 
     # Check for chezmoi apply

@@ -127,25 +127,26 @@ test_target_files_present() {
 test_direnv_hooks_present() {
     echo "🧪 Testing direnv hooks in planned content"
     ((TESTS_RUN++))
-    local output
-    output=$(chezmoi apply --source "$PWD" --dry-run --verbose 2>&1)
+    local tmpdest
+    tmpdest="$(mktemp -d)"
+    trap 'rm -rf "$tmpdest"' RETURN
 
     # Check for direnv hooks in zsh/bash files
     local missing_hooks=()
 
-    # Check zshrc for direnv hook
-    if echo "$output" | grep -q "\.zshrc" && ! echo "$output" | grep -A 10 "\.zshrc" | grep -q "direnv hook zsh"; then
+    if ! chezmoi cat --source "$PWD" --destination "$tmpdest" ~/.zshrc 2>/dev/null | grep -q 'direnv hook zsh'; then
         missing_hooks+=("zsh direnv hook")
     fi
 
-    # Check bashrc for direnv hook
-    if echo "$output" | grep -q "\.bashrc" && ! echo "$output" | grep -A 10 "\.bashrc" | grep -q "direnv hook bash"; then
+    if ! chezmoi cat --source "$PWD" --destination "$tmpdest" ~/.bashrc 2>/dev/null | grep -q 'direnv hook bash'; then
         missing_hooks+=("bash direnv hook")
     fi
 
-    # Check PowerShell profile for direnv hook (if present)
-    if echo "$output" | grep -q "PowerShell.*Microsoft\.PowerShell_profile\.ps1" && ! echo "$output" | grep -A 10 "PowerShell.*Microsoft\.PowerShell_profile\.ps1" | grep -q "direnv hook pwsh"; then
-        missing_hooks+=("PowerShell direnv hook")
+    # Optional: only check pwsh on Windows runners
+    if [[ "$OS" == "Windows_NT" ]]; then
+        if ! chezmoi cat --source "$PWD" --destination "$tmpdest" ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1 2>/dev/null | grep -q 'direnv hook pwsh'; then
+            missing_hooks+=("PowerShell direnv hook")
+        fi
     fi
 
     if [[ ${#missing_hooks[@]} -eq 0 ]]; then
