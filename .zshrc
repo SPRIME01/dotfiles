@@ -104,3 +104,5 @@ if [[ ${DOTFILES_DEBUG:-0} == 1 ]]; then
     echo "[dotfiles] zsh profile loaded (DOTFILES_ROOT=$DOTFILES_ROOT, ZSH=$ZSH)"
 fi
 
+export ZED_ALLOW_EMULATED_GPU=1
+alias zed="WAYLAND_DISPLAY= zed"
