@@ -57,7 +57,6 @@ Next failing test: template content accuracy and platform branching.
 - Run full suite.
  - Verify running templates twice remains a no-op (`chezmoi apply --dry-run`).
 
-##### phase 1 and 2 complete; next: mise adoption #####
 
 ## Phase 3 — Adopt Mise; Deprecate Volta Wiring
 
@@ -99,6 +98,9 @@ Next failing test: template content accuracy and platform branching.
 - Run full suite.
  - Validate shells start cleanly without the bridge (best-effort pattern).
 
+* use context7
+
+###### phases 1, 2, 3, and 4 complete ######
 ---
 
 ## Phase 5 — Global Justfile
@@ -119,6 +121,7 @@ Next failing test: template content accuracy and platform branching.
 - Run full suite.
  - Verify `chezmoi diff` remains empty after bootstrap.
 
+* use context7
 ---
 
 ## Phase 6 — Filesystem & PATH via Templates
@@ -139,6 +142,7 @@ Next failing test: template content accuracy and platform branching.
 - Run full suite.
  - Source rc files multiple times; PATH remains stable.
 
+* use context7
 ---
 
 ## Phase 7 — Security Hardening
@@ -178,6 +182,7 @@ Next failing test: template content accuracy and platform branching.
 - Run full suite.
  - Open a login and interactive shell in CI to ensure no startup warnings.
 
+* use context7
 ---
 
 ## Continuous Regression

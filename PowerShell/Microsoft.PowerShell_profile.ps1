@@ -195,3 +195,45 @@ function Link-WSLProjects {
 }
 
 if ($env:TERM_PROGRAM -eq "kiro") { . "$(kiro --locate-shell-integration-path pwsh)" }
+
+# SSH Agent Bridge Integration for WSL
+if ($env:WSL_DISTRO_NAME -or (Get-Content /proc/version -ErrorAction SilentlyContinue | Select-String -Pattern "microsoft" -Quiet)) {
+    # Set SSH_AUTH_SOCK if not already set
+    if (-not $env:SSH_AUTH_SOCK) {
+        $env:SSH_AUTH_SOCK = "$HOME\.ssh\agent.sock"
+    }
+
+    # Check if bridge tools are available
+    $socatAvailable = Get-Command socat -ErrorAction SilentlyContinue
+    $npiperelayAvailable = (Get-Command npiperelay.exe -ErrorAction SilentlyContinue) -or (Get-Command npiperelay -ErrorAction SilentlyContinue)
+
+    if ($socatAvailable -and $npiperelayAvailable) {
+        # Bridge tools available
+        if (-not (Test-Path $env:SSH_AUTH_SOCK -PathType Leaf)) {
+            Write-Host "⚠️ SSH agent bridge tools available but socket not found at $env:SSH_AUTH_SOCK" -ForegroundColor Yellow
+            Write-Host "💡 Run 'ssh-agent-bridge/preflight.sh' to diagnose bridge status" -ForegroundColor Cyan
+        }
+    } else {
+        Write-Host "ℹ️ SSH agent bridge tools not found. Windows SSH keys won't be available in WSL." -ForegroundColor Cyan
+        Write-Host "💡 Install npiperelay and socat, then run 'scripts/setup-ssh-agent-bridge.sh'" -ForegroundColor Cyan
+    }
+
+    # Helper function to check bridge status
+    function Get-SshBridgeStatus {
+        $preflightScript = Join-Path $env:DOTFILES_ROOT "ssh-agent-bridge/preflight.sh"
+        if (Test-Path $preflightScript) {
+            & $preflightScript
+        } else {
+            Write-Host "Preflight script not found: $preflightScript" -ForegroundColor Yellow
+            Write-Host "Available SSH keys:"
+            try {
+                ssh-add -l
+            } catch {
+                Write-Host "No SSH keys loaded or agent not available" -ForegroundColor Yellow
+            }
+        }
+    }
+
+    # Set alias for convenience
+    Set-Alias -Name ssh-bridge-status -Value Get-SshBridgeStatus -ErrorAction SilentlyContinue
+}
