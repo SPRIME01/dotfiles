@@ -41,7 +41,9 @@ $VerbosePreference = 'Continue'
 # File paths
 $ModulePath = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $MainModuleFile = Join-Path $ModulePath "Aliases.psm1"
-$ProfilePath = "$HOME\dotfiles\PowerShell\Microsoft.PowerShell_profile.ps1"
+# Build profile path cross-platform based on this repo's PowerShell folder
+$PowerShellDir = Split-Path -Parent (Split-Path -Parent $ModulePath)
+$ProfilePath = Join-Path $PowerShellDir 'Microsoft.PowerShell_profile.ps1'
 
 # Configuration settings
 $MaxBackups = 3
@@ -184,7 +186,8 @@ try {
 
     # Add dot-sourcing lines
     foreach ($info in $FunctionInfos) {
-        $content += "`n    . `"`$ModulePath\$($info.FileName)`""
+        # Use Join-Path for cross-platform path separators
+        $content += "`n    . (Join-Path -Path ``$ModulePath -ChildPath '$($info.FileName)')"
     }
 
     $content += @"
@@ -232,7 +235,7 @@ function Generate-LazyLoadingFunctions {
     $content = @"
 # Lazy-load the Aliases module by creating proxy functions.
 # The module will be imported only when one of its commands is run for the first time.
-`$aliasesModulePath = "`$HOME\dotfiles\PowerShell\Modules\Aliases\Aliases.psm1"
+`$aliasesModulePath = Join-Path -Path ``$PSScriptRoot -ChildPath (Join-Path -Path 'Modules' -ChildPath (Join-Path -Path 'Aliases' -ChildPath 'Aliases.psm1'))
 
 "@
 
@@ -366,7 +369,7 @@ try {
         Write-Host "  $($_.FunctionName) -> $($_.AliasName)" -ForegroundColor White
     }
 
-    Write-Host "`nTo apply changes to your current session, run:" -ForegroundColor Yellow
+    Write-Host "`nTo apply changes to your current session (run in PowerShell):" -ForegroundColor Yellow
     Write-Host "  Import-Module '$MainModuleFile' -Force" -ForegroundColor White
     Write-Host "  . '$ProfilePath'" -ForegroundColor White
 
