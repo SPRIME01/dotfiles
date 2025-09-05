@@ -466,8 +466,8 @@ ssh-bridge-rotate-deploy-args *ARGS:
 # Chezmoi helpers for Windows (run from WSL)
 # ============================================================================
 
-windows-chezmoi-diff SRC="${PWD}":
-	@bash scripts/windows-chezmoi-diff.sh "{{SRC}}"
+windows-chezmoi-diff:
+    @bash scripts/windows-chezmoi-diff.sh
 
-windows-chezmoi-apply SRC="${PWD}":
-	@bash scripts/windows-chezmoi-apply.sh "{{SRC}}"
+windows-chezmoi-apply:
+    @bash scripts/windows-chezmoi-apply.sh

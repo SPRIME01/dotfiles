@@ -200,21 +200,27 @@ if ($env:TERM_PROGRAM -eq "kiro") { . "$(kiro --locate-shell-integration-path pw
 if ($env:WSL_DISTRO_NAME -or (Get-Content /proc/version -ErrorAction SilentlyContinue | Select-String -Pattern "microsoft" -Quiet)) {
     # Set SSH_AUTH_SOCK if not already set
     if (-not $env:SSH_AUTH_SOCK) {
-        $env:SSH_AUTH_SOCK = "$HOME\.ssh\agent.sock"
+        $env:SSH_AUTH_SOCK = (Join-Path $HOME ".ssh/agent.sock")
     }
-
     # Check if bridge tools are available
     $socatAvailable = Get-Command socat -ErrorAction SilentlyContinue
     $npiperelayAvailable = (Get-Command npiperelay.exe -ErrorAction SilentlyContinue) -or (Get-Command npiperelay -ErrorAction SilentlyContinue)
 
     if ($socatAvailable -and $npiperelayAvailable) {
+    if ($socatAvailable -and $npiperelayAvailable) {
         # Bridge tools available
-        if (-not (Test-Path $env:SSH_AUTH_SOCK -PathType Leaf)) {
-            Write-Host "⚠️ SSH agent bridge tools available but socket not found at $env:SSH_AUTH_SOCK" -ForegroundColor Yellow
+        $agentOk = $false
+        try {
+            & ssh-add -l *> $null
+            if ($LASTEXITCODE -eq 0) { $agentOk = $true }
+        } catch {
+            $agentOk = $false
+        }
+        if (-not $agentOk) {
+            Write-Host "⚠️ SSH agent bridge tools available but agent not reachable via $env:SSH_AUTH_SOCK" -ForegroundColor Yellow
             Write-Host "💡 Run 'ssh-agent-bridge/preflight.sh' to diagnose bridge status" -ForegroundColor Cyan
         }
     } else {
-        Write-Host "ℹ️ SSH agent bridge tools not found. Windows SSH keys won't be available in WSL." -ForegroundColor Cyan
         Write-Host "💡 Install npiperelay and socat, then run 'scripts/setup-ssh-agent-bridge.sh'" -ForegroundColor Cyan
     }
 

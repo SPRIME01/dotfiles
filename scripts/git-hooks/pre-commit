@@ -25,7 +25,7 @@ SECURITY_REGEX="(^|[[:space:]])(export[[:space:]]+|local[[:space:]]+|readonly[[:
 # Allow explicit placeholders in values
 ALLOWED_PLACEHOLDERS_REGEX="=[[:space:]]*['\"](NOT_REAL|FOR_TESTING|DUMMY|EXAMPLE|PLACEHOLDER|REDACTED)['\"]"
 # Search only shell sources; ignore tests, docs, vendored PowerShell data, and this hook file
-if grep -RInE "$SECURITY_REGEX" \
+if grep -RInEi "$SECURITY_REGEX" \
 	--include="*.sh" --include="*.zsh" \
 	--exclude-dir "test" --exclude-dir "docs" --exclude-dir "PowerShell" \
 	--exclude "scripts/git-hooks/pre-commit" . \

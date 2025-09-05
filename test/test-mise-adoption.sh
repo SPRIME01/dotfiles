@@ -106,9 +106,16 @@ test_mise_dry_run() {
         return 0
     fi
 
+    # Create tmpdir safely and install a guarded cleanup trap
     local tmpdest
-    tmpdest="$(mktemp -d)"
-    trap 'rm -rf "$tmpdest"' RETURN
+    if ! tmpdest="$(mktemp -d)"; then
+        echo "❌ failed to create temp dir for mise dry-run"
+        FAILED_TESTS+=("mise dry-run - mktemp failed")
+        ((TESTS_FAILED++))
+        return 1
+    fi
+    trap '[[ -n "$tmpdest" ]] && rm -rf -- "$tmpdest"' RETURN
+
     if ! chezmoi apply --source "$PWD" --destination "$tmpdest" >/dev/null 2>&1; then
         echo "❌ failed to render .mise.toml to temp destination"
         FAILED_TESTS+=("mise dry-run - render failed")
@@ -116,9 +123,8 @@ test_mise_dry_run() {
         return 1
     fi
 
-    MISE_CONFIG_FILE="$tmpdest/.mise.toml" MISE_DATA_DIR="$tmpdest/.local/share/mise" \
-      mise install --dry-run >/dev/null 2>&1
-    if [[ $? -eq 0 ]]; then
+    if MISE_CONFIG_FILE="$tmpdest/.mise.toml" MISE_DATA_DIR="$tmpdest/.local/share/mise" \
+         mise install --dry-run >/dev/null 2>&1; then
         echo "✅ mise install --dry-run succeeded"
         ((TESTS_PASSED++))
         return 0
@@ -153,26 +159,37 @@ test_mise_idempotence() {
         return 0
     fi
 
-    # Render config to a temp destination
+    # Render config to a temp destination (mktemp guarded)
     local tmpdest
-    tmpdest="$(mktemp -d)"
-    trap 'rm -rf "$tmpdest"' RETURN
-    chezmoi apply --source "$PWD" --destination "$tmpdest" >/dev/null 2>&1 || {
+    if ! tmpdest="$(mktemp -d)"; then
+        echo "❌ failed to create temp dir for mise idempotence test"
+        FAILED_TESTS+=("mise idempotence - mktemp failed")
+        ((TESTS_FAILED++))
+        return 1
+    fi
+    trap '[[ -n "$tmpdest" ]] && rm -rf -- "$tmpdest"' RETURN
+    if ! chezmoi apply --source "$PWD" --destination "$tmpdest" >/dev/null 2>&1; then
         echo "❌ failed to render .mise.toml to temp destination"
         FAILED_TESTS+=("mise idempotence - render failed")
         ((TESTS_FAILED++))
         return 1
-    }
+    fi
 
-    # First run - capture output
-    local first_output
-    first_output=$(MISE_CONFIG_FILE="$tmpdest/.mise.toml" MISE_DATA_DIR="$tmpdest/.local/share/mise" mise install 2>&1)
-    local first_exit_code=$?
+    # First run - capture output and exit code without letting set -e abort
+    local first_output='' first_exit_code=0
+    if ! first_output="$(MISE_CONFIG_FILE="$tmpdest/.mise.toml" \
+                        MISE_DATA_DIR="$tmpdest/.local/share/mise" \
+                        mise install 2>&1)"; then
+        first_exit_code=$?
+    fi
 
     # Second run - should be no-op
-    local second_output
-    second_output=$(MISE_CONFIG_FILE="$tmpdest/.mise.toml" MISE_DATA_DIR="$tmpdest/.local/share/mise" mise install 2>&1)
-    local second_exit_code=$?
+    local second_output='' second_exit_code=0
+    if ! second_output="$(MISE_CONFIG_FILE="$tmpdest/.mise.toml" \
+                         MISE_DATA_DIR="$tmpdest/.local/share/mise" \
+                         mise install 2>&1)"; then
+        second_exit_code=$?
+    fi
 
     if [[ $first_exit_code -eq 0 && $second_exit_code -eq 0 ]]; then
         # Check if second run shows no changes or is empty (excluding trust warnings)

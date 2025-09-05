@@ -15,16 +15,17 @@ fi
 {{ template "partials/projects_path.tmpl" . }}
 
 {{ if eq .chezmoi.os "linux" }}
-{{   if or (eq .chezmoi.kernel.release "microsoft") (hasPrefix "microsoft" .chezmoi.kernel.release) }}
-{{/* WSL-specific PATH configuration */}}
-{{ template "templates/partials/wsl_path.tmpl" . }}
+{{   $rel := lower .chezmoi.kernel.release }}
+{{   if contains $rel "microsoft" }}
+{{     /* WSL-specific PATH configuration */ }}
+{{     template "partials/wsl_path.tmpl" . }}
 {{   end }}
 {{ else if eq .chezmoi.os "windows" }}
-{{/* Windows-specific PATH configuration */}}
-{{ template "templates/partials/windows_path.tmpl" . }}
+{{   /* Windows-specific PATH configuration */ }}
+{{   template "partials/windows_path.tmpl" . }}
 {{ else if eq .chezmoi.os "darwin" }}
-{{/* macOS-specific PATH configuration */}}
-{{ template "templates/partials/macos_path.tmpl" . }}
+{{   /* macOS-specific PATH configuration */ }}
+{{   template "partials/macos_path.tmpl" . }}
 {{ end }}
 
 # End of minimal template — extend via ~/.zshrc.local as needed

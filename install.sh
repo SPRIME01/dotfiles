@@ -26,40 +26,58 @@ else
   TMP_LOG="$(mktemp /tmp/chezmoi-install.XXXXXX.log)"
   echo "  → installer log: $TMP_LOG"
 
+  # Ensure installer log is removed on success, but preserved on failure for debugging.
+  KEEP_TMP_LOG=0
+  cleanup_installer_log() {
+    if [[ "$KEEP_TMP_LOG" -eq 0 ]]; then
+      rm -f "$TMP_LOG"
+    else
+      echo "• Installer log preserved at: $TMP_LOG"
+    fi
+  }
+  trap cleanup_installer_log EXIT
+
   if command -v curl >/dev/null 2>&1; then
-    if ! sh -c "$(curl -fsLS "$INSTALLER_URL")" -- -b "$HOME/.local/bin" 2>&1 | tee "$TMP_LOG"; then
+    # Run the remote installer while capturing its output; preserve exit status.
+    if ! curl -fsLS "$INSTALLER_URL" 2>&1 | tee "$TMP_LOG" | sh -s -- -b "$HOME/.local/bin"; then
+      KEEP_TMP_LOG=1
       echo "❌ chezmoi installer (curl) failed. Installer output saved to: $TMP_LOG"
       echo "----- last 200 lines of installer log -----"
       tail -n 200 "$TMP_LOG" || true
-      echo "Please inspect the full log and re-run the script. Exiting."
+      echo "You can retry manually with:"
+      echo "  curl -fsSL \"$INSTALLER_URL\" | sh -s -- -b \"\$HOME/.local/bin\""
       exit 1
     fi
   elif command -v wget >/dev/null 2>&1; then
-    if ! sh -c "$(wget -qO- "$INSTALLER_URL")" -- -b "$HOME/.local/bin" 2>&1 | tee "$TMP_LOG"; then
+    if ! wget -qO- "$INSTALLER_URL" 2>&1 | tee "$TMP_LOG" | sh -s -- -b "$HOME/.local/bin"; then
+      KEEP_TMP_LOG=1
       echo "❌ chezmoi installer (wget) failed. Installer output saved to: $TMP_LOG"
       echo "----- last 200 lines of installer log -----"
       tail -n 200 "$TMP_LOG" || true
-      echo "Please inspect the full log and re-run the script. Exiting."
+      echo "You can retry manually with:"
+      echo "  wget -qO- \"$INSTALLER_URL\" | sh -s -- -b \"\$HOME/.local/bin\""
       exit 1
     fi
   else
+    KEEP_TMP_LOG=1
     echo "❌ Neither curl nor wget found. Please install one and re-run."
     exit 1
   fi
 
-  # Ensure current process can find newly installed chezmoi
-  case ":$PATH:" in
-    *":$HOME/.local/bin:"*) ;;
-    *) export PATH="$HOME/.local/bin:$PATH" ;;
-  esac
-
+set -x
+if ! chezmoi init --source="$SOURCE_DIR"; then
+  echo "ERROR: 'chezmoi init' failed. Please check your source directory and try again."
+  echo "You can run 'chezmoi init --source=\"$SOURCE_DIR\"' manually for more details."
+  exit 1
+fi
   if ! command -v chezmoi >/dev/null 2>&1; then
+    KEEP_TMP_LOG=1
     echo "❌ chezmoi not found after installation. Check installer log: $TMP_LOG"
     exit 1
   fi
 
   echo "• chezmoi installed: $(chezmoi --version | head -n1)"
-  rm -f "$TMP_LOG"
+  # cleanup_installer_log will run on EXIT; TMP_LOG removed unless KEEP_TMP_LOG was set.
 fi
 
 echo "• Initializing chezmoi with local source"
@@ -77,6 +95,25 @@ else
   chezmoi apply --source="$SOURCE_DIR" --verbose
 fi
 set +x
+
+# Ensure Git uses the global ignore file installed by chezmoi
+if command -v git >/dev/null 2>&1; then
+  GITIGNORE_GLOBAL_PATH="$HOME/.gitignore_global"
+  CURRENT_EXCLUDESFILE="$(git config --global --get core.excludesfile 2>/dev/null || true)"
+
+  if [[ -z "$CURRENT_EXCLUDESFILE" ]]; then
+    echo "• Configuring Git global excludesfile → $GITIGNORE_GLOBAL_PATH"
+    git config --global core.excludesfile "$GITIGNORE_GLOBAL_PATH" || true
+  elif [[ "$CURRENT_EXCLUDESFILE" != "$GITIGNORE_GLOBAL_PATH" ]]; then
+    echo "⚠️  Git core.excludesfile is set to: $CURRENT_EXCLUDESFILE"
+    echo "   Leaving as-is. To use this repo's global ignore, run:"
+    echo "   git config --global core.excludesfile \"$GITIGNORE_GLOBAL_PATH\""
+  else
+    echo "• Git global excludesfile already set"
+  fi
+else
+  echo "• Git not found; skipping global excludesfile configuration"
+fi
 
 if command -v mise >/dev/null 2>&1; then
   echo "• Running 'mise install' (if configured)"

@@ -70,6 +70,12 @@ check "Home writable" test -w "$HOME"
 check "Projects dir present" test -d "${PROJECTS_ROOT:-$HOME/projects}"
 check_optional "Oh My Posh binary" command -v oh-my-posh
 
+# Git global ignore checks (optional and non-fatal)
+check_optional "Git installed" command -v git
+check_optional "~/.gitignore_global exists" test -f "$HOME/.gitignore_global"
+check_optional "Git core.excludesfile set" git config --global --get core.excludesfile
+check_optional "core.excludesfile points to ~/.gitignore_global" bash -c '[[ "$(git config --global --get core.excludesfile 2>/dev/null || true)" == "'$HOME'/.gitignore_global" ]]'
+
 if [ "$fail" -eq 0 ]; then
 	echo "All basic checks passed"
 else
@@ -78,7 +84,7 @@ fi
 
 # Default behavior: informational exit (always 0). Use --strict to return non-zero on failures.
 if [[ $STRICT -eq 1 ]]; then
-	exit "$fail"
+    exit "$fail"
 else
-	exit 0
+    exit 0
 fi
