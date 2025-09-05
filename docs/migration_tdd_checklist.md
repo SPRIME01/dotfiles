@@ -100,7 +100,7 @@ Next failing test: template content accuracy and platform branching.
 
 * use context7
 
-###### phases 1, 2, 3, and 4 complete ######
+
 ---
 
 ## Phase 5 — Global Justfile
@@ -122,9 +122,12 @@ Next failing test: template content accuracy and platform branching.
  - Verify `chezmoi diff` remains empty after bootstrap.
 
 * use context7
+
+###### phases 1 thru 5 complete ######
 ---
 
 ## Phase 6 — Filesystem & PATH via Templates
+* use context7 as needed
 
 1) Red: author tests
 - Add `test/test-path-config.sh`:
@@ -142,7 +145,7 @@ Next failing test: template content accuracy and platform branching.
 - Run full suite.
  - Source rc files multiple times; PATH remains stable.
 
-* use context7
+
 ---
 
 ## Phase 7 — Security Hardening
