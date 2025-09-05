@@ -11,28 +11,28 @@ Write-Verbose "Loading functions from module path: $ModulePath"
 
 # Dot-source individual function script files
 try {
-    . "$ModulePath\Find-Directory.ps1"
-    . "$ModulePath\Find-Text.ps1"
-    . "$ModulePath\Get-AliasHelp.ps1"
-    . "$ModulePath\Get-FileSize.ps1"
-    . "$ModulePath\Get-FileTree.ps1"
-    . "$ModulePath\Get-GitStatus.ps1"
-    . "$ModulePath\Get-NetworkConnections.ps1"
-    . "$ModulePath\Get-ProjectList.ps1"
-    . "$ModulePath\Get-SecretKey.ps1"
-    . "$ModulePath\Get-SystemInfo.ps1"
-    . "$ModulePath\Invoke-UpdateAliasesModule.ps1"
-    . "$ModulePath\New-GitCommit.ps1"
-    . "$ModulePath\Open-Explorer.ps1"
-    . "$ModulePath\Set-OhMyPoshTheme.ps1"
-    . "$ModulePath\Set-ProjectRoot.ps1"
-    . "$ModulePath\Show-Json.ps1"
-    . "$ModulePath\Stop-ProcessByPort.ps1"
-    . "$ModulePath\Test-NewFunction.ps1"
-    . "$ModulePath\Test-Port.ps1"
-    . "$ModulePath\Update-AliasesModule-Function.ps1"
-    . "$ModulePath\Update-AliasesModuleFunction.ps1"
-    . "$ModulePath\Update-EnvVars.ps1"
+    . (Join-Path -Path $ModulePath -ChildPath 'Find-Directory.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Find-Text.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Get-AliasHelp.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Get-FileSize.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Get-FileTree.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Get-GitStatus.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Get-NetworkConnections.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Get-ProjectList.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Get-SecretKey.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Get-SystemInfo.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Invoke-UpdateAliasesModule.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'New-GitCommit.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Open-Explorer.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Set-OhMyPoshTheme.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Set-ProjectRoot.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Show-Json.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Stop-ProcessByPort.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Test-NewFunction.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Test-Port.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Update-AliasesModule-Function.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Update-AliasesModuleFunction.ps1')
+    . (Join-Path -Path $ModulePath -ChildPath 'Update-EnvVars.ps1')
     Write-Verbose "Successfully dot-sourced function files."
 }
 catch {

@@ -101,29 +101,99 @@ $env:PNPM_HOME = "$HOME\.pnpm-global"
 $env:Path = "$env:PNPM_HOME;$env:Path"
 
 # Lazy-load the Aliases module by creating proxy functions.
-$aliasesModulePath = Join-Path $env:DOTFILES_ROOT 'PowerShell/Modules/Aliases/Aliases.psm1'
+# The module will be imported only when one of its commands is run for the first time.
+$aliasesModulePath = Join-Path -Path $PSScriptRoot -ChildPath (Join-Path -Path 'Modules' -ChildPath (Join-Path -Path 'Aliases' -ChildPath 'Aliases.psm1'))
 
-function finddir { Import-Module $aliasesModulePath -Force; Find-Directory @args }
-function grep { Import-Module $aliasesModulePath -Force; Find-Text @args }
-function aliashelp { Import-Module $aliasesModulePath -Force; Get-AliasHelp @args }
-function sizes { Import-Module $aliasesModulePath -Force; Get-FileSize @args }
-function filetree { Import-Module $aliasesModulePath -Force; Get-FileTree @args }
-function gs { Import-Module $aliasesModulePath -Force; Get-GitStatus @args }
-function netstat { Import-Module $aliasesModulePath -Force; Get-NetworkConnections @args }
-function gensecret { Import-Module $aliasesModulePath -Force; Get-SecretKey @args }
-function sysinfo { Import-Module $aliasesModulePath -Force; Get-SystemInfo @args }
+function finddir {
+    Import-Module $aliasesModulePath -Force
+    Find-Directory @args
+}
+function grep {
+    Import-Module $aliasesModulePath -Force
+    Find-Text @args
+}
+function aliashelp {
+    Import-Module $aliasesModulePath -Force
+    Get-AliasHelp @args
+}
+function sizes {
+    Import-Module $aliasesModulePath -Force
+    Get-FileSize @args
+}
+function filetree {
+    Import-Module $aliasesModulePath -Force
+    Get-FileTree @args
+}
+function gs {
+    Import-Module $aliasesModulePath -Force
+    Get-GitStatus @args
+}
+function netstat {
+    Import-Module $aliasesModulePath -Force
+    Get-NetworkConnections @args
+}
+function projects {
+    Import-Module $aliasesModulePath -Force
+    Get-ProjectList @args
+}
+function gensecret {
+    Import-Module $aliasesModulePath -Force
+    Get-SecretKey @args
+}
+function sysinfo {
+    Import-Module $aliasesModulePath -Force
+    Get-SystemInfo @args
+}
+function updatealiases {
+    Import-Module $aliasesModulePath -Force
+    Invoke-UpdateAliasesModule @args
+}
+function gc {
+    Import-Module $aliasesModulePath -Force
+    New-GitCommit @args
+}
+function explore {
+    Import-Module $aliasesModulePath -Force
+    Open-Explorer @args
+}
+function ohmyposhtheme {
+    Import-Module $aliasesModulePath -Force
+    Set-OhMyPoshTheme @args
+}
+function projectroot {
+    Import-Module $aliasesModulePath -Force
+    Set-ProjectRoot @args
+}
+function json {
+    Import-Module $aliasesModulePath -Force
+    Show-Json @args
+}
+function killport {
+    Import-Module $aliasesModulePath -Force
+    Stop-ProcessByPort @args
+}
+function testnewfunction {
+    Import-Module $aliasesModulePath -Force
+    Test-NewFunction @args
+}
+function testport {
+    Import-Module $aliasesModulePath -Force
+    Test-Port @args
+}
+function aliasesmodule-function {
+    Import-Module $aliasesModulePath -Force
+    Update-AliasesModule-Function @args
+}
+function aliasesmodulefunction {
+    Import-Module $aliasesModulePath -Force
+    Update-AliasesModuleFunction @args
+}
+function updateenv {
+    Import-Module $aliasesModulePath -Force
+    Update-EnvVars @args
+}
 
-function updatealiases { Import-Module $aliasesModulePath -Force; Invoke-UpdateAliasesModule @args }
-function gc { Import-Module $aliasesModulePath -Force; New-GitCommit @args }
-function explore { Import-Module $aliasesModulePath -Force; Open-Explorer @args }
-function projectroot { Import-Module $aliasesModulePath -Force; Set-ProjectRoot @args }
-function json { Import-Module $aliasesModulePath -Force; Show-Json @args }
-function killport { Import-Module $aliasesModulePath -Force; Stop-ProcessByPort @args }
-function testnewfunction { Import-Module $aliasesModulePath -Force; Test-NewFunction @args }
-function testport { Import-Module $aliasesModulePath -Force; Test-Port @args }
-function aliasesmodulefunction { Import-Module $aliasesModulePath -Force; Update-AliasesModuleFunction @args }
-function updateenv { Import-Module $aliasesModulePath -Force; Update-EnvVars @args }
-
+# Remaining PNPM and function definitions...
 # Theme management functions
 $setThemeScript = Join-Path $env:DOTFILES_ROOT 'PowerShell/Modules/Aliases/Set-OhMyPoshTheme.ps1'
 if (Test-Path $setThemeScript) {
@@ -206,7 +276,6 @@ if ($env:WSL_DISTRO_NAME -or (Get-Content /proc/version -ErrorAction SilentlyCon
     $socatAvailable = Get-Command socat -ErrorAction SilentlyContinue
     $npiperelayAvailable = (Get-Command npiperelay.exe -ErrorAction SilentlyContinue) -or (Get-Command npiperelay -ErrorAction SilentlyContinue)
 
-    if ($socatAvailable -and $npiperelayAvailable) {
     if ($socatAvailable -and $npiperelayAvailable) {
         # Bridge tools available
         $agentOk = $false

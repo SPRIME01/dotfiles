@@ -218,6 +218,98 @@ move-docs-off-onedrive-admin:
 move-docs-off-onedrive-dry:
 	@bash scripts/run-move-docs-dry.sh
 
+# ===== PowerShell aliases/profile helpers (namespaced) =====
+
+# Idempotent: regenerate module and profile section
+pwsh-update:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    pwsh -NoLogo -NoProfile -File "PowerShell/Modules/Aliases/Update-AliasesModule.ps1"
+
+pwsh-update-dry-run:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    pwsh -NoLogo -NoProfile -File "PowerShell/Modules/Aliases/Update-AliasesModule.ps1" -WhatIf
+
+pwsh-reload-dry-run:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    ROOT="$(pwd)"
+    echo "pwsh -NoLogo -NoProfile -File '$ROOT/PowerShell/Modules/Aliases/Update-AliasesModule.ps1'"
+    echo "pwsh -NoLogo -NoProfile -NoExit -Command \"Import-Module '$ROOT/PowerShell/Modules/Aliases/Aliases.psm1' -Force; . '$ROOT/PowerShell/Microsoft.PowerShell_profile.ps1'\""
+
+ps\:update:
+    @just pwsh-update
+
+ps\:update-dry-run:
+    @just pwsh-update-dry-run
+
+ps\:reload:
+    @just pwsh-reload
+
+ps\:reload-dry-run:
+    @just pwsh-reload-dry-run
+
+ps\:reload-windows:
+    @just pwsh-reload-windows
+
+ps\:help:
+    @echo "=== PowerShell (repo) ==="
+    @echo "  just ps:update             # Regenerate Aliases + profile"
+    @echo "  just ps:reload             # Open pwsh with repo profile"
+    @echo "  just ps:reload-windows     # From WSL, open Windows pwsh"
+    @echo "  just ps:update-dry-run     # WhatIf regeneration"
+    @echo "  just ps:reload-dry-run     # Print commands"
+
+# --- PowerShell Aliases/Profile helpers ---
+
+# Regenerate the Aliases module and profile lazy-loading section (idempotent)
+pwsh-update:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v pwsh >/dev/null 2>&1; then
+        echo "❌ pwsh (PowerShell 7) not found on PATH" >&2
+        echo "💡 Install PowerShell 7 and ensure 'pwsh' is available" >&2
+        exit 1
+    fi
+    echo "🔁 Regenerating Aliases module and profile section..."
+    pwsh -NoLogo -NoProfile -File "PowerShell/Modules/Aliases/Update-AliasesModule.ps1"
+    echo "✅ Regeneration complete"
+
+# Open a new Linux/WSL PowerShell session with this repo's module and profile loaded
+pwsh-reload:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v pwsh >/dev/null 2>&1; then
+        echo "❌ pwsh (PowerShell 7) not found on PATH" >&2
+        exit 1
+    fi
+    ROOT="$(pwd)"
+    echo "🔁 Updating module before loading..."
+    pwsh -NoLogo -NoProfile -File "PowerShell/Modules/Aliases/Update-AliasesModule.ps1"
+    echo "🚀 Launching PowerShell with repo profile loaded..."
+    pwsh -NoLogo -NoProfile -NoExit -Command "Import-Module '$ROOT/PowerShell/Modules/Aliases/Aliases.psm1' -Force; . '$ROOT/PowerShell/Microsoft.PowerShell_profile.ps1'; Write-Host '✅ Loaded aliases and profile from $ROOT' -ForegroundColor Green"
+
+# From WSL, open a Windows PowerShell (or PowerShell 7) session with this repo loaded via UNC
+pwsh-reload-windows:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
+        echo "ℹ️  Not running inside WSL; this recipe is intended for WSL." >&2
+        exit 0
+    fi
+    if ! command -v pwsh.exe >/dev/null 2>&1 && ! command -v powershell.exe >/dev/null 2>&1; then
+        echo "❌ Neither pwsh.exe nor powershell.exe available from WSL" >&2
+        exit 1
+    fi
+    # Build UNC path to the repo: \\wsl.localhost\\<distro>\\...\\dotfiles
+    UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}$(pwd | sed 's|^/|\\|; s|/|\\|g')"
+    PSBIN="pwsh.exe"; command -v pwsh.exe >/dev/null 2>&1 || PSBIN="powershell.exe"
+    echo "🔁 Updating module before loading (from WSL)..."
+    pwsh -NoLogo -NoProfile -File "PowerShell/Modules/Aliases/Update-AliasesModule.ps1"
+    echo "🚀 Launching Windows $PSBIN with repo profile loaded from: $UNC"
+    "$PSBIN" -NoLogo -NoProfile -NoExit -Command "Import-Module '$UNC\\PowerShell\\Modules\\Aliases\\Aliases.psm1' -Force; . '$UNC\\PowerShell\\Microsoft.PowerShell_profile.ps1'; Write-Host '✅ Loaded aliases and profile from $UNC' -ForegroundColor Green"
+
 # Fix PowerShell 7 profile if it's not working correctly
 fix-pwsh7:
 	@echo "🔧 Diagnosing and fixing PowerShell 7 profile issues..."
