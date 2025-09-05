@@ -22,20 +22,44 @@ if command -v chezmoi >/dev/null 2>&1; then
   echo "• chezmoi detected: $(chezmoi --version | head -n1)"
 else
   echo "• Installing chezmoi via official installer (requires network)"
+  INSTALLER_URL="https://get.chezmoi.io"
+  TMP_LOG="$(mktemp /tmp/chezmoi-install.XXXXXX.log)"
+  echo "  → installer log: $TMP_LOG"
+
   if command -v curl >/dev/null 2>&1; then
-    sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
+    if ! sh -c "$(curl -fsLS "$INSTALLER_URL")" -- -b "$HOME/.local/bin" 2>&1 | tee "$TMP_LOG"; then
+      echo "❌ chezmoi installer (curl) failed. Installer output saved to: $TMP_LOG"
+      echo "----- last 200 lines of installer log -----"
+      tail -n 200 "$TMP_LOG" || true
+      echo "Please inspect the full log and re-run the script. Exiting."
+      exit 1
+    fi
   elif command -v wget >/dev/null 2>&1; then
-    sh -c "$(wget -qO- get.chezmoi.io)" -- -b "$HOME/.local/bin"
+    if ! sh -c "$(wget -qO- "$INSTALLER_URL")" -- -b "$HOME/.local/bin" 2>&1 | tee "$TMP_LOG"; then
+      echo "❌ chezmoi installer (wget) failed. Installer output saved to: $TMP_LOG"
+      echo "----- last 200 lines of installer log -----"
+      tail -n 200 "$TMP_LOG" || true
+      echo "Please inspect the full log and re-run the script. Exiting."
+      exit 1
+    fi
   else
     echo "❌ Neither curl nor wget found. Please install one and re-run."
     exit 1
   fi
+
   # Ensure current process can find newly installed chezmoi
   case ":$PATH:" in
     *":$HOME/.local/bin:"*) ;;
     *) export PATH="$HOME/.local/bin:$PATH" ;;
   esac
+
+  if ! command -v chezmoi >/dev/null 2>&1; then
+    echo "❌ chezmoi not found after installation. Check installer log: $TMP_LOG"
+    exit 1
+  fi
+
   echo "• chezmoi installed: $(chezmoi --version | head -n1)"
+  rm -f "$TMP_LOG"
 fi
 
 echo "• Initializing chezmoi with local source"

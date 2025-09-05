@@ -42,41 +42,42 @@ test_chezmoi_apply_dry_run() {
 test_chezmoi_idempotence() {
     echo "🧪 Testing Chezmoi idempotence"
     ((TESTS_RUN++))
-    # First run should plan changes
-    local first_run_output
-    first_run_output=$(chezmoi apply --source "$PWD" --dry-run 2>&1)
-    local first_exit_code=$?
 
-    # Second run should show no changes
-    local second_run_output
+    # First run: perform a real apply to bring the filesystem to the template state
+    local first_run_output first_exit_code
+    first_run_output=$(chezmoi apply --source "$PWD" --verbose 2>&1)
+    first_exit_code=$?
+
+    if [[ $first_exit_code -ne 0 ]]; then
+        echo "❌ Chezmoi idempotence test failed - initial apply failed"
+        echo "   Apply output: $first_run_output"
+        FAILED_TESTS+=("Chezmoi idempotence (initial apply failed)")
+        ((TESTS_FAILED++))
+        return 1
+    fi
+
+    # Second run: dry-run should report no changes
+    local second_run_output second_exit_code
     second_run_output=$(chezmoi apply --source "$PWD" --dry-run 2>&1)
-    local second_exit_code=$?
+    second_exit_code=$?
 
-    # Both should succeed
-    if [[ $first_exit_code -eq 0 && $second_exit_code -eq 0 ]]; then
-        # Check if both runs have no output (indicating no changes needed)
-        if [[ -z "$first_run_output" && -z "$second_run_output" ]]; then
-            echo "✅ Chezmoi idempotence test passed (no changes needed)"
-            ((TESTS_PASSED++))
-            return 0
-        # Check if second run explicitly shows no changes
-        elif echo "$second_run_output" | grep -q "No changes would be made"; then
-            echo "✅ Chezmoi idempotence test passed (explicit no changes)"
+    if [[ $second_exit_code -eq 0 ]]; then
+        if [[ -z "$second_run_output" ]] || echo "$second_run_output" | grep -q "No changes would be made"; then
+            echo "✅ Chezmoi idempotence test passed (no changes on dry-run after apply)"
             ((TESTS_PASSED++))
             return 0
         else
-            echo "❌ Chezmoi idempotence test failed - second run still shows changes"
-            echo "   First run output: '$first_run_output'"
-            echo "   Second run output: '$second_run_output'"
-            FAILED_TESTS+=("Chezmoi idempotence")
+            echo "❌ Chezmoi idempotence test failed - dry-run still shows changes"
+            echo "   Dry-run output: '$second_run_output'"
+            FAILED_TESTS+=("Chezmoi idempotence (dry-run shows changes)")
             ((TESTS_FAILED++))
             return 1
         fi
     else
-        echo "❌ Chezmoi idempotence test failed - exit codes not zero"
-        echo "   First exit code: $first_exit_code"
-        echo "   Second exit code: $second_exit_code"
-        FAILED_TESTS+=("Chezmoi idempotence")
+        echo "❌ Chezmoi idempotence test failed - dry-run exited non-zero"
+        echo "   Dry-run exit code: $second_exit_code"
+        echo "   Dry-run output: $second_run_output"
+        FAILED_TESTS+=("Chezmoi idempotence (dry-run failed)")
         ((TESTS_FAILED++))
         return 1
     fi
