@@ -77,10 +77,7 @@ if [ -d "$HOME/.volta" ]; then
 fi
 
 # --- Snap Package Manager ---
-# Add snap binaries to PATH if snap directory exists
-if [ -d "/snap/bin" ]; then
-	export PATH="$PATH:/snap/bin"
-fi
+# Note: Snap PATH management is now handled by platform-specific templates
 
 # --- Legacy Aliases (being migrated to modular system) ---
 alias projects='cd "$PROJECTS_ROOT"'

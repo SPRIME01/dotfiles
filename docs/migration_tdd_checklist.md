@@ -169,6 +169,7 @@ Next failing test: template content accuracy and platform branching.
 ---
 
 ## Phase 8 — Cleanup & Deprecations
+* use context7 as needed
 
 1) Red: author tests
 - Add `test/test-no-deprecated-loaders.sh`:
@@ -185,7 +186,7 @@ Next failing test: template content accuracy and platform branching.
 - Run full suite.
  - Open a login and interactive shell in CI to ensure no startup warnings.
 
-* use context7
+
 ---
 
 ## Continuous Regression
