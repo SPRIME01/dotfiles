@@ -57,7 +57,7 @@ Next failing test: template content accuracy and platform branching.
 - Run full suite.
  - Verify running templates twice remains a no-op (`chezmoi apply --dry-run`).
 
----
+##### phase 1 and 2 complete; next: mise adoption #####
 
 ## Phase 3 — Adopt Mise; Deprecate Volta Wiring
 
