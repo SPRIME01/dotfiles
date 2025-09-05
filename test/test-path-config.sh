@@ -91,37 +91,38 @@ test_path_idempotence() {
     temp_dir=$(mktemp -d)
     trap 'rm -rf "$temp_dir"' EXIT
 
-    # Extract the actual shell code from projects path template (remove Go template syntax)
-    local projects_path_content
-    projects_path_content=$(cat "$PWD/templates/partials/projects_path.tmpl" | sed 's/{{.*}}//g' | grep -v '^#' | sed '/^$/d')
+    # Produce a sanitized, sourceable copy of the projects path template
+    local REPO_ROOT
+    REPO_ROOT="$PWD"
+    local sanitized
+    sanitized="$temp_dir/projects_path.sh"
+    sed -E '/\{\{.*\}\}/d;/^\s*#/d;/^\s*$/d' "$REPO_ROOT/templates/partials/projects_path.tmpl" > "$sanitized"
+    chmod 0644 "$sanitized"
 
-    # Create test files
+    # Create test script that sources repo helpers (if present) and the sanitized template twice
     cat > "$temp_dir/test_script.sh" <<EOF
 #!/usr/bin/env bash
-# Test script to simulate shell sourcing
+set -euo pipefail
+# Minimal, deterministic PATH baseline
 export PATH="/usr/bin:/bin"
-
-# First source
-$projects_path_content
-
-# Capture first PATH
-first_path="\$PATH"
-
-# Second source (simulate re-sourcing)
-$projects_path_content
-
-# Capture second PATH
-second_path="\$PATH"
-
-echo "first_path=\$first_path"
-echo "second_path=\$second_path"
-
-# Check if paths are equal (no duplication)
-if [[ "\$first_path" == "\$second_path" ]]; then
-    exit 0
-else
-    exit 1
+# Source repository helper functions if available
+if [[ -f "$REPO_ROOT/.shell_functions.sh" ]]; then
+    # shellcheck disable=SC1090
+    source "$REPO_ROOT/.shell_functions.sh"
+elif [[ -f "$REPO_ROOT/.shell_common.sh" ]]; then
+    # shellcheck disable=SC1090
+    source "$REPO_ROOT/.shell_common.sh"
 fi
+# First source
+# shellcheck disable=SC1090
+source "$sanitized"
+first_path="\$PATH"
+# Second source (simulate re-sourcing)
+# shellcheck disable=SC1090
+source "$sanitized"
+second_path="\$PATH"
+# Exit with success only if identical
+[[ "\$first_path" == "\$second_path" ]]
 EOF
 
     chmod +x "$temp_dir/test_script.sh"

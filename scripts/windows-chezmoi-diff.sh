@@ -1,30 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Usage: scripts/windows-chezmoi-diff.sh [SOURCE_DIR]
+SRC="${SRC:-$HOME/dotfiles}"
+DEST="${DEST:-}"
 
-SRC_DIR=${1:-"${HOME}/dotfiles"}
-EXCLUDE_DOCS_PS1=${EXCLUDE_DOCS_PS1:-1}
-
-if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
-  echo "❌ Run from WSL" >&2
-  exit 1
+# If DEST not set, try to discover Windows UserProfile via powershell.exe (WSL interop)
+if [[ -z "$DEST" ]]; then
+    if command -v powershell.exe >/dev/null 2>&1; then
+        winpath=$(powershell.exe -NoProfile -Command '$env:USERPROFILE' 2>/dev/null | tr -d '\r' || true)
+        if [[ -n "$winpath" ]]; then
+            # Convert C:\Users\Name to /mnt/c/Users/Name (wslpath if available)
+            if command -v wslpath >/dev/null 2>&1; then
+                DEST="$(wslpath -a "$winpath")"
+            else
+                DEST="$winpath"
+            fi
+        fi
+    fi
 fi
 
-if ! command -v cmd.exe >/dev/null 2>&1; then
-  echo "❌ cmd.exe unavailable (WSL interop?)" >&2
-  exit 1
+if [[ -z "$DEST" ]]; then
+    echo "ERROR: Destination not set. Provide DEST=/mnt/c/Users/You or run from WSL with powershell.exe available." >&2
+    exit 2
 fi
 
-WIN_HOME=$(cmd.exe /C "echo %USERPROFILE%" | tr -d '\r')
-WIN_HOME_WSL=$(wslpath "$WIN_HOME")
-
-echo "📂 Windows home: $WIN_HOME_WSL"
-echo "📦 Source: $SRC_DIR"
-
-EXCLUDES=()
-if [[ "$EXCLUDE_DOCS_PS1" == "1" ]]; then
-  EXCLUDES+=(--exclude "Documents/PowerShell/Microsoft.PowerShell_profile.ps1")
+CHEZMOI_NO_PAGER=1 PAGER=cat chezmoi diff --source "$SRC" --destination "$DEST" --verbose
 fi
 
 CHEZMOI_NO_PAGER=1 PAGER=cat \

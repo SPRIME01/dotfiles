@@ -7,13 +7,14 @@ Prerequisites
 - This repo is your chezmoi source (default `~/dotfiles`)
 
 Quick Recipes (recommended)
-- Diff: `just windows-chezmoi-diff`
-- Apply: `just windows-chezmoi-apply`
+- Diff: `just windows-chezmoi-diff`              # invokes scripts/windows-chezmoi-diff.sh via bash
+- Apply: `just windows-chezmoi-apply`            # invokes scripts/windows-chezmoi-apply.sh via bash
 
 Notes:
-- Override the source repo path if not `~/dotfiles`:
-  - `just windows-chezmoi-diff SRC=/path/to/repo`
-  - `just windows-chezmoi-apply SRC=/path/to/repo`
+- The Just recipes call helper scripts in scripts/ so you don't need to set executable bits to use them.
+- If you prefer to run the scripts directly, mark them executable:
+  - `chmod +x scripts/windows-chezmoi-*.sh`
+  - then run `scripts/windows-chezmoi-diff.sh` or `scripts/windows-chezmoi-apply.sh`
 
 Manual Commands
 - Discover Windows home: `powershell.exe -NoProfile -Command "$env:USERPROFILE" | tr -d '\r'`

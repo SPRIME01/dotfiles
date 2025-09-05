@@ -8,6 +8,8 @@
 !dot_*
 !AppData/**
 !Documents/**
+!Documents/
+!AppData/
 
 # Exclude problematic Windows symlink if present; managed via scripts
 /Documents/PowerShell/Microsoft.PowerShell_profile.ps1
