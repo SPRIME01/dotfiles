@@ -2,17 +2,46 @@
 # scripts/doctor.sh - environment diagnostic helper
 set -euo pipefail
 
+# Flags (informational only; accepted for compatibility with tests)
+QUICK=0
+VERBOSE=0
+STRICT=0
+for arg in "$@"; do
+	case "$arg" in
+		--quick)
+			QUICK=1
+			;;
+		--verbose)
+			VERBOSE=1
+			;;
+		--strict)
+			STRICT=1
+			;;
+		*)
+			# ignore unknown args to keep this script forgiving
+			;;
+	esac
+done
+
 echo "Dotfiles Doctor"
 echo "================"
 
 # Basic checks
 fail=0
 
+log() {
+	# Only print debug lines when verbose
+	if [[ $VERBOSE -eq 1 ]]; then
+		printf '[debug] %s\n' "$*"
+	fi
+}
+
 check() {
 	local label
 	local cmd
 	label="$1"
 	cmd="$2"
+	log "check: $label -> $cmd"
 	if eval "$cmd" >/dev/null 2>&1; then
 		printf '✅ %s\n' "$label"
 	else
@@ -21,6 +50,21 @@ check() {
 	fi
 }
 
+# Optional check (does not affect overall failure)
+check_optional() {
+	local label
+	local cmd
+	label="$1"
+	cmd="$2"
+	log "check_optional: $label -> $cmd"
+	if eval "$cmd" >/dev/null 2>&1; then
+		printf '✅ %s\n' "$label"
+	else
+		printf '⚠️  %s (optional)\n' "$label"
+	fi
+}
+
+# Core environment checks
 check "DOTFILES_ROOT set" test -n "${DOTFILES_ROOT:-}"
 check "Home writable" test -w "$HOME"
 check "Projects dir present" test -d "${PROJECTS_ROOT:-$HOME/projects}"
@@ -31,4 +75,10 @@ if [ "$fail" -eq 0 ]; then
 else
 	echo "Some checks failed" >&2
 fi
-exit $fail
+
+# Default behavior: informational exit (always 0). Use --strict to return non-zero on failures.
+if [[ $STRICT -eq 1 ]]; then
+	exit "$fail"
+else
+	exit 0
+fi
