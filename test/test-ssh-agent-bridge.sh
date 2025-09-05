@@ -45,8 +45,15 @@ fi
 # Test 2: Check preflight.sh helper exists and is accessible
 echo
 echo "Test 2: Preflight helper script"
-PREFLIGHT_SCRIPT="$REPO_ROOT/ssh-agent-bridge/preflight.sh"
-if [ -f "$PREFLIGHT_SCRIPT" ]; then
+PREFLIGHT_SCRIPT=""
+for cand in "$REPO_ROOT/ssh-agent-bridge/preflight.sh" "$REPO_ROOT/scripts/ssh-agent-bridge/preflight.sh"; do
+    if [ -f "$cand" ]; then
+        PREFLIGHT_SCRIPT="$cand"
+        break
+    fi
+done
+
+if [ -n "$PREFLIGHT_SCRIPT" ]; then
     echo "✅ Preflight script exists: $PREFLIGHT_SCRIPT"
     if [ -x "$PREFLIGHT_SCRIPT" ]; then
         echo "✅ Preflight script is executable"
