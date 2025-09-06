@@ -37,9 +37,13 @@ else
   }
   trap cleanup_installer_log EXIT
 
+  # Ensure target bin directory exists before running installer
+  mkdir -p "$HOME/.local/bin"
+
   if command -v curl >/dev/null 2>&1; then
-    # Run the remote installer while capturing its output; preserve exit status.
-    if ! curl -fsLS "$INSTALLER_URL" 2>&1 | tee "$TMP_LOG" | sh -s -- -b "$HOME/.local/bin"; then
+    # Run the installer; capture combined stdout/stderr of the execution to the log.
+    # Group the pipeline so both curl and sh output are logged and pipefail preserves failures.
+    if ! { curl -fsLS "$INSTALLER_URL" | sh -s -- -b "$HOME/.local/bin"; } 2>&1 | tee "$TMP_LOG"; then
       KEEP_TMP_LOG=1
       echo "❌ chezmoi installer (curl) failed. Installer output saved to: $TMP_LOG"
       echo "----- last 200 lines of installer log -----"
@@ -49,7 +53,7 @@ else
       exit 1
     fi
   elif command -v wget >/dev/null 2>&1; then
-    if ! wget -qO- "$INSTALLER_URL" 2>&1 | tee "$TMP_LOG" | sh -s -- -b "$HOME/.local/bin"; then
+    if ! { wget -qO- "$INSTALLER_URL" | sh -s -- -b "$HOME/.local/bin"; } 2>&1 | tee "$TMP_LOG"; then
       KEEP_TMP_LOG=1
       echo "❌ chezmoi installer (wget) failed. Installer output saved to: $TMP_LOG"
       echo "----- last 200 lines of installer log -----"
