@@ -221,11 +221,7 @@ move-docs-off-onedrive-dry:
 # ===== PowerShell aliases/profile helpers (namespaced) =====
 
 # Idempotent: regenerate module and profile section
-pwsh-update:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    pwsh -NoLogo -NoProfile -File "PowerShell/Modules/Aliases/Update-AliasesModule.ps1"
-
+// (remove lines 224–228; the minimal pwsh-update recipe is deleted entirely)
 pwsh-update-dry-run:
     #!/usr/bin/env bash
     set -euo pipefail
