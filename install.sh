@@ -12,8 +12,12 @@ echo "==> Dotfiles bootstrap: chezmoi apply"
 SOURCE_DIR=${CHEZMOI_SOURCE:-"$(pwd -P)"}
 DRY_RUN=${DRY_RUN:-0}
 
-echo "• Source directory: $SOURCE_DIR"
+if [[ ! -d "$SOURCE_DIR" ]]; then
+  echo "❌ Source directory does not exist: $SOURCE_DIR"
+  exit 1
+fi
 
+echo "• Source directory: $SOURCE_DIR"
 # Ensure chezmoi never invokes a pager in this script
 export CHEZMOI_NO_PAGER=1
 export PAGER=cat
