@@ -18,6 +18,10 @@ if [[ ! -d "$SOURCE_DIR" ]]; then
 fi
 
 echo "• Source directory: $SOURCE_DIR"
+  exit 1
+fi
+
+echo "• Source directory: $SOURCE_DIR"
 # Ensure chezmoi never invokes a pager in this script
 export CHEZMOI_NO_PAGER=1
 export PAGER=cat
@@ -45,15 +49,15 @@ else
   mkdir -p "$HOME/.local/bin"
 
   if command -v curl >/dev/null 2>&1; then
-    # Run the installer; capture combined stdout/stderr of the execution to the log.
-    # Group the pipeline so both curl and sh output are logged and pipefail preserves failures.
-    if ! { curl -fsLS "$INSTALLER_URL" | sh -s -- -b "$HOME/.local/bin"; } 2>&1 | tee "$TMP_LOG"; then
+    # Run the remote installer and capture its output.
+    mkdir -p "$HOME/.local/bin"
+    if ! { curl -fsSL "$INSTALLER_URL" | sh -s -- -b "$HOME/.local/bin"; } 2>&1 | tee "$TMP_LOG"; then
       KEEP_TMP_LOG=1
       echo "❌ chezmoi installer (curl) failed. Installer output saved to: $TMP_LOG"
       echo "----- last 200 lines of installer log -----"
       tail -n 200 "$TMP_LOG" || true
       echo "You can retry manually with:"
-      echo "  curl -fsSL \"$INSTALLER_URL\" | sh -s -- -b \"\$HOME/.local/bin\""
+      echo "  curl -fsSL \"$INSTALLER_URL\" | sh -s -- -b \"\$HOME/.local/bin\" 2>&1 | tee \"$TMP_LOG\""
       exit 1
     fi
   elif command -v wget >/dev/null 2>&1; then
@@ -63,7 +67,7 @@ else
       echo "----- last 200 lines of installer log -----"
       tail -n 200 "$TMP_LOG" || true
       echo "You can retry manually with:"
-      echo "  wget -qO- \"$INSTALLER_URL\" | sh -s -- -b \"\$HOME/.local/bin\""
+      echo "  wget -qO- \"$INSTALLER_URL\" | sh -s -- -b \"\$HOME/.local/bin\" 2>&1 | tee \"$TMP_LOG\""
       exit 1
     fi
   else
