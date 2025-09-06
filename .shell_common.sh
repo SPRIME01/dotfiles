@@ -173,10 +173,10 @@ if [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v cmd.exe >/dev/null 2>&1; then
                 true
             else
                 BATCH_FILE="$WIN_USER_HOME/projects.bat"
-                cat >"$BATCH_FILE" 2>/dev/null <<'EOF'
+                cat >"$BATCH_FILE" 2>/dev/null <<EOF
 @echo off
 REM Navigate to WSL2 projects directory
-cd /d "\\wsl.localhost\Ubuntu\home\%USERNAME%\projects"
+cd /d "\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\projects"
 cmd /k
 EOF
                 chmod +x "$BATCH_FILE" 2>/dev/null

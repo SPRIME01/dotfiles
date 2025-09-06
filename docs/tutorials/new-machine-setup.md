@@ -26,7 +26,20 @@ Linux and macOS
    - When to use: right after bootstrap.
    - Why it matters: catches path/perm issues early.
 
-3) Install direnv (choose one)
+3) Verify Mise (tool/version manager)
+   ```bash
+   # Check for mise on PATH, then run diagnostics (non-fatal)
+   if command -v mise >/dev/null 2>&1; then
+     mise --version
+     mise doctor || true
+   else
+     echo "mise not found on PATH — install it, then re-run"
+   fi
+   ```
+   - When to use: first setup or when tools aren’t resolving on PATH.
+   - Why it matters: Mise is the default tool/version manager in this repo.
+
+4) Install direnv (choose one)
    ```bash
    # Project justfile (inside this repo)
    just install-direnv
@@ -37,7 +50,7 @@ Linux and macOS
    - When to use: once per machine.
    - Why it matters: direnv powers quiet, per-dir envs in this repo and future projects.
 
-4) Enable direnv for this repo
+5) Enable direnv for this repo
    ```bash
    # Run in the repo root (where .envrc lives)
    direnv allow
@@ -46,7 +59,7 @@ Linux and macOS
    - When to use: first time; repeat after editing `.envrc`.
    - Why it matters: security model—environments load only after explicit allow.
 
-5) Optional: verify shells
+6) Optional: verify shells
    ```bash
    # zsh: templates include direnv hooks and WSL/macOS PATH fixes
    zsh --version
@@ -74,6 +87,16 @@ Windows (WSL integration recommended)
    - When to use: applying Windows-side changes (e.g., PowerShell profile) from WSL.
    - Why it matters: consistent management from one source of truth.
    - Note: If a helper fails, use the manual commands in docs/how-to/chezmoi-windows.md.
+
+4) SSH agent bridge verification (run from WSL)
+   ```bash
+   # List keys known to the agent; if empty, add defaults
+   ssh-add -l || ssh-add
+
+   # Quick GitHub check (ok if it prints Permission denied)
+   ssh -T git@github.com || true
+   ```
+   - Note: Ensures your SSH keys are usable from both WSL and Windows sessions; if the bridge fails, follow the manual steps in docs/how-to/chezmoi-windows.md.
 
 Windows (native PowerShell alternative)
 
@@ -131,4 +154,3 @@ What next?
 - How‑to: docs/how-to/use-chezmoi.md
 - How‑to: docs/how-to/use-direnv.md
 - Windows details: docs/how-to/chezmoi-windows.md and docs/how-to/windows.md
-

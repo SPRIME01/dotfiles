@@ -5,7 +5,7 @@ There are two justfiles in this project:
 - Global justfile installed by chezmoi: `dot_justfile` → targets `~/.justfile`
 - Project justfile in this repo: `justfile` (many repo-specific tasks)
 
-This page enumerates the global recipes from `dot_justfile` and how to use them. Use `just --list` and `just --choose` to discover and run tasks interactively.
+This page enumerates the global recipes from `dot_justfile` and highlights key project recipes from the repo `justfile`. Use `just --list` and `just --choose` to discover and run tasks interactively.
 
 Discovery
 
@@ -77,7 +77,57 @@ Global recipes (dot_justfile)
     just windows-chezmoi-apply
     ```
 
+Project recipes (repo justfile)
+
+- setup-pwsh7
+  - Purpose: from WSL, configure Windows PowerShell 7 to load this repo’s profile.
+  - Example:
+    ```bash
+    just setup-pwsh7
+    ```
+
+- verify-windows-profile
+  - Purpose: verify that Windows $PROFILE points at this repo and initializes correctly.
+  - Example:
+    ```bash
+    just verify-windows-profile
+    ```
+
+- verify-windows-theme
+  - Purpose: verify Oh My Posh is available on Windows and the configured theme resolves.
+  - Example:
+    ```bash
+    just verify-windows-theme
+    ```
+
+- list-windows-themes
+  - Purpose: list available Oh My Posh themes in `PowerShell/Themes`.
+  - Example:
+    ```bash
+    just list-windows-themes
+    ```
+
+- set-windows-theme
+  - Purpose: set the `OMP_THEME` for Windows and reinitialize the current prompt if possible.
+  - Example:
+    ```bash
+    just set-windows-theme powerlevel10k_modern
+    ```
+
+- windows-chezmoi-diff-apply
+  - Purpose: convenience alias to run `windows-chezmoi-diff` then `windows-chezmoi-apply`.
+  - Example:
+    ```bash
+    just windows-chezmoi-diff-apply
+    ```
+
+- verify-windows-mise-dotenv
+  - Purpose: verify Mise activation and dotenv loading in Windows PowerShell (run from WSL).
+  - Example:
+    ```bash
+    just verify-windows-mise-dotenv
+    ```
+
 Notes
 
 - The project `justfile` in this repo exposes many additional tasks (e.g., Windows/WSL integration, SSH Agent Bridge). Discover them with `just --list` while inside the repo. For SSH Agent Bridge specifics, see docs/how-to/ssh-agent-bridge-cheatsheet.md.
-
