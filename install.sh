@@ -85,15 +85,22 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 if [[ "$DRY_RUN" == "1" ]]; then
-  # Prefer diff in dry-run to avoid any interactive behavior
+  # Dry-run: show diff only. chezmoi diff exit codes:
+  #   0 = no changes, 1 = differences present, >1 = error.
+  # Treat 0 and 1 as success; propagate any other non-zero as failure.
   set +e
   chezmoi diff --source="$SOURCE_DIR" --verbose
-  status=$?
+  diff_rc=$?
   set -e
-  if [[ $status -gt 1 ]]; then
-    echo "❌ chezmoi diff failed with exit code $status"
-    exit "$status"
-  fi
+  case "$diff_rc" in
+    0)
+      echo "• Dry-run completed (no changes).";;
+    1)
+      echo "• Dry-run completed (changes present).";;
+    *)
+      echo "❌ chezmoi diff failed with exit code $diff_rc"
+      exit "$diff_rc";;
+  esac
 else
   chezmoi apply --source="$SOURCE_DIR" --verbose
 fi
