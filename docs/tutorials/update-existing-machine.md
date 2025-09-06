@@ -51,13 +51,6 @@ Goal: safely update your dotfiles while seeing what will change, then verify and
    - Why it matters: confirms environment is consistent.
 
 6) Optional: pull upstream changes to the repo itself
-   ```bash
-   cd "$HOME/dotfiles"
-   git fetch --all --prune
-   git pull --rebase --autostash
-   # Re-run bootstrap if you suspect shell symlinks or settings changed
-   bash bootstrap.sh
-   ```
    - When to use: if you track this repo directly (rather than using chezmoi init with a remote).
    - Why it matters: updates project scripts and templates themselves.
    - Note: some references mention update.sh; if absent, use the commands above.
