@@ -26,27 +26,37 @@ fi
 
 OS="$(uname -s || true)"
 
-if command -v apt >/dev/null 2>&1; then
+# record which PM we used for possible post-install messaging
+USED_PM="unknown"
+
+if command -v apt-get >/dev/null 2>&1 || command -v apt >/dev/null 2>&1; then
 	echo "📦 Using apt"
-	sudo apt update -y >/dev/null 2>&1 || true
-	sudo apt install -y direnv
+	USED_PM="apt"
+	${SUDO[@]} apt-get update -qq
+	DEBIAN_FRONTEND=noninteractive ${SUDO[@]} apt-get install -yq direnv
 elif command -v brew >/dev/null 2>&1; then
 	echo "🍺 Using Homebrew"
+	USED_PM="brew"
 	brew install direnv
 elif command -v dnf >/dev/null 2>&1; then
 	echo "📦 Using dnf"
-	sudo dnf install -y direnv
+	USED_PM="dnf"
+	${SUDO[@]} dnf install -y direnv
 elif command -v pacman >/dev/null 2>&1; then
 	echo "📦 Using pacman"
-	sudo pacman -Sy --noconfirm direnv
+	USED_PM="pacman"
+	${SUDO[@]} pacman -S --noconfirm --needed direnv
 elif command -v zypper >/dev/null 2>&1; then
 	echo "📦 Using zypper"
-	sudo zypper install -y direnv
+	USED_PM="zypper"
+	${SUDO[@]} zypper -n install -y direnv
 elif command -v scoop >/dev/null 2>&1; then
 	echo "🪟 Using scoop (Windows)"
+	USED_PM="scoop"
 	scoop install direnv
 elif command -v choco >/dev/null 2>&1; then
 	echo "🪟 Using choco (Windows)"
+	USED_PM="choco"
 	choco install direnv -y
 else
 	echo "❌ No supported package manager found. Install manually from https://direnv.net"
