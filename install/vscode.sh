@@ -47,7 +47,7 @@ require_jq() {
 # Merge JSON objects with repo values overriding existing values.
 # Usage: merge_json_files <existing.json|-> <repo_base.json|-> <repo_overlay.json|-> > out.json
 merge_json_files() {
-  jq -s 'reduce .[] as $x ({}; . * $x)'
+  jq -s 'reduce .[] as $x ({}; . * $x)' "$@"
 }
 
 # Create or update a settings.json at the given target path using repo base and
