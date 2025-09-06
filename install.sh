@@ -84,7 +84,7 @@ if [[ $? -ne 0 ]]; then
 fi
 if [[ "$DRY_RUN" == "1" ]]; then
   # Prefer diff in dry-run to avoid any interactive behavior
-  chezmoi diff --source="$SOURCE_DIR" --verbose
+  chezmoi diff --source="$SOURCE_DIR" --verbose || true
 else
   chezmoi apply --source="$SOURCE_DIR" --verbose
 fi
