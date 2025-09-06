@@ -306,7 +306,13 @@ pwsh-reload-windows:
     UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}$(pwd | sed 's|^/|\\|; s|/|\\|g')"
     PSBIN="pwsh.exe"; command -v pwsh.exe >/dev/null 2>&1 || PSBIN="powershell.exe"
     echo "🔁 Updating module before loading (from WSL)..."
-    pwsh -NoLogo -NoProfile -File "PowerShell/Modules/Aliases/Update-AliasesModule.ps1"
+    if command -v pwsh >/dev/null 2>&1; then
+        pwsh -NoLogo -NoProfile -File "PowerShell/Modules/Aliases/Update-AliasesModule.ps1"
+    else
+        echo "ℹ️ pwsh (Linux) not found; skipping module update"
+        # Optional: run the updater via Windows side:
+        # "$PSBIN" -NoLogo -NoProfile -Command "& '\\\\wsl.localhost\\${WSL_DISTRO_NAME}$(pwd | sed 's|^/|\\|; s|/|\\|g')\\PowerShell\\Modules\\Aliases\\Update-AliasesModule.ps1'"
+    fi
     echo "🚀 Launching Windows $PSBIN with repo profile loaded from: $UNC"
     "$PSBIN" -NoLogo -NoProfile -NoExit -Command "Import-Module '$UNC\\PowerShell\\Modules\\Aliases\\Aliases.psm1' -Force; . '$UNC\\PowerShell\\Microsoft.PowerShell_profile.ps1'; Write-Host '✅ Loaded aliases and profile from $UNC' -ForegroundColor Green"
 
