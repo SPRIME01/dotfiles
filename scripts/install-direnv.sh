@@ -1,6 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
+#!/usr/bin/env bash
+set -euo pipefail
 
+# Privilege helper: use sudo if present and needed
+SUDO=()
+if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
+  if command -v sudo >/dev/null 2>&1; then
+    SUDO=(sudo)
+  else
+    echo "⚠️ Running as non-root and sudo not found; attempting installs without elevation." >&2
+  fi
+fi
+
+# …rest of install-direnv.sh…
 # Simple cross-platform installer for direnv used by the justfile.
 # Mirrors behavior of the previous inline command: idempotent, prints helpful hints.
 
