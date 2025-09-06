@@ -64,6 +64,8 @@ else
     exit 1
   fi
 
+  # Make the freshly installed binary discoverable in this session
+  export PATH="$HOME/.local/bin:$PATH"
   if ! command -v chezmoi >/dev/null 2>&1; then
     KEEP_TMP_LOG=1
     echo "❌ chezmoi not found after installation. Check installer log: $TMP_LOG"
