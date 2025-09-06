@@ -100,6 +100,7 @@ verify-windows-theme:
 # Verify Mise activation + dotenv loading in Windows PowerShell
 # Usage: `just verify-windows-mise-dotenv` (run from WSL)
 verify-windows-mise-dotenv:
+verify-windows-mise-dotenv:
 	@bash -lc 'set -euo pipefail; \
 	  if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then \
 	    echo "ℹ️  Run from WSL to verify Windows PowerShell environment."; \
@@ -109,10 +110,11 @@ verify-windows-mise-dotenv:
 	    echo "❌ Neither powershell.exe nor pwsh.exe available from WSL."; \
 	    exit 1; \
 	  fi; \
+	  WIN_PATH="$(wslpath -w "$PWD/scripts/verify-windows-mise-dotenv.ps1")"; \
 	  if command -v pwsh.exe >/dev/null 2>&1; then \
-	    pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/verify-windows-mise-dotenv.ps1 | tr -d "\r"; \
+	    pwsh.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" | tr -d "\r"; \
 	  else \
-	    powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/verify-windows-mise-dotenv.ps1 | tr -d "\r"; \
+	    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" | tr -d "\r"; \
 	  fi'
 
 # List available Oh My Posh themes on Windows
