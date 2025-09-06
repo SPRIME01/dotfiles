@@ -187,7 +187,7 @@ try {
     # Add dot-sourcing lines
     foreach ($info in $FunctionInfos) {
         # Use Join-Path for cross-platform path separators
-        $content += "`n    . (Join-Path -Path ``$ModulePath -ChildPath '$($info.FileName)')"
+        $content += "`n    . (Join-Path -Path `$ModulePath -ChildPath '$($info.FileName)')"
     }
 
     $content += @"
@@ -235,7 +235,7 @@ function Generate-LazyLoadingFunctions {
     $content = @"
 # Lazy-load the Aliases module by creating proxy functions.
 # The module will be imported only when one of its commands is run for the first time.
-`$aliasesModulePath = Join-Path -Path ``$PSScriptRoot -ChildPath (Join-Path -Path 'Modules' -ChildPath (Join-Path -Path 'Aliases' -ChildPath 'Aliases.psm1'))
+`$aliasesModulePath = Join-Path -Path `$PSScriptRoot -ChildPath (Join-Path -Path 'Modules' -ChildPath (Join-Path -Path 'Aliases' -ChildPath 'Aliases.psm1'))
 
 "@
 
