@@ -64,12 +64,6 @@ else
     exit 1
   fi
 
-set -x
-if ! chezmoi init --source="$SOURCE_DIR"; then
-  echo "ERROR: 'chezmoi init' failed. Please check your source directory and try again."
-  echo "You can run 'chezmoi init --source=\"$SOURCE_DIR\"' manually for more details."
-  exit 1
-fi
   if ! command -v chezmoi >/dev/null 2>&1; then
     KEEP_TMP_LOG=1
     echo "❌ chezmoi not found after installation. Check installer log: $TMP_LOG"
