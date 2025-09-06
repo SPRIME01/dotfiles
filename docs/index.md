@@ -1,11 +1,11 @@
 # Dotfiles System — Overview and Quickstart
 
-Welcome. This repository manages your shell and editor configuration across Linux, macOS, and Windows (including WSL) using three core tools:
+Welcome. This repository manages your shell and editor configuration across Linux, macOS, and Windows (including WSL) using four core tools:
 
 - chezmoi: declarative dotfile management and templating
 - direnv: per-directory environments with safe “allow” gates
 - just: convenient task runner for repeatable tasks
-
+- mise: tool/version manager loaded early in shell init
 Use the tutorials for the happy path and the how‑tos for common tasks. Reference pages list commands and structure; the explanation page shows how the pieces fit.
 
 Quickstart
