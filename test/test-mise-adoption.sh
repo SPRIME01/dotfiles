@@ -174,7 +174,7 @@ test_mise_idempotence() {
         ((TESTS_FAILED++))
         return 1
     fi
-    trap '[[ -n "$tmpdest" ]] && rm -rf -- "$tmpdest"' RETURN
+    trap 'tmp=${tmpdest:-}; [[ -n "$tmp" ]] && rm -rf -- "$tmp"; trap - RETURN' RETURN
     if ! chezmoi apply --source "$PWD" --destination "$tmpdest" >/dev/null 2>&1; then
         echo "❌ failed to render .mise.toml to temp destination"
         FAILED_TESTS+=("mise idempotence - render failed")
