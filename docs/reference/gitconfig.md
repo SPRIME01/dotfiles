@@ -42,6 +42,15 @@ git config --global --get rebase.updateRefs
 git config --global -l
 ````
 
+Global ignore file
+````bash
+# Use the global ignore installed by chezmoi
+git config --global core.excludesfile "$HOME/.gitignore_global"
+
+# Verify
+git config --global --get core.excludesfile
+````
+
 Per-repo override (run inside a repo)
 ````bash
 # Example: use merge instead of rebase for just this repo

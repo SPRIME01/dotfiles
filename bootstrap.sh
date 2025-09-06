@@ -10,6 +10,15 @@ echo "⚙️ Setting up Unix shell..."
 
 DOTFILES=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
+# Export DOTFILES_ROOT for state-management helpers (falls back to $HOME/dotfiles inside the library)
+export DOTFILES_ROOT="$DOTFILES"
+
+# Source state management helpers if available so bootstrap can record completion cleanly
+if [[ -f "$DOTFILES/lib/state-management.sh" ]]; then
+	# shellcheck disable=SC1090
+	. "$DOTFILES/lib/state-management.sh"
+fi
+
 # Create symlinks for shell configuration files
 ln -sf "$DOTFILES/.bashrc" ~/.bashrc
 ln -sf "$DOTFILES/.zshrc" ~/.zshrc
@@ -72,6 +81,10 @@ else
 fi
 
 echo "🎉 Bootstrap complete!"
+if type write_state_key >/dev/null 2>&1; then
+	# Record a single timestamp for the last successful bootstrap run.
+	write_state_key "setup_completed" "$(date -Iseconds)"
+fi
 echo "💡 To use MCP helper tools, run:"
 echo "   $DOTFILES/mcp/mcp-helper.sh env      # Show MCP environment"
 echo "   $DOTFILES/mcp/mcp-helper.ps1 env     # Show MCP environment (PowerShell)"

@@ -1,0 +1,17 @@
+{{/* Windows-specific PATH additions */}}
+# Windows-specific PATH entries
+# Add common Windows development tools directories
+if [[ -d "/c/Program Files/Git/bin" ]]; then
+  case ":$PATH:" in
+    *":/c/Program Files/Git/bin:"*) ;; # already present
+    *) export PATH="/c/Program Files/Git/bin:$PATH" ;;
+  esac
+fi
+
+# Add Windows user binaries
+if [[ -d "/c/Users/$USER/AppData/Local/Microsoft/WindowsApps" ]]; then
+  case ":$PATH:" in
+    *":/c/Users/$USER/AppData/Local/Microsoft/WindowsApps:"*) ;; # already present
+    *) export PATH="$PATH:/c/Users/$USER/AppData/Local/Microsoft/WindowsApps" ;;
+  esac
+fi

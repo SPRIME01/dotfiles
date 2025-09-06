@@ -27,23 +27,26 @@ write_state_key() {
 	# Portable in-place update using awk + temp file (works on GNU/BSD)
 	local tmp
 	tmp="$(mktemp "${DOTFILES_STATE_FILE}.XXXX")"
-	awk -v k="$key" -v v="$value" '
-      BEGIN { updated = 0 }
-      $0 ~ "^" k "=" {
-        print k "=" v
-        updated = 1
-        next
-      }
-      { print }
-      END {
-        if (NR == 0) {
-          # preserve header if file was just created by init_state_file
-        }
-        if (updated == 0) {
-          print k "=" v
-        }
-      }
-    ' "$DOTFILES_STATE_FILE" >"$tmp"
+		awk -v k="$key" -v v="$value" '
+			BEGIN { updated = 0 }
+			$0 ~ "^" k "=" {
+				if (updated == 0) {
+					print k "=" v
+					updated = 1
+				}
+				# skip any further occurrences of the same key
+				next
+			}
+			{ print }
+			END {
+				if (NR == 0) {
+					# preserve header if file was just created by init_state_file
+				}
+				if (updated == 0) {
+					print k "=" v
+				}
+			}
+		' "$DOTFILES_STATE_FILE" >"$tmp"
 	mv "$tmp" "$DOTFILES_STATE_FILE"
 }
 

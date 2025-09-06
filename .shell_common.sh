@@ -70,16 +70,14 @@ if [ -f "$DOTFILES_ROOT/shell/loader.sh" ]; then
 fi
 
 # --- Node.js Version Management (Volta) ---
+# Note: Volta PATH injection has been deprecated in favor of Mise
+# Keep VOLTA_HOME export for compatibility with existing Volta installations
 if [ -d "$HOME/.volta" ]; then
 	export VOLTA_HOME="$HOME/.volta"
-	export PATH="$VOLTA_HOME/bin:$PATH"
 fi
 
 # --- Snap Package Manager ---
-# Add snap binaries to PATH if snap directory exists
-if [ -d "/snap/bin" ]; then
-	export PATH="$PATH:/snap/bin"
-fi
+# Note: Snap PATH management is now handled by platform-specific templates
 
 # --- Legacy Aliases (being migrated to modular system) ---
 alias projects='cd "$PROJECTS_ROOT"'

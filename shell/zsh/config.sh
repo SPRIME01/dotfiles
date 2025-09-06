@@ -25,8 +25,8 @@ setopt AUTO_CD           # Auto-cd into directories
 setopt AUTO_PUSHD        # Automatically push directories onto stack
 setopt PUSHD_IGNORE_DUPS # Don't duplicate directories in stack
 setopt PUSHD_MINUS       # Exchange meaning of + and - for stack
-setopt CORRECT           # Try to correct spelling of commands
-setopt CORRECT_ALL       # Try to correct spelling of all arguments
+#setopt CORRECT           # Try to correct spelling of commands
+#setopt CORRECT_ALL       # Try to correct spelling of all arguments
 setopt NO_CASE_GLOB      # Case-insensitive globbing
 setopt EXTENDED_GLOB     # Enable extended globbing patterns
 setopt GLOB_DOTS         # Don't require leading '.' in filename to be matched

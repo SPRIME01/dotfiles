@@ -59,5 +59,13 @@ When making a significant architectural decision, add an ADR in `docs/adr/` usin
 ## Lint & Formatting
 Run `just lint` before pushing. Format shell code with `shfmt -w` if needed.
 
+## Global Git Ignore
+- Chezmoi installs `~/.gitignore_global` from `dot_gitignore_global`.
+- The bootstrap (`install.sh`) sets `git config --global core.excludesfile "$HOME/.gitignore_global"` if unset.
+- To set it manually (or correct it), run:
+  - `git config --global core.excludesfile "$HOME/.gitignore_global"`
+- Verify with:
+  - `git config --global --get core.excludesfile`
+
 ## Questions
 Open a GitHub issue with context and reproduction steps.

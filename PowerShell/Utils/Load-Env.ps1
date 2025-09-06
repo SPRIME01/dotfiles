@@ -22,6 +22,17 @@
         executed directly (e.g., `pwsh Load-Env.ps1`) it will automatically
         locate and load a `.env` file from the repository root.
 #>
+# --- Node.js Version Management (Volta) ---
+# Note: Volta PATH injection has been deprecated in favor of Mise
+# Keep VOLTA_HOME export for compatibility with existing Volta installations
+$voltaHome = Join-Path $HOME ".volta"
+if (Test-Path -LiteralPath $voltaHome) {
+    $env:VOLTA_HOME = $voltaHome
+}
+
+# --- Snap Package Manager ---
+# Note: Snap PATH management is now handled by platform-specific templates
+
 function Load-EnvFile {
     [CmdletBinding()]
     param(
