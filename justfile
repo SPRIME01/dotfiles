@@ -245,7 +245,7 @@ setup-wsl2-remote:
 
 # Configure Windows for WSL2 remote access (run the PowerShell script)
 setup-wsl2-remote-windows:
-	@bash -lc 'echo "🪟 Configuring Windows for WSL2 remote access..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This command is designed for WSL2 environments"; exit 1; fi; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ PowerShell not found on Windows"; exit 1; fi; echo "▶️  Running Windows configuration script..."; echo "⚠️  This requires Administrator privileges on Windows"; powershell.exe -ExecutionPolicy Bypass -File "$PWD/scripts/setup-wsl2-remote-windows.ps1"; echo ""; echo "🎉 Windows WSL2 remote configuration complete!"'
+	@bash -lc 'echo "🪟 Configuring Windows for WSL2 remote access..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This command is designed for WSL2 environments"; exit 1; fi; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ PowerShell not found on Windows"; exit 1; fi; echo "▶️  Running Windows configuration script..."; echo "⚠️  This requires Administrator privileges on Windows"; WIN_PATH="$(wslpath -w "$PWD/scripts/setup-wsl2-remote-windows.ps1")"; powershell.exe -ExecutionPolicy Bypass -File "$WIN_PATH"; echo ""; echo "🎉 Windows WSL2 remote configuration complete!"'
 
 # Complete WSL2 remote setup (guided setup with all configuration)
 setup-wsl2-complete:
