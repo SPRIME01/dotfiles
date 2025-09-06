@@ -63,11 +63,13 @@ else
 	exit 1
 fi
 
+hash -r || true
 if command -v direnv >/dev/null 2>&1; then
 	echo "🎉 direnv installed: $(direnv version || true)"
 	echo "💡 Create a .envrc in a project and run: direnv allow"
 	echo "💡 To disable temporarily: export DISABLE_DIRENV=1"
 else
-	echo "❌ direnv installation appears to have failed"
-	exit 1
+	echo "ℹ️ Installed via ${USED_PM:-unknown}, but direnv is not on PATH in this shell."
+	echo "   Open a new shell/session or ensure your PATH includes the package manager's bin dir."
+	echo "💡 Then: create a .envrc and run: direnv allow"
 fi
