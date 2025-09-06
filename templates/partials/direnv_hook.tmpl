@@ -1,6 +1,43 @@
-{{/* Common direnv hook setup */}}
-# Direnv (project-scoped environments)
+{{/* Common direnv hook setup (quiet + dotenv parity) */}}
+# Direnv (project-scoped environments) — quiet by default
 if command -v direnv >/dev/null 2>&1; then
   eval "$(direnv hook {{ .chezmoi.shell }})"
+  # quiet logs by default to reduce noise; toggle with direnv_verbose helpers
   [[ -z "${DIRENV_LOG_FORMAT:-}" ]] && export DIRENV_LOG_FORMAT=""
+fi
+
+# Minimal dotenv loader for shells (parity with PowerShell Load-Env)
+# - Safe: ignores comments/blank lines; accepts KEY=VALUE; strips surrounding quotes
+# - Scope: loads from $DOTFILES_ROOT/.env and $DOTFILES_ROOT/mcp/.env if present
+__dotfiles_load_dotenv_file() {
+  local f="$1"
+  [ -f "$f" ] || return 0
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      ''|'#'*) continue ;;
+    esac
+    key=${line%%=*}
+    val=${line#*=}
+    # Skip lines with obvious shell-injection patterns (subshell/backticks)
+    if printf '%s' "$val" | grep -Eq '[$][(]|`'; then
+      continue
+    fi
+    # valid env key? (POSIX-ish)
+    if printf '%s' "$key" | grep -Eq '^[A-Za-z_][A-Za-z0-9_]*$'; then
+      # strip matching single/double quotes
+      case "$val" in
+        \"*\") val=${val%\"}; val=${val#\"} ;;
+        \"\"|"" ) val='' ;;
+        \'*\') val=${val%\'}; val=${val#\'} ;;
+      esac
+      export "$key=$val"
+    fi
+  done <"$f"
+}
+
+if [ -z "${DOTFILES_DOTENV_LOADED:-}" ]; then
+  export DOTFILES_ROOT="${DOTFILES_ROOT:-$HOME/dotfiles}"
+  [ -f "$DOTFILES_ROOT/.env" ] && __dotfiles_load_dotenv_file "$DOTFILES_ROOT/.env"
+  [ -f "$DOTFILES_ROOT/mcp/.env" ] && __dotfiles_load_dotenv_file "$DOTFILES_ROOT/mcp/.env"
+  export DOTFILES_DOTENV_LOADED=1
 fi

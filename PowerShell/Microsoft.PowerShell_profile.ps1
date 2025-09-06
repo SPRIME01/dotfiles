@@ -53,6 +53,8 @@ if (Test-Path $modularIntegration) { . $modularIntegration } else { __Dotfiles-D
 $envLoader = Join-Path $env:DOTFILES_ROOT 'PowerShell/Utils/Load-Env.ps1'
 if (Test-Path $envLoader) {
     . $envLoader
+    # Ensure toolchain activation precedes dotenv imports (mise first)
+    if (Get-Command -Name Activate-Mise -ErrorAction SilentlyContinue) { Activate-Mise }
     # Load variables from the project .env (if present)
     $rootEnv = Join-Path $env:DOTFILES_ROOT '.env'
     if (Test-Path $rootEnv) { Load-EnvFile -FilePath $rootEnv }
