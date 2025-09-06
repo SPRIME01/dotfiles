@@ -54,7 +54,8 @@ try {
     $keys = @('FOO','MCP_ONLY','PROJECTS_ROOT','DOTFILES_ROOT')
     foreach ($k in $keys) {
       $v = (Get-Item -Path "env:$k" -ErrorAction SilentlyContinue).Value
-      Write-Host ("ENV $k=" + ($v ?? ''))
+      if ($null -eq $v) { $v = '' }
+      Write-Host ("ENV $k=" + $v)
     }
   } else {
     Write-Warning "Load-Env.ps1 not found; skipping dotenv check"
