@@ -86,7 +86,14 @@ if [[ $? -ne 0 ]]; then
 fi
 if [[ "$DRY_RUN" == "1" ]]; then
   # Prefer diff in dry-run to avoid any interactive behavior
-  chezmoi diff --source="$SOURCE_DIR" --verbose || true
+  set +e
+  chezmoi diff --source="$SOURCE_DIR" --verbose
+  status=$?
+  set -e
+  if [[ $status -gt 1 ]]; then
+    echo "❌ chezmoi diff failed with exit code $status"
+    exit "$status"
+  fi
 else
   chezmoi apply --source="$SOURCE_DIR" --verbose
 fi
