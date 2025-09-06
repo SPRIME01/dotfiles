@@ -69,6 +69,13 @@ test_mise_config_present() {
     echo "🧪 Testing mise config file presence"
     ((TESTS_RUN++))
 
+    # Skip if chezmoi is not installed
+    if ! command -v chezmoi >/dev/null 2>&1; then
+        echo "⚠️  chezmoi not installed, skipping config presence test"
+        ((TESTS_SKIPPED++))
+        return 0
+    fi
+
     # Check if dot_mise.toml template exists
     if [[ ! -f "dot_mise.toml" ]]; then
         echo "❌ dot_mise.toml template not found"
