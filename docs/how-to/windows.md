@@ -25,6 +25,17 @@ Common tasks
   - Why it matters: `.chezmoiignore` intentionally avoids direct writes to Windows profile from Linux/macOS flows.
   - If helpers fail: use manual commands in docs/how-to/chezmoi-windows.md.
 
+- SSH agent bridge verification (optional)
+  ```bash
+  # List identities loaded into the (bridged) agent; empty is OK
+  ssh-add -l || true
+
+  # Attempt GitHub SSH auth; success or a permissive denial both confirm key resolution
+  ssh -T git@github.com || true
+  ```
+  - When to use: after setting up WSL ↔ Windows profile integration (see docs/how-to/WSL-Windows-pwsh-integration.md) and configuring the SSH agent bridge.
+  - Why it matters: confirms your SSH keys resolve correctly across WSL and Windows environments via the bridge.
+
 - Verify Windows profile resolving this repo
   ```bash
   just verify-windows-profile

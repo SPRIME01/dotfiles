@@ -86,6 +86,7 @@ devmode-disable:
 # Force symlink via elevated Windows PowerShell (UAC prompt expected)
 setup-pwsh7-symlink-admin:
 	@bash -lc 'set -euo pipefail; echo "🪟 Forcing Windows $PROFILE symlink via elevated PowerShell (UAC prompt expected)..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."; exit 0; fi; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not available from WSL."; exit 1; fi; REPO_UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}$(pwd | sed 's|^/|\\|; s|/|\\|g')"; SCRIPT_UNC="${REPO_UNC}\\scripts\\invoke-elevated-symlink.ps1"; TARGET_UNC="${REPO_UNC}\\PowerShell\\Microsoft.PowerShell_profile.ps1"; echo "🔗 Script: ${SCRIPT_UNC}"; echo "🎯 Target: ${TARGET_UNC}"; powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${SCRIPT_UNC}" -Target "${TARGET_UNC}"'
+	@bash -lc 'set -euo pipefail; echo "🪟 Forcing Windows $PROFILE symlink via elevated PowerShell (UAC prompt expected)..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."; exit 0; fi; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not available from WSL."; exit 1; fi; SCRIPT_WIN=$(wslpath -w "$PWD/scripts/invoke-elevated-symlink.ps1"); TARGET_WIN=$(wslpath -w "$PWD/PowerShell/Microsoft.PowerShell_profile.ps1"); echo "🔗 Script: ${SCRIPT_WIN}"; echo "🎯 Target: ${TARGET_WIN}"; powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_WIN" -Target "$TARGET_WIN"'
 
 # Verify Windows PowerShell profile links to this repo and theme resolves
 # Usage: `just verify-windows-profile` (run from WSL)
@@ -110,7 +111,11 @@ verify-windows-mise-dotenv:
 	    echo "❌ Neither powershell.exe nor pwsh.exe available from WSL."; \
 	    exit 1; \
 	  fi; \
+<<<<<<< HEAD
 	  WIN_PATH="$(wslpath -w "$PWD/scripts/verify-windows-mise-dotenv.ps1")"; \
+=======
+	  WIN_PATH=$(wslpath -w "$PWD/scripts/verify-windows-mise-dotenv.ps1"); \
+>>>>>>> 5bbfa70 (Enhance Windows documentation with SSH agent bridge verification and update Justfile scripts for path handling)
 	  if command -v pwsh.exe >/dev/null 2>&1; then \
 	    pwsh.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" | tr -d "\r"; \
 	  else \
@@ -245,7 +250,11 @@ setup-wsl2-remote:
 
 # Configure Windows for WSL2 remote access (run the PowerShell script)
 setup-wsl2-remote-windows:
+<<<<<<< HEAD
 	@bash -lc 'echo "🪟 Configuring Windows for WSL2 remote access..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This command is designed for WSL2 environments"; exit 1; fi; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ PowerShell not found on Windows"; exit 1; fi; echo "▶️  Running Windows configuration script..."; echo "⚠️  This requires Administrator privileges on Windows"; WIN_PATH="$(wslpath -w "$PWD/scripts/setup-wsl2-remote-windows.ps1")"; powershell.exe -ExecutionPolicy Bypass -File "$WIN_PATH"; echo ""; echo "🎉 Windows WSL2 remote configuration complete!"'
+=======
+	@bash -lc 'echo "🪟 Configuring Windows for WSL2 remote access..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This command is designed for WSL2 environments"; exit 1; fi; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ PowerShell not found on Windows"; exit 1; fi; echo "▶️  Running Windows configuration script..."; echo "⚠️  This requires Administrator privileges on Windows"; WIN_PATH=$(wslpath -w "$PWD/scripts/setup-wsl2-remote-windows.ps1"); powershell.exe -ExecutionPolicy Bypass -File "$WIN_PATH"; echo ""; echo "🎉 Windows WSL2 remote configuration complete!"'
+>>>>>>> 5bbfa70 (Enhance Windows documentation with SSH agent bridge verification and update Justfile scripts for path handling)
 
 # Complete WSL2 remote setup (guided setup with all configuration)
 setup-wsl2-complete:
