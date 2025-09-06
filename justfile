@@ -221,7 +221,7 @@ move-docs-off-onedrive-dry:
 # ===== PowerShell aliases/profile helpers (namespaced) =====
 
 # Idempotent: regenerate module and profile section
-// (remove lines 224–228; the minimal pwsh-update recipe is deleted entirely)
+# (the minimal pwsh-update recipe was removed intentionally)
 pwsh-update-dry-run:
     #!/usr/bin/env bash
     set -euo pipefail
