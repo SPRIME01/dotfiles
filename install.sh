@@ -64,6 +64,8 @@ else
     exit 1
   fi
 
+  # Make the freshly installed binary discoverable in this session
+  export PATH="$HOME/.local/bin:$PATH"
   if ! command -v chezmoi >/dev/null 2>&1; then
     KEEP_TMP_LOG=1
     echo "❌ chezmoi not found after installation. Check installer log: $TMP_LOG"
@@ -84,7 +86,7 @@ if [[ $? -ne 0 ]]; then
 fi
 if [[ "$DRY_RUN" == "1" ]]; then
   # Prefer diff in dry-run to avoid any interactive behavior
-  chezmoi diff --source="$SOURCE_DIR" --verbose
+  chezmoi diff --source="$SOURCE_DIR" --verbose || true
 else
   chezmoi apply --source="$SOURCE_DIR" --verbose
 fi
