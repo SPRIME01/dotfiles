@@ -74,19 +74,6 @@ setup-pwsh7-symlink:
 	@bash -lc 'set -euo pipefail; echo "🪟 Forcing Windows $PROFILE symlink..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."; exit 0; fi; if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then echo "❌ Neither powershell.exe nor pwsh.exe is available from WSL."; exit 1; fi; bash scripts/setup-pwsh7.sh --require-symlink'
 
 # Windows Developer Mode helpers (run from WSL)
-devmode-status:
-	@bash -c 'powershell.exe -NoProfile -NonInteractive -Command "try { $v=(Get-ItemProperty -Path ''HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock'' -Name ''AllowDevelopmentWithoutDevLicense'' -ErrorAction SilentlyContinue).AllowDevelopmentWithoutDevLicense; if($v -eq 1){Write-Output ''Developer Mode: Enabled''} elseif($v -eq 0){Write-Output ''Developer Mode: Disabled''} else {Write-Output ''Developer Mode: Unknown''} } catch { Write-Output ''Developer Mode: Unknown'' }" | tr -d "\r"'
-
-devmode-enable:
-	@bash -c 'echo "⚠️  Attempting to enable Windows Developer Mode (requires admin)."; powershell.exe -NoProfile -Command "try { Start-Process PowerShell -Verb RunAs -ArgumentList ''-NoProfile -Command \"Set-ItemProperty -Path ''''HKLM:\\\\SOFTWARE\\\\CurrentVersion\\\\AppModelUnlock'''' -Name AllowDevelopmentWithoutDevLicense -Value 1; Write-Host ''''Developer Mode enabled'''' -ForegroundColor Green\"'' } catch { Write-Warning ''Failed to launch elevated PowerShell'' }"'
-
-devmode-disable:
-	@bash -c 'echo "⚠️  Attempting to disable Windows Developer Mode (requires admin)."; powershell.exe -NoProfile -Command "try { Start-Process PowerShell -Verb RunAs -ArgumentList ''-NoProfile -Command \"Set-ItemProperty -Path ''''HKLM:\\\\SOFTWARE\\\\CurrentVersion\\\\AppModelUnlock'''' -Name AllowDevelopmentWithoutDevLicense -Value 0; Write-Host ''''Developer Mode disabled'''' -ForegroundColor Yellow\"'' } catch { Write-Warning ''Failed to launch elevated PowerShell'' }"'
-
-# Force symlink via elevated Windows PowerShell (UAC prompt expected)
-setup-pwsh7-symlink-admin:
-	@bash -lc 'set -euo pipefail; echo "🪟 Forcing Windows $PROFILE symlink via elevated PowerShell (UAC prompt expected)..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."; exit 0; fi; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not available from WSL."; exit 1; fi; SCRIPT_WIN=$(wslpath -w "$PWD/scripts/invoke-elevated-symlink.ps1"); TARGET_WIN=$(wslpath -w "$PWD/PowerShell/Microsoft.PowerShell_profile.ps1"); echo "🔗 Script: ${SCRIPT_WIN}"; echo "🎯 Target: ${TARGET_WIN}"; powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_WIN" -Target "$TARGET_WIN"'
-	@bash -lc 'set -euo pipefail; echo "🪟 Forcing Windows $PROFILE symlink via elevated PowerShell (UAC prompt expected)..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."; exit 0; fi; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not available from WSL."; exit 1; fi; SCRIPT_WIN=$(wslpath -w "$PWD/scripts/invoke-elevated-symlink.ps1"); TARGET_WIN=$(wslpath -w "$PWD/PowerShell/Microsoft.PowerShell_profile.ps1"); echo "🔗 Script: ${SCRIPT_WIN}"; echo "🎯 Target: ${TARGET_WIN}"; powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_WIN" -Target "$TARGET_WIN"'
 
 # Windows Developer Mode helpers (run from WSL)
 devmode-status:
@@ -115,7 +102,6 @@ verify-windows-theme:
 
 # Verify Mise activation + dotenv loading in Windows PowerShell
 # Usage: `just verify-windows-mise-dotenv` (run from WSL)
-verify-windows-mise-dotenv:
 verify-windows-mise-dotenv:
 	@bash -lc 'set -euo pipefail; \
 	  if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then \
@@ -156,38 +142,7 @@ list-windows-themes:
 # Set OMP_THEME for Windows (persistent) and reinitialize current pwsh if present
 # Usage: just set-windows-theme powerlevel10k_modern
 set-windows-theme THEME:
-	@bash -c '
-	set -euo pipefail
-	if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
-	echo "ℹ️  set-windows-theme is intended for WSL; skipping on non-WSL systems."
-	@bash -c '
-	set -euo pipefail
-	if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
-	  echo "ℹ️  set-windows-theme is intended for WSL; skipping on non-WSL systems."
-	  exit 0
-	fi
-
-	UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}$(pwd | sed "s|^/|\\\\|; s|/|\\\\|g")"
-	T="{{THEME}}"
-	# allow letters, numbers, dot, underscore, dash; optional .omp.json suffix
-	if [[ -z "$T" || ! "$T" =~ ^[A-Za-z0-9._-]+(\.omp\.json)?$ ]]; then
-	  echo "❌ Invalid theme name: $T"; exit 2
-	fi
-	THEME_STR="$T"
-
-	PSBIN="pwsh.exe"; command -v pwsh.exe >/dev/null 2>&1 || PSBIN="powershell.exe"
-	"$PSBIN" -NoProfile -Command "\
-	\$t = '$THEME_STR'; if (-not \$t) { Write-Error 'Missing theme name'; exit 1 }; if (\$t -notmatch '\\.omp\\.json$') { \$t = \$t + '.omp.json' }; \
-	\$root = \$env:DOTFILES_ROOT; if ([string]::IsNullOrWhiteSpace(\$root)) { \$root = \"$UNC\" }; \
-	\$themePath = Join-Path \$root (Join-Path 'PowerShell\\Themes' \$t); \
-	if (-not (Test-Path \$themePath)) { Write-Error ('Theme not found: ' + \$themePath); exit 2 }; \
-	try { Set-ItemProperty -Path 'HKCU:\\Environment' -Name 'OMP_THEME' -Value \$t -ErrorAction Stop } catch { }; \
-	[Environment]::SetEnvironmentVariable('OMP_THEME', \$t, 'User') | Out-Null; \
-	Write-Host ('✅ Set OMP_THEME=' + \$t) -ForegroundColor Green; \
-	if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) { \
-	  try { oh-my-posh init pwsh --config \$themePath | Invoke-Expression; Write-Host '🎨 Reinitialized prompt for this shell' -ForegroundColor Green } catch { Write-Warning \$_.Exception.Message } \
-	} else { Write-Warning 'oh-my-posh not found on PATH' }"
-	'
+	@bash -lc 'set -euo pipefail; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  set-windows-theme is intended for WSL; skipping on non-WSL systems."; exit 0; fi; UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}$(pwd | sed "s|^/|\\\\|; s|/|\\\\|g")"; T="{{THEME}}"; if [[ -z "$T" || ! "$T" =~ ^[A-Za-z0-9._-]+(\.omp\.json)?$ ]]; then echo "❌ Invalid theme name: $T"; exit 2; fi; THEME_STR="$T"; PSBIN="pwsh.exe"; command -v pwsh.exe >/dev/null 2>&1 || PSBIN="powershell.exe"; "$PSBIN" -NoProfile -Command "\$t = '$THEME_STR'; if (-not \$t) { Write-Error 'Missing theme name'; exit 1 }; if (\$t -notmatch '\\.omp\\.json$') { \$t = \$t + '.omp.json' }; \$root = \$env:DOTFILES_ROOT; if ([string]::IsNullOrWhiteSpace(\$root)) { \$root = '$UNC' }; \$themePath = Join-Path \$root (Join-Path 'PowerShell\\Themes' \$t); if (-not (Test-Path \$themePath)) { Write-Error ('Theme not found: ' + \$themePath); exit 2 }; try { Set-ItemProperty -Path 'HKCU:\\Environment' -Name 'OMP_THEME' -Value \$t -ErrorAction Stop } catch { }; [Environment]::SetEnvironmentVariable('OMP_THEME', \$t, 'User') | Out-Null; Write-Host ('✅ Set OMP_THEME=' + \$t) -ForegroundColor Green; if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) { try { oh-my-posh init pwsh --config \$themePath | Invoke-Expression; Write-Host '🎨 Reinitialized prompt for this shell' -ForegroundColor Green } catch { Write-Warning \$_.Exception.Message } } else { Write-Warning 'oh-my-posh not found on PATH' }"';
 	@just setup-projects
 	@echo ""
 	@just setup-pwsh7
@@ -264,9 +219,14 @@ fix-alias-conflicts:
 setup-wsl2-remote:
 	@bash -lc 'echo "🌐 Setting up WSL2 for remote access..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This command must be run from WSL2"; exit 1; fi; ./scripts/setup-wsl2-remote-access.sh; echo ""; echo "🎉 WSL2 remote access setup complete!"; echo "💡 Don't forget to run the Windows configuration script as Administrator"'
 
-# Configure Windows for WSL2 remote access (run the PowerShell script)
-=======
->>>>>>> 5bbfa70 (Enhance Windows documentation with SSH agent bridge verification and update Justfile scripts for path handling)
+# Configure Windows for WSL2 remote access (run the PowerShell script from WSL; uses wslpath -w)
+setup-wsl2-remote-windows:
+	@bash -lc 'set -euo pipefail; \
+	  if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This recipe must be run inside WSL"; exit 1; fi; \
+	  if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (ensure Windows PowerShell is accessible from WSL)"; exit 1; fi; \
+	  SCRIPT_WIN=$(wslpath -w "$PWD/scripts/setup-wsl2-remote-windows.ps1"); \
+	  echo "🪟 Launching Windows remote access configuration script: $SCRIPT_WIN"; \
+	  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_WIN"'
 
 # Complete WSL2 remote setup (guided setup with all configuration)
 setup-wsl2-complete:
