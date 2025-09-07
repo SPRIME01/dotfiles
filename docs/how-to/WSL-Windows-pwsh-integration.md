@@ -65,9 +65,13 @@ wslcode C:\\Users\\<you>\\project
 
 ## Verification Steps
 
-1. Re‑generate the Windows `$PROFILE` from Windows PowerShell:
+1. Re‑generate the Windows `$PROFILE` from PowerShell 7 (recommended):
    ```powershell
-   powershell.exe -ExecutionPolicy Bypass -File "\\wsl.localhost\Ubuntu-24.04\home\sprime01\dotfiles\scripts\setup-windows-pwsh7-profile.ps1"
+   pwsh.exe -NoProfile -ExecutionPolicy Bypass -File "\\wsl.localhost\Ubuntu-24.04\home\sprime01\dotfiles\scripts\setup-windows-pwsh7-profile.ps1"
+   ```
+   If you only have Windows PowerShell (`powershell.exe`), prefer running the WSL helper instead to avoid encoding issues:
+   ```bash
+   just setup-pwsh7
    ```
 2. Open a new PowerShell 7 window and confirm:
    - No parse errors.

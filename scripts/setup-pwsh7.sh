@@ -260,7 +260,7 @@ else
                 if (\$codeFn) { Write-Host '✅ code function available' -ForegroundColor Green } else { Write-Warning 'code function not found' }
                 if (\$wslcodeFn) { Write-Host '✅ wslcode function available' -ForegroundColor Green } else { Write-Warning 'wslcode function not found' }
             } catch {
-                Write-Warning ('Error loading main profile for verification: ' + $_.Exception.Message)
+                Write-Warning ('Error loading main profile for verification: ' + \$_.Exception.Message)
             }
         }
         Write-Host '--- End Test ---'
