@@ -251,6 +251,18 @@ else
         } else {
             Write-Warning ('Repo main profile not found at: ' + \$main)
         }
+        # Basic function presence check by dot-sourcing main profile directly
+        if (Test-Path \$main) {
+            try {
+                . \$main
+                \$codeFn = Get-Command code -CommandType Function -ErrorAction SilentlyContinue
+                \$wslcodeFn = Get-Command wslcode -CommandType Function -ErrorAction SilentlyContinue
+                if (\$codeFn) { Write-Host '✅ code function available' -ForegroundColor Green } else { Write-Warning 'code function not found' }
+                if (\$wslcodeFn) { Write-Host '✅ wslcode function available' -ForegroundColor Green } else { Write-Warning 'wslcode function not found' }
+            } catch {
+                Write-Warning ('Error loading main profile for verification: ' + $_.Exception.Message)
+            }
+        }
         Write-Host '--- End Test ---'
     "
   else

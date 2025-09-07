@@ -26,6 +26,38 @@ This documentation describes a unified shell configuration system that works acr
 
 ## Configuration Details
 
+### Windows Terminal Profile (recommended)
+Set Windows Terminal to launch your WSL distro directly for the best experience (no UNC paths) and optional zsh.
+
+- Settings UI:
+  - Open Windows Terminal → Settings (Ctrl+,)
+  - Default profile: set to your WSL distro (e.g., “Ubuntu-24.04”)
+  - Ubuntu profile → Command line: `wsl.exe -d Ubuntu-24.04`
+  - Starting directory: leave empty (defaults to `/home/<you>`) or set to `\\wsl.localhost\\Ubuntu-24.04\\home\\%USERNAME%`
+  - Font: use a Nerd Font (e.g., “CaskaydiaCove NF”)
+- Optional zsh:
+  - Preferred: inside WSL run `chsh -s $(which zsh)` to make zsh your default shell
+  - Or override command line: `wsl.exe -d Ubuntu-24.04 --exec /usr/bin/zsh -l`
+
+JSON example (Settings → Open JSON):
+```json
+{
+  "defaultProfile": "{e8a4f2f3-0c16-4b28-9b8b-2b7b5e6f9c24}",
+  "profiles": {
+    "list": [
+      {
+        "guid": "{e8a4f2f3-0c16-4b28-9b8b-2b7b5e6f9c24}",
+        "name": "Ubuntu-24.04 (WSL)",
+        "source": "Windows.Terminal.Wsl",
+        "distribution": "Ubuntu-24.04",
+        "startingDirectory": "//wsl.localhost/Ubuntu-24.04/home/%USERNAME%",
+        "font": { "face": "CaskaydiaCove NF", "size": 11 }
+      }
+    ]
+  }
+}
+```
+
 ### 1. Shared Configuration (`.shell_common.sh`)
 **Purpose**: Central location for cross-platform environment variables and aliases
 

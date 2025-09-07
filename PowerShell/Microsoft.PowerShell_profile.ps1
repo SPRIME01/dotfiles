@@ -111,6 +111,147 @@ function projects {
     Set-Location -Path $env:PROJECTS_ROOT
 }
 
+# WSL-aware VS Code launchers: make `code .` work from UNC paths
+try { Remove-Item Alias:code -ErrorAction SilentlyContinue } catch {}
+try { Remove-Item Alias:code-insiders -ErrorAction SilentlyContinue } catch {}
+
+function code {
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]] $args)
+
+    $candidates = @(
+        (Join-Path $env:LOCALAPPDATA 'Programs\Microsoft VS Code\Code.exe'),
+        (Join-Path ${env:ProgramFiles} 'Microsoft VS Code\Code.exe'),
+        ($(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'Microsoft VS Code\Code.exe' } else { $null }))
+    )
+    $codeExe = ($candidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1)
+    if (-not $codeExe) { $codeExe = 'code.cmd' }
+
+    $pwdPath = (Get-Location).Path
+    if ($pwdPath -match '^\\\\wsl(?:\.localhost)?\\([^\\]+)\\(.+)$') {
+        $distro = $Matches[1]
+        $rest = $Matches[2]
+        $linuxPath = "/" + ($rest -replace '\\','/')
+
+        $forwardArgs = @()
+        if ($args -and $args.Count -gt 0) {
+            foreach ($a in $args) {
+                if ($a -eq '.') { $forwardArgs += $linuxPath } else { $forwardArgs += $a }
+            }
+        } else {
+            $forwardArgs = @($linuxPath)
+        }
+        & $codeExe '--remote' ("wsl+{0}" -f $distro) @forwardArgs
+        return
+    }
+
+    & $codeExe @args
+}
+
+function code-insiders {
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]] $args)
+
+    $candidates = @(
+        (Join-Path $env:LOCALAPPDATA 'Programs\Microsoft VS Code Insiders\Code - Insiders.exe'),
+        (Join-Path ${env:ProgramFiles} 'Microsoft VS Code Insiders\Code - Insiders.exe'),
+        ($(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'Microsoft VS Code Insiders\Code - Insiders.exe' } else { $null }))
+    )
+    $codeExe = ($candidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1)
+    if (-not $codeExe) { $codeExe = 'code-insiders.cmd' }
+
+    $pwdPath = (Get-Location).Path
+    if ($pwdPath -match '^\\\\wsl(?:\.localhost)?\\([^\\]+)\\(.+)$') {
+        $distro = $Matches[1]
+        $rest = $Matches[2]
+        $linuxPath = "/" + ($rest -replace '\\','/')
+
+        $forwardArgs = @()
+        if ($args -and $args.Count -gt 0) {
+            foreach ($a in $args) {
+                if ($a -eq '.') { $forwardArgs += $linuxPath } else { $forwardArgs += $a }
+            }
+        } else {
+            $forwardArgs = @($linuxPath)
+        }
+        & $codeExe '--remote' ("wsl+{0}" -f $distro) @forwardArgs
+        return
+    }
+
+    & $codeExe @args
+}
+
+# Dedicated Remote‑WSL launchers that work from any path
+function wslcode {
+    param(
+        [string]$Path = '.',
+        [string]$Distro
+    )
+
+    $candidates = @(
+        (Join-Path $env:LOCALAPPDATA 'Programs\Microsoft VS Code\Code.exe'),
+        (Join-Path ${env:ProgramFiles} 'Microsoft VS Code\Code.exe'),
+        ($(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'Microsoft VS Code\Code.exe' } else { $null }))
+    )
+    $codeExe = ($candidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1)
+    if (-not $codeExe) { $codeExe = 'code.cmd' }
+
+    if (-not $Distro -or $Distro -eq '') {
+        try {
+            $Distro = (wsl.exe -l -v 2>$null | Select-String '\*' | ForEach-Object { ($_ -replace '\*','').Trim().Split()[0] } | Select-Object -First 1)
+        } catch { $Distro = $null }
+        if (-not $Distro) { $Distro = 'Ubuntu-24.04' }
+    }
+
+    $pwdPath = (Get-Location).Path
+    $src = if ($Path -eq '.') { $pwdPath } else { $Path }
+    if ($src -match '^\\\\wsl(?:\.localhost)?\\([^\\]+)\\(.+)$') {
+        if (-not $Distro) { $Distro = $Matches[1] }
+        $linuxPath = '/' + ($Matches[2] -replace '\\','/')
+    } elseif ($src -match '^[A-Za-z]:\\') {
+        $drive = $src.Substring(0,1).ToLower()
+        $linuxPath = '/mnt/' + $drive + ($src.Substring(2) -replace '\\','/')
+    } else {
+        $linuxPath = $src
+    }
+
+    & $codeExe '--remote' ("wsl+{0}" -f $Distro) $linuxPath
+}
+
+function wslcodei {
+    param(
+        [string]$Path = '.',
+        [string]$Distro
+    )
+
+    $candidates = @(
+        (Join-Path $env:LOCALAPPDATA 'Programs\Microsoft VS Code Insiders\Code - Insiders.exe'),
+        (Join-Path ${env:ProgramFiles} 'Microsoft VS Code Insiders\Code - Insiders.exe'),
+        ($(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} 'Microsoft VS Code Insiders\Code - Insiders.exe' } else { $null }))
+    )
+    $codeExe = ($candidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1)
+    if (-not $codeExe) { $codeExe = 'code-insiders.cmd' }
+
+    if (-not $Distro -or $Distro -eq '') {
+        try {
+            $Distro = (wsl.exe -l -v 2>$null | Select-String '\*' | ForEach-Object { ($_ -replace '\*','').Trim().Split()[0] } | Select-Object -First 1)
+        } catch { $Distro = $null }
+        if (-not $Distro) { $Distro = 'Ubuntu-24.04' }
+    }
+
+    $pwdPath = (Get-Location).Path
+    $src = if ($Path -eq '.') { $pwdPath } else { $Path }
+    if ($src -match '^\\\\wsl(?:\.localhost)?\\([^\\]+)\\(.+)$') {
+        if (-not $Distro) { $Distro = $Matches[1] }
+        $linuxPath = '/' + ($Matches[2] -replace '\\','/')
+    } elseif ($src -match '^[A-Za-z]:\\') {
+        $drive = $src.Substring(0,1).ToLower()
+        $linuxPath = '/mnt/' + $drive + ($src.Substring(2) -replace '\\','/')
+    } else {
+        $linuxPath = $src
+    }
+
+    & $codeExe '--remote' ("wsl+{0}" -f $Distro) $linuxPath
+}
+
 # Function to create Windows symlink to WSL projects directory
 # Environment variables for customization:
 #   WSL_PROJECTS_PATH - Custom Windows path for projects symlink (default: $env:USERPROFILE\projects)
