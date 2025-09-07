@@ -1,0 +1,31 @@
+# Managed by chezmoi - Bash rc (WSL fallback)
+# Minimal, idempotent, and safe-by-default.
+
+# History hygiene
+export HISTCONTROL=ignoreboth:erasedups
+export HISTIGNORE="ls:cd:cd -:pwd:exit:date:* --help"
+export HISTTIMEFORMAT='%F %T '
+shopt -s histappend checkwinsize
+
+{{ template "templates/partials/direnv_hook.tmpl" . }}
+
+{{ template "templates/partials/ssh_agent_bridge.tmpl" . }}
+
+{{ template "templates/partials/projects_path.tmpl" . }}
+
+{{ if eq .chezmoi.os "linux" }}
+{{-   $rel := lower .chezmoi.kernel.release -}}
+{{   if or (contains $rel "microsoft") (hasPrefix $rel "microsoft") (ne (env "WSL_DISTRO_NAME") "") }}
+{{/* WSL-specific PATH configuration */}}
+{{ template "templates/partials/wsl_path.tmpl" . }}
+{{   end }}
+{{ else if eq .chezmoi.os "windows" }}
+{{/* Windows-specific PATH configuration */}}
+{{ template "templates/partials/windows_path.tmpl" . }}
+{{ else if eq .chezmoi.os "darwin" }}
+{{/* macOS-specific PATH configuration */}}
+{{ template "templates/partials/macos_path.tmpl" . }}
+{{ end }}
+
+# End of minimal template — extend via ~/.bashrc.local as needed
+[[ -f "$HOME/.bashrc.local" ]] && source "$HOME/.bashrc.local"

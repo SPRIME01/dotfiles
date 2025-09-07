@@ -37,7 +37,7 @@ to suit your needs.
    # API secrets for MyCoolPlatform (MCP) integration
    MCP_GATEWAY_URL="https://api.mycoolplatform.com/v1"
    MCP_ADMIN_USERNAME="admin@example.com"
-   MCP_ADMIN_PASSWORD="pleaseChangeMe"
+   MCP_ADMIN_PASSWORD="PLACEHOLDER"  # replace with real value in your local .env
 
    # Node package manager config
    PNPM_HOME="$HOME/.pnpm-global"

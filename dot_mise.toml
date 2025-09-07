@@ -1,0 +1,17 @@
+# Managed by chezmoi — Global mise configuration (starter)
+# Keep minimal and opt-in. Per-project versions go in project `.mise.toml`.
+
+[settings]
+experimental = true
+
+# Uncomment and adjust to install defaults globally (optional)
+# [tools]
+# node = "lts"
+# python = "3.12"
+# go = "latest"
+# rust = "stable"
+
+# Notes:
+# - Prefer per-project `.mise.toml` with direnv: use `use mise` in `.envrc`.
+# - `mise install` installs configured tool versions when invoked.
+

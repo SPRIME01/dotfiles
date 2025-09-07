@@ -1,0 +1,25 @@
+{{/* macOS-specific PATH additions */}}
+# macOS-specific PATH entries
+# Add Homebrew binaries if installed
+if [[ -d "/opt/homebrew/bin" ]]; then
+  case ":$PATH:" in
+    *":/opt/homebrew/bin:"*) ;; # already present
+    *) export PATH="/opt/homebrew/bin:$PATH" ;;
+  esac
+fi
+
+# Add macOS developer tools
+if [[ -d "/Library/Developer/CommandLineTools/usr/bin" ]]; then
+  case ":$PATH:" in
+    *":/Library/Developer/CommandLineTools/usr/bin:"*) ;; # already present
+    *) export PATH="$PATH:/Library/Developer/CommandLineTools/usr/bin" ;;
+  esac
+fi
+
+# Add user-installed macOS applications
+if [[ -d "$HOME/Applications" ]]; then
+  case ":$PATH:" in
+    *":$HOME/Applications:"*) ;; # already present
+    *) export PATH="$PATH:$HOME/Applications" ;;
+  esac
+fi

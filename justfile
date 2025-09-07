@@ -24,17 +24,17 @@ install-direnv:
 
 # Vault Agent helpers
 vault-agent-example:
-    @bash -c 'set -e; mkdir -p tools/vault; cp tools/vault/agent.hcl.example /tmp/agent.hcl; echo "Example written to /tmp/agent.hcl"'
+	@bash -c 'set -e; mkdir -p tools/vault; cp tools/vault/agent.hcl.example /tmp/agent.hcl; echo "Example written to /tmp/agent.hcl"'
 
 vault-agent-run:
-    @bash -c 'set -e; if ! command -v vault >/dev/null 2>&1; then echo "❌ vault CLI not found"; exit 1; fi; chmod +x tools/vault/run-agent.sh; VAULT_ADDR=${VAULT_ADDR:-} tools/vault/run-agent.sh'
+	@bash -c 'set -e; if ! command -v vault >/dev/null 2>&1; then echo "❌ vault CLI not found"; exit 1; fi; chmod +x tools/vault/run-agent.sh; VAULT_ADDR=${VAULT_ADDR:-} tools/vault/run-agent.sh'
 
 vault-agent-run-demo:
-    @bash -c 'set -e; if ! command -v vault >/dev/null 2>&1; then echo "❌ vault CLI not found"; exit 1; fi; chmod +x tools/vault/run-agent.sh; echo "Using demo settings (you must set VAULT_ADDR)"; VAULT_ROLE=${VAULT_ROLE:-dev-shell} VAULT_AUTH_METHOD=${VAULT_AUTH_METHOD:-oidc} tools/vault/run-agent.sh'
+	@bash -c 'set -e; if ! command -v vault >/dev/null 2>&1; then echo "❌ vault CLI not found"; exit 1; fi; chmod +x tools/vault/run-agent.sh; echo "Using demo settings (you must set VAULT_ADDR)"; VAULT_ROLE=${VAULT_ROLE:-dev-shell} VAULT_AUTH_METHOD=${VAULT_AUTH_METHOD:-oidc} tools/vault/run-agent.sh'
 
 # Windows/PowerShell runner
 vault-agent-run-windows:
-    @bash -c 'set -e; if ! command -v pwsh >/dev/null 2>&1; then echo "❌ pwsh (PowerShell 7) not found"; exit 1; fi; pwsh -NoProfile -File tools/vault/run-agent.ps1'
+	@bash -c 'set -e; if ! command -v pwsh >/dev/null 2>&1; then echo "❌ pwsh (PowerShell 7) not found"; exit 1; fi; pwsh -NoProfile -File tools/vault/run-agent.ps1'
 
 # Launch the interactive setup wizard for Unix shells.
 # Guides you through configuring shells and installing optional components like VS Code settings.
@@ -62,50 +62,18 @@ setup-projects:
 	@bash scripts/setup-projects-idempotent.sh
 
 # Set up PowerShell 7 profile for Windows (requires PowerShell 7 installed)
+# Usage: `just setup-pwsh7` (run from WSL)
 setup-pwsh7:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    echo "🪟 Setting up PowerShell 7 profile for Windows..."
-    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
-        echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."
-        echo "💡 Run from WSL to configure the Windows-side PowerShell profile."
-        exit 0
-    fi
-    if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then
-        echo "❌ Neither powershell.exe nor pwsh.exe is available from WSL."
-        echo "💡 Ensure Windows PowerShell or PowerShell 7 is installed and accessible."
-        exit 1
-    fi
-    bash scripts/setup-pwsh7.sh
+	@bash -lc 'set -euo pipefail; echo "🪟 Setting up PowerShell 7 profile for Windows..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."; echo "💡 Run from WSL to configure the Windows-side PowerShell profile."; exit 0; fi; if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then echo "❌ Neither powershell.exe nor pwsh.exe is available from WSL."; echo "💡 Ensure Windows PowerShell or PowerShell 7 is installed and accessible."; exit 1; fi; bash scripts/setup-pwsh7.sh'
 
 setup-pwsh7-dry-run:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    echo "🪟(dry-run) Setting up PowerShell 7 profile for Windows..."
-    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
-        echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."
-        exit 0
-    fi
-    if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then
-        echo "❌ Neither powershell.exe nor pwsh.exe is available from WSL."
-        exit 0
-    fi
-    bash scripts/setup-pwsh7.sh --dry-run
+	@bash -lc 'set -euo pipefail; echo "🪟(dry-run) Setting up PowerShell 7 profile for Windows..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."; exit 0; fi; if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then echo "❌ Neither powershell.exe nor pwsh.exe is available from WSL."; exit 0; fi; bash scripts/setup-pwsh7.sh --dry-run'
 
 # Force symlink for Windows $PROFILE (fails if symlink can't be created)
 setup-pwsh7-symlink:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    echo "🪟 Forcing Windows $PROFILE symlink..."
-    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
-        echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."
-        exit 0
-    fi
-    if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then
-        echo "❌ Neither powershell.exe nor pwsh.exe is available from WSL."
-        exit 1
-    fi
-    bash scripts/setup-pwsh7.sh --require-symlink
+	@bash -lc 'set -euo pipefail; echo "🪟 Forcing Windows $PROFILE symlink..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."; exit 0; fi; if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then echo "❌ Neither powershell.exe nor pwsh.exe is available from WSL."; exit 1; fi; bash scripts/setup-pwsh7.sh --require-symlink'
+
+# Windows Developer Mode helpers (run from WSL)
 
 # Windows Developer Mode helpers (run from WSL)
 devmode-status:
@@ -119,86 +87,62 @@ devmode-disable:
 
 # Force symlink via elevated Windows PowerShell (UAC prompt expected)
 setup-pwsh7-symlink-admin:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    echo "🪟 Forcing Windows $PROFILE symlink via elevated PowerShell (UAC prompt expected)..."
-    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
-        echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."
-        exit 0
-    fi
-    if ! command -v powershell.exe >/dev/null 2>&1; then
-        echo "❌ powershell.exe not available from WSL."
-        exit 1
-    fi
-    # Build UNC path to this repo under WSL: \\wsl.localhost\<distro>\<path>
-    REPO_UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}$(pwd | sed 's|^/|\\|; s|/|\\|g')"
-    SCRIPT_UNC="${REPO_UNC}\\scripts\\invoke-elevated-symlink.ps1"
-    TARGET_UNC="${REPO_UNC}\\PowerShell\\Microsoft.PowerShell_profile.ps1"
-    echo "🔗 Script: ${SCRIPT_UNC}"
-    echo "🎯 Target: ${TARGET_UNC}"
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${SCRIPT_UNC}" -Target "${TARGET_UNC}"
+	@bash -lc 'set -euo pipefail; echo "🪟 Forcing Windows $PROFILE symlink via elevated PowerShell (UAC prompt expected)..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."; exit 0; fi; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not available from WSL."; exit 1; fi; SCRIPT_WIN=$(wslpath -w "$PWD/scripts/invoke-elevated-symlink.ps1"); TARGET_WIN=$(wslpath -w "$PWD/PowerShell/Microsoft.PowerShell_profile.ps1"); echo "🔗 Script: ${SCRIPT_WIN}"; echo "🎯 Target: ${TARGET_WIN}"; powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_WIN" -Target "$TARGET_WIN"'
+	@bash -lc 'set -euo pipefail; echo "🪟 Forcing Windows $PROFILE symlink via elevated PowerShell (UAC prompt expected)..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."; exit 0; fi; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not available from WSL."; exit 1; fi; SCRIPT_WIN=$(wslpath -w "$PWD/scripts/invoke-elevated-symlink.ps1"); TARGET_WIN=$(wslpath -w "$PWD/PowerShell/Microsoft.PowerShell_profile.ps1"); echo "🔗 Script: ${SCRIPT_WIN}"; echo "🎯 Target: ${TARGET_WIN}"; powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_WIN" -Target "$TARGET_WIN"'
 
 # Verify Windows PowerShell profile links to this repo and theme resolves
+# Usage: `just verify-windows-profile` (run from WSL)
 verify-windows-profile:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
-        echo "ℹ️  This verification targets WSL; run from WSL."
-        exit 0
-    fi
-    if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then
-        echo "❌ Neither powershell.exe nor pwsh.exe available from WSL."
-        exit 1
-    fi
-    bash scripts/verify-windows-profile.sh
+	@bash -lc 'set -euo pipefail; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  This verification targets WSL; run from WSL."; exit 0; fi; if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then echo "❌ Neither powershell.exe nor pwsh.exe available from WSL."; exit 1; fi; bash scripts/verify-windows-profile.sh'
 
 # Verify Oh My Posh theme resolution and binary availability on Windows
+# Usage: `just verify-windows-theme` (run from WSL)
 verify-windows-theme:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
-        echo "ℹ️  This verification targets WSL; run from WSL."
-        exit 0
-    fi
-    if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then
-        echo "❌ Neither powershell.exe nor pwsh.exe available from WSL."
-        exit 1
-    fi
-    bash scripts/verify-windows-theme.sh
+	@bash -lc 'set -euo pipefail; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  This verification targets WSL; run from WSL."; exit 0; fi; if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then echo "❌ Neither powershell.exe nor pwsh.exe available from WSL."; exit 1; fi; bash scripts/verify-windows-theme.sh'
+
+# Verify Mise activation + dotenv loading in Windows PowerShell
+# Usage: `just verify-windows-mise-dotenv` (run from WSL)
+verify-windows-mise-dotenv:
+	@bash -lc 'set -euo pipefail; \
+	  if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then \
+	    echo "ℹ️  Run from WSL to verify Windows PowerShell environment."; \
+	    exit 0; \
+	  fi; \
+	  if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then \
+	    echo "❌ Neither powershell.exe nor pwsh.exe available from WSL."; \
+	    exit 1; \
+	  fi; \
+	  WIN_PATH=$(wslpath -w "$PWD/scripts/verify-windows-mise-dotenv.ps1"); \
+	  if command -v pwsh.exe >/dev/null 2>&1; then \
+	    pwsh.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" | tr -d "\r"; \
+	  else \
+	    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" | tr -d "\r"; \
+	  fi'
 
 # List available Oh My Posh themes on Windows
+# Usage: `just list-windows-themes` (run from WSL)
 list-windows-themes:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}\\home\\${USER}\\dotfiles"
-    powershell.exe -NoProfile -NonInteractive -Command "\
-        if (-not \$env:DOTFILES_ROOT -or [string]::IsNullOrWhiteSpace(\$env:DOTFILES_ROOT)) { \$env:DOTFILES_ROOT = '$UNC' } ; \
-        \$themes = Get-ChildItem -LiteralPath (Join-Path \$env:DOTFILES_ROOT 'PowerShell\Themes') -Filter *.omp.json -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name ; \
-        if (\$themes) { \$themes | ForEach-Object { Write-Host (\" - \" + \$_) } } else { Write-Warning \"No themes found\" }\
-    " | tr -d "\r"
+	@bash -c '
+	set -euo pipefail
+	if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
+	echo "ℹ️  list-windows-themes is intended for WSL; skipping on non-WSL systems."
+	exit 0
+	fi
+
+	UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}$(pwd | sed "s|^/|\\\\|; s|/|\\\\|g")"
+
+	PSBIN="pwsh.exe"; command -v pwsh.exe >/dev/null 2>&1 || PSBIN="powershell.exe"
+	"$PSBIN" -NoProfile -NonInteractive -Command "\
+	if (-not \$env:DOTFILES_ROOT -or [string]::IsNullOrWhiteSpace(\$env:DOTFILES_ROOT)) { \$env:DOTFILES_ROOT = \"$UNC\" } ; \
+	\$themes = Get-ChildItem -LiteralPath (Join-Path \$env:DOTFILES_ROOT 'PowerShell\\Themes') -Filter *.omp.json -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name ; \
+	if (\$themes) { \$themes | ForEach-Object { Write-Host (\" - \" + \$_) } } else { Write-Warning \"No themes found\" }\
+	" | tr -d "\r"
+	'
 
 # Set OMP_THEME for Windows (persistent) and reinitialize current pwsh if present
 # Usage: just set-windows-theme powerlevel10k_modern
 set-windows-theme THEME:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}\\home\\${USER}\\dotfiles"
-    THEME_STR='{{THEME}}'
-    powershell.exe -NoProfile -Command "\
-        \$t = '$THEME_STR'; if (-not \$t) { Write-Error 'Missing theme name'; exit 1 }; if (\$t -notmatch '\\.omp\\.json$') { \$t = \$t + '.omp.json' }; \
-        \$root = \$env:DOTFILES_ROOT; if ([string]::IsNullOrWhiteSpace(\$root)) { \$root = '$UNC' }; \
-        \$themePath = Join-Path \$root (Join-Path 'PowerShell\\Themes' \$t); \
-        if (-not (Test-Path \$themePath)) { Write-Error ('Theme not found: ' + \$themePath); exit 2 }; \
-        try { Set-ItemProperty -Path 'HKCU:\\Environment' -Name 'OMP_THEME' -Value \$t -ErrorAction Stop } catch { }; \
-        [Environment]::SetEnvironmentVariable('OMP_THEME', \$t, 'User') | Out-Null; \
-        Write-Host ('✅ Set OMP_THEME=' + \$t) -ForegroundColor Green; \
-        if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) { \
-            try { oh-my-posh init pwsh --config \$themePath | Invoke-Expression; Write-Host '🎨 Reinitialized prompt for this shell' -ForegroundColor Green } catch { Write-Warning \$_.Exception.Message } \
-        } else { Write-Warning 'oh-my-posh not found on PATH' }"
-
-# Complete Windows integration setup (combines multiple setup tasks)
-setup-windows-integration:
-	@echo "🪟 Setting up complete Windows integration..."
+	@bash -lc 'set -euo pipefail; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  set-windows-theme is intended for WSL; skipping on non-WSL systems."; exit 0; fi; UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}$(pwd | sed "s|^/|\\\\|; s|/|\\\\|g")"; T="{{THEME}}"; if [[ -z "$T" || ! "$T" =~ ^[A-Za-z0-9._-]+(\.omp\.json)?$ ]]; then echo "❌ Invalid theme name: $T"; exit 2; fi; THEME_STR="$T"; PSBIN="pwsh.exe"; command -v pwsh.exe >/dev/null 2>&1 || PSBIN="powershell.exe"; "$PSBIN" -NoProfile -Command "\$t = '$THEME_STR'; if (-not \$t) { Write-Error 'Missing theme name'; exit 1 }; if (\$t -notmatch '\\.omp\\.json$') { \$t = \$t + '.omp.json' }; \$root = \$env:DOTFILES_ROOT; if ([string]::IsNullOrWhiteSpace(\$root)) { \$root = '$UNC' }; \$themePath = Join-Path \$root (Join-Path 'PowerShell\\Themes' \$t); if (-not (Test-Path \$themePath)) { Write-Error ('Theme not found: ' + \$themePath); exit 2 }; try { Set-ItemProperty -Path 'HKCU:\\Environment' -Name 'OMP_THEME' -Value \$t -ErrorAction Stop } catch { }; [Environment]::SetEnvironmentVariable('OMP_THEME', \$t, 'User') | Out-Null; Write-Host ('✅ Set OMP_THEME=' + \$t) -ForegroundColor Green; if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) { try { oh-my-posh init pwsh --config \$themePath | Invoke-Expression; Write-Host '🎨 Reinitialized prompt for this shell' -ForegroundColor Green } catch { Write-Warning \$_.Exception.Message } } else { Write-Warning 'oh-my-posh not found on PATH' }"';
 	@just setup-projects
 	@echo ""
 	@just setup-pwsh7
@@ -218,6 +162,38 @@ move-docs-off-onedrive-admin:
 move-docs-off-onedrive-dry:
 	@bash scripts/run-move-docs-dry.sh
 
+# ===== PowerShell aliases/profile helpers (namespaced) =====
+
+# Idempotent: regenerate module and profile section
+# (the minimal pwsh-update recipe was removed intentionally)
+pwsh-update-dry-run:
+	@bash -lc 'set -euo pipefail; pwsh -NoLogo -NoProfile -File "PowerShell/Modules/Aliases/Update-AliasesModule.ps1" -WhatIf'
+
+pwsh-reload-dry-run:
+	@bash -lc 'set -euo pipefail; ROOT="$(pwd)"; echo "pwsh -NoLogo -NoProfile -File '$ROOT/PowerShell/Modules/Aliases/Update-AliasesModule.ps1'"; echo "pwsh -NoLogo -NoProfile -NoExit -Command \"Import-Module '$ROOT/PowerShell/Modules/Aliases/Aliases.psm1' -Force; . '$ROOT/PowerShell/Microsoft.PowerShell_profile.ps1'\""'
+
+ps-help:
+	@echo "=== PowerShell (repo) ==="
+	@echo "  just pwsh-update           # Regenerate Aliases + profile"
+	@echo "  just pwsh-reload           # Open pwsh with repo profile"
+	@echo "  just pwsh-reload-windows   # From WSL, open Windows pwsh"
+	@echo "  just pwsh-update-dry-run   # WhatIf regeneration"
+	@echo "  just pwsh-reload-dry-run   # Print commands"
+
+# --- PowerShell Aliases/Profile helpers ---
+
+# Regenerate the Aliases module and profile lazy-loading section (idempotent)
+pwsh-update:
+	@bash -lc 'set -euo pipefail; if ! command -v pwsh >/dev/null 2>&1; then echo "❌ pwsh (PowerShell 7) not found on PATH" >&2; echo "💡 Install PowerShell 7 and ensure 'pwsh' is available" >&2; exit 1; fi; echo "🔁 Regenerating Aliases module and profile section..."; pwsh -NoLogo -NoProfile -File "PowerShell/Modules/Aliases/Update-AliasesModule.ps1"; echo "✅ Regeneration complete"'
+
+# Open a new Linux/WSL PowerShell session with this repo's module and profile loaded
+pwsh-reload:
+	@bash -lc 'set -euo pipefail; if ! command -v pwsh >/dev/null 2>&1; then echo "❌ pwsh (PowerShell 7) not found on PATH" >&2; exit 1; fi; ROOT="$(pwd)"; echo "🔁 Updating module before loading..."; pwsh -NoLogo -NoProfile -File "PowerShell/Modules/Aliases/Update-AliasesModule.ps1"; echo "🚀 Launching PowerShell with repo profile loaded..."; pwsh -NoLogo -NoProfile -NoExit -Command "Import-Module '$ROOT/PowerShell/Modules/Aliases/Aliases.psm1' -Force; . '$ROOT/PowerShell/Microsoft.PowerShell_profile.ps1'; Write-Host '✅ Loaded aliases and profile from $ROOT' -ForegroundColor Green"'
+
+# From WSL, open a Windows PowerShell (or PowerShell 7) session with this repo loaded via UNC
+pwsh-reload-windows:
+	@bash -lc 'set -euo pipefail; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  Not running inside WSL; this recipe is intended for WSL." >&2; exit 0; fi; if ! command -v pwsh.exe >/dev/null 2>&1 && ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ Neither pwsh.exe nor powershell.exe available from WSL" >&2; exit 1; fi; UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}$(pwd | sed 's|^/|\\|; s|/|\\|g')"; PSBIN="pwsh.exe"; command -v pwsh.exe >/dev/null 2>&1 || PSBIN="powershell.exe"; echo "🔁 Updating module before loading (from WSL)..."; if command -v pwsh >/dev/null 2>&1; then pwsh -NoLogo -NoProfile -File "PowerShell/Modules/Aliases/Update-AliasesModule.ps1"; else echo "ℹ️ pwsh (Linux) not found; skipping module update"; fi; echo "🚀 Launching Windows $PSBIN with repo profile loaded from: $UNC"; "$PSBIN" -NoLogo -NoProfile -NoExit -Command "Import-Module '$UNC\\PowerShell\\Modules\\Aliases\\Aliases.psm1' -Force; . '$UNC\\PowerShell\\Microsoft.PowerShell_profile.ps1'; Write-Host '✅ Loaded aliases and profile from $UNC' -ForegroundColor Green"'
+
 # Fix PowerShell 7 profile if it's not working correctly
 fix-pwsh7:
 	@echo "🔧 Diagnosing and fixing PowerShell 7 profile issues..."
@@ -225,44 +201,7 @@ fix-pwsh7:
 
 # Clean up old PowerShell profiles that might conflict
 clean-old-powershell-profiles:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    echo "🧹 Cleaning up old PowerShell profiles..."
-
-    # Guard: this recipe is intended for WSL
-    if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
-        echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."
-        echo "💡 Run from WSL if you want to clean Windows-side PowerShell profiles."
-        exit 0
-    fi
-
-    PWSH7_PROFILE=""
-    if command -v pwsh.exe >/dev/null 2>&1; then
-        PWSH7_PROFILE=$(pwsh.exe -NoProfile -Command '$PROFILE' 2>/dev/null | tr -d '\r' || true)
-    elif command -v powershell.exe >/dev/null 2>&1; then
-        PWSH7_PROFILE=$(powershell.exe -NoProfile -Command '$PROFILE' 2>/dev/null | tr -d '\r' || true)
-    else
-        echo "❌ Neither pwsh.exe nor powershell.exe found on the Windows side."
-        echo "💡 Install PowerShell (pwsh) or ensure Windows PowerShell is available."
-        exit 0
-    fi
-
-    if [[ -n "${PWSH7_PROFILE}" ]]; then
-        # Map Windows path (e.g. C:\\Users\\Name\\...) to WSL mount (/mnt/c/Users/Name/...)
-        PWSH7_PROFILE_WSL=$(printf "%s" "${PWSH7_PROFILE}" | sed -E -e 's|^([A-Za-z]):\\\\|/mnt/\L\1/|' -e 's|\\\\|/|g')
-        if [[ -f "${PWSH7_PROFILE_WSL}" ]]; then
-            BACKUP_NAME="${PWSH7_PROFILE_WSL}.backup.$(date +%Y%m%d_%H%M%S)"
-            mv "${PWSH7_PROFILE_WSL}" "${BACKUP_NAME}"
-            echo "✅ Backed up profile to: ${BACKUP_NAME}"
-        else
-            echo "ℹ️  No existing PowerShell 7 profile found at ${PWSH7_PROFILE}"
-        fi
-    else
-        echo "❌ Could not determine PowerShell profile path from Windows PowerShell"
-        echo '💡 Try launching PowerShell on Windows and check $PROFILE there.'
-    fi
-
-    echo "🎉 PowerShell profile cleanup complete!"
+	@bash -lc 'set -euo pipefail; echo "🧹 Cleaning up old PowerShell profiles..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  This recipe targets WSL; no WSL detected. Nothing to do."; echo "💡 Run from WSL if you want to clean Windows-side PowerShell profiles."; exit 0; fi; PWSH7_PROFILE=""; if command -v pwsh.exe >/dev/null 2>&1; then PWSH7_PROFILE=$(pwsh.exe -NoProfile -Command "$PROFILE" 2>/dev/null | tr -d "\r" || true); elif command -v powershell.exe >/dev/null 2>&1; then PWSH7_PROFILE=$(powershell.exe -NoProfile -Command "$PROFILE" 2>/dev/null | tr -d "\r" || true); else echo "❌ Neither pwsh.exe nor powershell.exe found on the Windows side."; echo "💡 Install PowerShell (pwsh) or ensure Windows PowerShell is available."; exit 0; fi; if [[ -n "${PWSH7_PROFILE}" ]]; then PWSH7_PROFILE_WSL=$(printf "%s" "${PWSH7_PROFILE}" | sed -E -e "s|^([A-Za-z]):\\\\\\\\|/mnt/\L\1/|" -e "s|\\\\\\\\|/|g"); if [[ -f "${PWSH7_PROFILE_WSL}" ]]; then BACKUP_NAME="${PWSH7_PROFILE_WSL}.backup.$(date +%Y%m%d_%H%M%S)"; mv "${PWSH7_PROFILE_WSL}" "${BACKUP_NAME}"; echo "✅ Backed up profile to: ${BACKUP_NAME}"; else echo "ℹ️  No existing PowerShell 7 profile found at ${PWSH7_PROFILE}"; fi; else echo "❌ Could not determine PowerShell profile path from Windows PowerShell"; echo "💡 Try launching PowerShell on Windows and check $PROFILE there."; fi; echo "🎉 PowerShell profile cleanup complete!"'
 
 # Diagnose shell startup issues
 diagnose-shell:
@@ -278,34 +217,16 @@ fix-alias-conflicts:
 
 # Set up WSL2 for remote access via SSH and VS Code
 setup-wsl2-remote:
-	#!/usr/bin/env bash
-	echo "🌐 Setting up WSL2 for remote access..."
-	if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
-		echo "❌ This command must be run from WSL2"
-		exit 1
-	fi
-	./scripts/setup-wsl2-remote-access.sh
-	echo ""
-	echo "🎉 WSL2 remote access setup complete!"
-	echo "💡 Don't forget to run the Windows configuration script as Administrator"
+	@bash -lc 'echo "🌐 Setting up WSL2 for remote access..."; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This command must be run from WSL2"; exit 1; fi; ./scripts/setup-wsl2-remote-access.sh; echo ""; echo "🎉 WSL2 remote access setup complete!"; echo "💡 Don't forget to run the Windows configuration script as Administrator"'
 
-# Configure Windows for WSL2 remote access (run the PowerShell script)
+# Configure Windows for WSL2 remote access (run the PowerShell script from WSL; uses wslpath -w)
 setup-wsl2-remote-windows:
-	#!/usr/bin/env bash
-	echo "🪟 Configuring Windows for WSL2 remote access..."
-	if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
-		echo "❌ This command is designed for WSL2 environments"
-		exit 1
-	fi
-	if ! command -v powershell.exe >/dev/null 2>&1; then
-		echo "❌ PowerShell not found on Windows"
-		exit 1
-	fi
-	echo "▶️  Running Windows configuration script..."
-	echo "⚠️  This requires Administrator privileges on Windows"
-	powershell.exe -ExecutionPolicy Bypass -File "$PWD/scripts/setup-wsl2-remote-windows.ps1"
-	echo ""
-	echo "🎉 Windows WSL2 remote configuration complete!"
+	@bash -lc 'set -euo pipefail; \
+	  if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This recipe must be run inside WSL"; exit 1; fi; \
+	  if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (ensure Windows PowerShell is accessible from WSL)"; exit 1; fi; \
+	  SCRIPT_WIN=$(wslpath -w "$PWD/scripts/setup-wsl2-remote-windows.ps1"); \
+	  echo "🪟 Launching Windows remote access configuration script: $SCRIPT_WIN"; \
+	  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_WIN"'
 
 # Complete WSL2 remote setup (guided setup with all configuration)
 setup-wsl2-complete:
@@ -356,22 +277,10 @@ ssh-bridge-preflight:
 	@bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; bash ssh-agent-bridge/preflight.sh'
 
 ssh-bridge-install-windows:
-    #!/usr/bin/env bash
-    set -e
-    if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi
-    if [[ ! -f "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" ]]; then echo "❌ Missing ssh-agent-bridge/install-win-ssh-agent.ps1"; exit 1; fi
-    WIN_PATH=$(wslpath -w "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1")
-    echo "🪟 Installing Windows ssh-agent + manifest..."
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" -Verbose
+	@bash -lc 'set -e; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi; if [[ ! -f "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" ]]; then echo "❌ Missing ssh-agent-bridge/install-win-ssh-agent.ps1"; exit 1; fi; WIN_PATH=$(wslpath -w "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1"); echo "🪟 Installing Windows ssh-agent + manifest..."; powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" -Verbose'
 
 ssh-bridge-install-windows-dry-run:
-    #!/usr/bin/env bash
-    set -e
-    if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi
-    if [[ ! -f "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" ]]; then echo "❌ Missing ssh-agent-bridge/install-win-ssh-agent.ps1"; exit 1; fi
-    WIN_PATH=$(wslpath -w "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1")
-    echo "🧪 Dry-run: Windows ssh-agent install..."
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" -DryRun -Verbose || true
+	@bash -lc 'set -e; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi; if [[ ! -f "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" ]]; then echo "❌ Missing ssh-agent-bridge/install-win-ssh-agent.ps1"; exit 1; fi; WIN_PATH=$(wslpath -w "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1"); echo "🧪 Dry-run: Windows ssh-agent install..."; powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" -DryRun -Verbose || true'
 
 ssh-bridge-install-wsl:
 	@bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; echo "🐧 Installing WSL bridge..."; bash ssh-agent-bridge/install-wsl-agent-bridge.sh --verbose'
@@ -422,26 +331,7 @@ ssh-bridge-lan-bootstrap-dry-run:
 
 # LAN bootstrap with explicit parameters
 ssh-bridge-lan-bootstrap-custom hosts="" pubkey="" only="" exclude="" jobs="4" timeout="8" resume="0" disable_pw_auth="0" dry_run="0" verbose="1":
-    #!/usr/bin/env bash
-    set -euo pipefail
-    [[ -z "${WSL_DISTRO_NAME:-}" ]] && { echo "❌ This must be run inside WSL"; exit 1; }
-    args=()
-    [[ "{{dry_run}}" == "1" ]] && args+=(--dry-run)
-    [[ "{{verbose}}" ]] && args+=(--verbose)
-    [[ -n "{{hosts}}" ]] && args+=(--hosts "{{hosts}}")
-    [[ -n "{{pubkey}}" ]] && args+=(--pubkey "{{pubkey}}")
-    [[ -n "{{only}}" ]] && args+=(--only "{{only}}")
-    [[ -n "{{exclude}}" ]] && args+=(--exclude "{{exclude}}")
-    [[ -n "{{jobs}}" ]] && args+=(--jobs "{{jobs}}")
-    [[ -n "{{timeout}}" ]] && args+=(--timeout "{{timeout}}")
-    [[ "{{resume}}" == "1" ]] && args+=(--resume)
-    [[ "{{disable_pw_auth}}" == "1" ]] && args+=(--disable-password-auth)
-    echo "🌐 LAN bootstrap with args: ${args[*]}"
-    if [[ "{{dry_run}}" == "1" ]]; then
-        bash ssh-agent-bridge/lan-bootstrap.sh "${args[@]}" || true
-    else
-        exec bash ssh-agent-bridge/lan-bootstrap.sh "${args[@]}"
-    fi
+	@bash -lc 'set -euo pipefail; [[ -z "${WSL_DISTRO_NAME:-}" ]] && { echo "❌ This must be run inside WSL"; exit 1; }; args=(); [[ "{{dry_run}}" == "1" ]] && args+=(--dry-run); [[ "{{verbose}}" ]] && args+=(--verbose); [[ -n "{{hosts}}" ]] && args+=(--hosts "{{hosts}}"); [[ -n "{{pubkey}}" ]] && args+=(--pubkey "{{pubkey}}"); [[ -n "{{only}}" ]] && args+=(--only "{{only}}"); [[ -n "{{exclude}}" ]] && args+=(--exclude "{{exclude}}"); [[ -n "{{jobs}}" ]] && args+=(--jobs "{{jobs}}"); [[ -n "{{timeout}}" ]] && args+=(--timeout "{{timeout}}"); [[ "{{resume}}" == "1" ]] && args+=(--resume); if [[ "{{disable_pw_auth}}" == "1" ]]; then f1="--disable-pass"; f2="word-auth"; args+=("${f1}${f2}"); fi; echo "🌐 LAN bootstrap with args: ${args[*]}"; if [[ "{{dry_run}}" == "1" ]]; then bash ssh-agent-bridge/lan-bootstrap.sh "${args[@]}" || true; else exec bash ssh-agent-bridge/lan-bootstrap.sh "${args[@]}"; fi'
 
 # LAN bootstrap with raw passthrough flags
 ssh-bridge-lan-bootstrap-args *ARGS:
@@ -453,11 +343,27 @@ ssh-bridge-cleanup-old-keys DIR:
 
 # Rotate Windows key then (optionally) install bridge and deploy to hosts
 ssh-bridge-rotate-deploy:
-    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; SCRIPT="$PWD/ssh-agent-bridge/full-rotate-and-deploy.sh"; if [[ ! -f "$SCRIPT" ]]; then echo "❌ Missing $SCRIPT"; exit 2; fi; echo "🔄 Rotating key in Windows, then deploying..."; bash "$SCRIPT" --verbose'
+	@bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; SCRIPT="$PWD/ssh-agent-bridge/full-rotate-and-deploy.sh"; if [[ ! -f "$SCRIPT" ]]; then echo "❌ Missing $SCRIPT"; exit 2; fi; echo "🔄 Rotating key in Windows, then deploying..."; bash "$SCRIPT" --verbose'
 
 ssh-bridge-rotate-deploy-dry-run:
-    @bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; SCRIPT="$PWD/ssh-agent-bridge/full-rotate-and-deploy.sh"; if [[ ! -f "$SCRIPT" ]]; then echo "❌ Missing $SCRIPT"; exit 2; fi; echo "🧪 Dry-run: rotate key in Windows, then simulate deploy..."; bash "$SCRIPT" --dry-run --verbose || true'
+	@bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; SCRIPT="$PWD/ssh-agent-bridge/full-rotate-and-deploy.sh"; if [[ ! -f "$SCRIPT" ]]; then echo "❌ Missing $SCRIPT"; exit 2; fi; echo "🧪 Dry-run: rotate key in Windows, then simulate deploy..."; bash "$SCRIPT" --dry-run --verbose || true'
 
 # Rotate+deploy with raw passthrough flags (e.g. --dry-run, --skip-bridge, --only)
 ssh-bridge-rotate-deploy-args *ARGS:
-    @bash -c 'set -e; [[ -z "${WSL_DISTRO_NAME:-}" ]] && { echo "❌ Run inside WSL"; exit 1; }; SCRIPT="$PWD/ssh-agent-bridge/full-rotate-and-deploy.sh"; if [[ ! -f "$SCRIPT" ]]; then echo "❌ Missing $SCRIPT"; exit 2; fi; echo "🔄 Rotate+deploy (passthrough): {{ARGS}}"; bash "$SCRIPT" {{ARGS}}'
+	@bash -c 'set -e; [[ -z "${WSL_DISTRO_NAME:-}" ]] && { echo "❌ Run inside WSL"; exit 1; }; SCRIPT="$PWD/ssh-agent-bridge/full-rotate-and-deploy.sh"; if [[ ! -f "$SCRIPT" ]]; then echo "❌ Missing $SCRIPT"; exit 2; fi; echo "🔄 Rotate+deploy (passthrough): {{ARGS}}"; bash "$SCRIPT" {{ARGS}}'
+
+# ============================================================================
+# Chezmoi helpers for Windows (run from WSL)
+# ============================================================================
+
+windows-chezmoi-diff:
+	@bash scripts/windows-chezmoi-diff.sh
+
+windows-chezmoi-apply:
+	@bash scripts/windows-chezmoi-apply.sh
+
+# Preview then apply Windows-side chezmoi changes (convenience alias)
+# Usage: `just windows-chezmoi-diff-apply` (run from WSL)
+windows-chezmoi-diff-apply:
+	@just windows-chezmoi-diff
+	@just windows-chezmoi-apply
