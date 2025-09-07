@@ -82,6 +82,22 @@ just setup-pwsh7
 - When: After Linux steps inside WSL.
 - Why: Makes Windows PowerShell load this repo’s profile via UNC.
 
+What you get after setup
+- `code .` from a UNC WSL path (for example, `\\wsl.localhost\\Ubuntu-24.04\\home\\<you>\\project`) opens VS Code via Remote‑WSL.
+- `wslcode` helper always opens Remote‑WSL and converts Windows/UNC paths to Linux paths.
+
+Examples
+```powershell
+# From Windows PowerShell 7
+cd \\wsl.localhost\Ubuntu-24.04\home\<you>\Projects\myapp
+code .           # Opens Remote‑WSL (auto)
+
+# Anywhere (UNC or C:\), force Remote‑WSL
+wslcode .
+wslcode C:\Users\<you>\project
+wslcode \\wsl.localhost\Ubuntu-24.04\home\<you>\project
+```
+
 3) Preview and apply Windows-side changes (from WSL)
 
 ```bash

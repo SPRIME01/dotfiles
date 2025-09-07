@@ -49,6 +49,20 @@ Any file not matching the active `$PROFILE` path is moved to `*.backup.<timestam
   - Emits a warning if the UNC path didn’t become available — the main profile’s fallback still provides basic commands.
   - Backs up duplicate profile files across Documents and WindowsPowerShell. OneDrive is not required.
 
+## VS Code Launchers
+
+- `code` wrapper: When your current directory is a UNC WSL path (`\\wsl.localhost\\<distro>\\...`), `code .` opens via Remote‑WSL instead of failing due to `cmd.exe` UNC limitations.
+- `wslcode`: Dedicated helper that always opens Remote‑WSL, converting Windows paths (`C:\\...`) and UNC paths to Linux paths. Accepts optional `-Distro`.
+- Insiders: `code-insiders` and `wslcodei` behave identically for Insiders builds.
+
+Quick examples (from Windows PowerShell 7):
+```powershell
+cd \\wsl.localhost\Ubuntu-24.04\home\<you>\project
+code .           # auto Remote‑WSL
+wslcode .        # force Remote‑WSL anywhere
+wslcode C:\\Users\\<you>\\project
+```
+
 ## Verification Steps
 
 1. Re‑generate the Windows `$PROFILE` from Windows PowerShell:

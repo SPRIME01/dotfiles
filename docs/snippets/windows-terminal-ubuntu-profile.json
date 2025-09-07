@@ -1,0 +1,15 @@
+{
+  "$schema": "https://aka.ms/terminal-profiles-schema",
+  "defaultProfile": "{7bb02a95-5d54-4edc-9ab9-6f037655c327}",
+  "profiles": {
+    "list": [
+      {
+        "guid": "{7bb02a95-5d54-4edc-9ab9-6f037655c327}",
+        "name": "WSL (Default)",
+        "commandline": "wsl.exe",
+        "font": { "face": "MesloLGS Nerd Font", "size": 11 },
+        "hidden": false
+      }
+    ]
+  }
+}
