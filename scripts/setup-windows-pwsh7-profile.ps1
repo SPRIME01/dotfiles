@@ -216,7 +216,7 @@ if (Test-Path `$mainProfile) {
                 Write-Host "  ✅ Backed up: $path → $backup" -ForegroundColor Green
             }
         } catch {
-            Write-Warning "  ⚠️  Could not process $path: $($_.Exception.Message)"
+            Write-Warning "  ⚠️  Could not process ${path}: $($_.Exception.Message)"
         }
     }
 
