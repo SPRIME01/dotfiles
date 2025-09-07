@@ -14,7 +14,7 @@ Goal: Set up a new machine with this dotfiles repo using existing recipes in a s
 ```bash
 git clone https://github.com/SPRIME01/dotfiles "$HOME/dotfiles"
 cd "$HOME/dotfiles"
-bash install.sh
+just install # or bash install.sh
 ```
 
 - When: First install on a new machine.
@@ -23,7 +23,7 @@ bash install.sh
 2) Validate environment
 
 ```bash
-bash scripts/doctor.sh
+just doctor-verbose # or bash scripts/doctor.sh
 CHEZMOI_NO_PAGER=1 PAGER=cat chezmoi doctor
 ```
 
@@ -159,3 +159,15 @@ CHEZMOI_NO_PAGER=1 PAGER=cat chezmoi diff
   - `just bootstrap` (chezmoi apply + optional Mise install)
   - `just direnv-install` (cross-platform direnv installation)
 
+## Mise Activation Notes
+
+- Scoped activation (recommended): This repo activates mise via direnv only inside allowed projects. Outside a project, `mise doctor` may show `activated: no` and `shims_on_path: no` — that’s expected.
+- Verify in-project: After `direnv allow` in this repo (or any project with `.envrc` + `.mise.toml`), `mise doctor` should report `activated: yes`. Example checks:
+
+```bash
+mise doctor || true
+mise which node  # or any tool defined in your .mise.toml
+```
+
+- Optional shims (global/non-interactive): If you need tools available without direnv, add `~/.local/share/mise/shims` to `PATH` or use `eval "$(mise activate zsh --shims)"` (adjust for your shell). This is not required for the direnv-first flow.
+- Updates: If `mise doctor` reports a newer version is available, update with `mise self-update`.
