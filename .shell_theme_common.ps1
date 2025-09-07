@@ -14,24 +14,16 @@ try {
     function Get-ChildItem {
         [CmdletBinding(DefaultParameterSetName = 'Items')]
         param(
-            # All original parameters of Get-ChildItem
+            # Subset of Get-ChildItem parameters (common parameters are implicit; do not redeclare)
             [Parameter(Position = 0)]
             [string[]]$Path,
-            [string[]]$Filter,
+            [string]$Filter,
             [string[]]$Include,
             [string[]]$Exclude,
             [string[]]$LiteralPath,
             [switch]$Force,
             [switch]$Recurse,
             [int]$Depth,
-            [string]$ErrorAction,
-            [string]$ErrorVariable,
-            [int]$OutBuffer,
-            [string]$OutVariable,
-            [string]$WarningAction,
-            [string]$WarningVariable,
-            [switch]$WhatIf,
-            [switch]$Confirm,
             [Parameter(ParameterSetName = 'Items')]
             [switch]$File,
             [Parameter(ParameterSetName = 'Items')]
