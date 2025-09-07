@@ -22,6 +22,31 @@
         executed directly (e.g., `pwsh Load-Env.ps1`) it will automatically
         locate and load a `.env` file from the repository root.
 #>
+# --- Quiet mode defaults & legacy compatibility ---
+# Keep VOLTA_HOME export for compatibility with existing Volta installations
+# Ensure quiet defaults for parity with bash/zsh direnv hooks
+if (-not $env:DIRENV_LOG_FORMAT) { $env:DIRENV_LOG_FORMAT = '' }
+$voltaHome = Join-Path $HOME ".volta"
+if (Test-Path -LiteralPath $voltaHome) {
+    $env:VOLTA_HOME = $voltaHome
+}
+
+# --- Toolchain activation (Mise first) ---
+function Activate-Mise {
+    [CmdletBinding()]
+    param()
+    if (Get-Command mise -ErrorAction SilentlyContinue) {
+        try {
+            (& mise activate pwsh --shims) | Invoke-Expression
+        } catch {
+            Write-Verbose "mise activation failed: $($_.Exception.Message)"
+        }
+    }
+}
+
+# --- Snap Package Manager ---
+# Note: Snap PATH management is now handled by platform-specific templates
+
 function Load-EnvFile {
     [CmdletBinding()]
     param(
@@ -53,8 +78,9 @@ function Load-EnvFile {
     }
 }
 
-# When executed directly, load a .env file from the parent directory
+# When executed directly, activate mise then load a .env file from the parent directory
 if ($MyInvocation.InvocationName -eq $MyInvocation.MyCommand.Name) {
+    Activate-Mise
     $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
     $projectRoot = Split-Path -Parent $scriptDir
     $envFile = Join-Path $projectRoot '.env'

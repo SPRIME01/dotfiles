@@ -1,0 +1,11 @@
+# Global ignore for sensitive and environment-scoped files
+.env
+.env.*
+.envrc
+.envrc.local
+.direnv/
+
+# Allow documented examples
+!.env.example
+!.envrc.example
+

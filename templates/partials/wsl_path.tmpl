@@ -1,0 +1,17 @@
+{{/* WSL-specific PATH additions */}}
+# WSL-specific PATH entries
+if [[ -d "/mnt/c/Windows/System32" ]]; then
+  # Add Windows System32 to PATH for WSL interoperability
+  case ":$PATH:" in
+    *":/mnt/c/Windows/System32:"*) ;; # already present
+    *) export PATH="$PATH:/mnt/c/Windows/System32" ;;
+  esac
+fi
+
+# Add WSL-specific tool directories
+if [[ -d "$HOME/.local/bin/wsl" ]]; then
+  case ":$PATH:" in
+    *":$HOME/.local/bin/wsl:"*) ;; # already present
+    *) export PATH="$HOME/.local/bin/wsl:$PATH" ;;
+  esac
+fi

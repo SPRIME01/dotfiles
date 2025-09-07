@@ -45,8 +45,10 @@ echo ""
 
 read -p "Ready to configure Windows? (y/N) " -n 1 -r
 echo
+
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-	if powershell.exe -ExecutionPolicy Bypass -File "$PWD/scripts/setup-wsl2-remote-windows.ps1"; then
+	WIN_PATH=$(wslpath -w "$PWD/scripts/setup-wsl2-remote-windows.ps1")
+	if powershell.exe -ExecutionPolicy Bypass -File "$WIN_PATH"; then
 		echo "✅ Windows configuration complete"
 	else
 		echo "⚠️  Windows configuration may have failed"

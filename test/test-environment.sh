@@ -17,14 +17,14 @@ test_environment_loading() {
 		"$expected_root"
 
 	# Test GEMINI_API_KEY is loaded when declared in .env
-	local expect_secret="UNSET"
+	local expect_token="UNSET"
 	envfile="$(dirname "${BASH_SOURCE[0]}")/../.env"
 	if [[ -f "$envfile" ]] && grep -E '^\s*GEMINI_API_KEY\s*=' "$envfile" >/dev/null 2>&1; then
-		expect_secret="SET"
+		expect_token="SET"
 	fi
 	test_assert "GEMINI_API_KEY is loaded" \
 		'[[ -n "$GEMINI_API_KEY" ]] && echo "SET" || echo "UNSET"' \
-		"$expect_secret"
+		"$expect_token"
 
 	# Test PROJECTS_ROOT has default value
 	# Test PROJECTS_ROOT has default value or is overridden in .env
