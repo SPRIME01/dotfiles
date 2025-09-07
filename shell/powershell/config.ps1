@@ -135,10 +135,16 @@ if (-not $env:DISABLE_DIRENV -and -not $env:DOTFILES_DIRENV_PWSH_INITIALIZED) {
     $env:DOTFILES_DIRENV_PWSH_INITIALIZED = 1
     if (Get-Command direnv -ErrorAction SilentlyContinue) {
         try {
-            # direnv hook outputs PowerShell code when given 'pwsh'
-            Invoke-Expression (direnv hook pwsh)
-            # Quiet logging unless explicitly required
-            if (-not $env:DIRENV_LOG_FORMAT) { $env:DIRENV_LOG_FORMAT = '' }
+            # Prefer 'pwsh' target (newer direnv), fall back to 'powershell' (older direnv)
+            $hook = (direnv hook pwsh) 2>$null
+            if (-not $hook) { $hook = (direnv hook powershell) 2>$null }
+            if ($hook) {
+                Invoke-Expression $hook
+                # Quiet logging unless explicitly required
+                if (-not $env:DIRENV_LOG_FORMAT) { $env:DIRENV_LOG_FORMAT = '' }
+            } else {
+                Write-Verbose "direnv available but produced no hook for pwsh/powershell" -Verbose:$false
+            }
         }
         catch {
             Write-Warning "direnv integration failed: $($_.Exception.Message)"
