@@ -385,3 +385,7 @@ windows-chezmoi-apply:
 windows-chezmoi-diff-apply:
 	@just windows-chezmoi-diff
 	@just windows-chezmoi-apply
+
+# Interactive apply (prompts enabled, no pager)
+windows-chezmoi-apply-interactive:
+	@bash scripts/windows-chezmoi-apply-interactive.sh
