@@ -57,6 +57,24 @@ setup-windows:
 update:
 	@bash update.sh
 
+# Environment diagnostics (doctor)
+doctor:
+	@bash scripts/doctor.sh
+
+doctor-verbose:
+	@bash scripts/doctor.sh --verbose
+
+doctor-strict:
+	@bash scripts/doctor.sh --strict --verbose
+
+# Bootstrap/apply dotfiles via chezmoi (wrapper around install.sh)
+install:
+	@bash -lc 'set -euo pipefail; echo "🚀 Running install.sh (chezmoi apply)..."; bash install.sh'
+
+# Dry-run the bootstrap (no changes; shows diff)
+install-dry-run:
+	@bash -lc 'set -euo pipefail; echo "🧪 Dry-run install.sh (no changes)..."; DRY_RUN=1 bash install.sh'
+
 # Set up projects directory and Windows symlink (WSL2 only)
 setup-projects:
 	@bash scripts/setup-projects-idempotent.sh
