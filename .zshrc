@@ -18,6 +18,10 @@ if [[ $- == *i* ]]; then
     unsetopt errexit nounset pipefail 2>/dev/null
 fi
 
+# Ensure RPROMPT/RPS1 are defined to avoid plugin errors under nounset
+typeset -g RPROMPT=""
+typeset -g RPS1=""
+
 # Always source shared configuration first
 if [[ -r "$DOTFILES_ROOT/.shell_common.sh" ]]; then
     source "$DOTFILES_ROOT/.shell_common.sh"
@@ -72,8 +76,8 @@ if (( $+functions[history-substring-search-up] )); then
     bindkey '^[[B' history-substring-search-down
 fi
 
-# Preferred editor per context
-if [[ -n $SSH_CONNECTION ]]; then
+# Preferred editor per context (guard against unset var)
+if [[ -n ${SSH_CONNECTION-} ]]; then
     export EDITOR='vim'
 else
     export EDITOR='code'

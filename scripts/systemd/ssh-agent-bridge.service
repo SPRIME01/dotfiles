@@ -1,0 +1,27 @@
+# systemd --user unit for persistent SSH agent bridge inside WSL
+# Install:
+#   mkdir -p ~/.config/systemd/user
+#   cp ./scripts/systemd/ssh-agent-bridge.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now ssh-agent-bridge.service
+# Status:
+#   systemctl --user status ssh-agent-bridge.service
+# Logs:
+#   journalctl --user -u ssh-agent-bridge.service -f
+# Force restart:
+#   systemctl --user restart ssh-agent-bridge.service
+
+[Unit]
+Description=WSL SSH Agent Bridge (npiperelay + socat)
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Environment=SSH_BRIDGE_VERBOSE=1
+ExecStart=%h/dotfiles/scripts/setup-ssh-agent-bridge.sh --force-restart --verbose
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target
