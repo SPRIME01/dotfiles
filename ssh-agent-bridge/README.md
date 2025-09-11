@@ -118,14 +118,15 @@ Quality-of-life flags:
 - `--verbose` detailed logs
 - `--only "prod-*,db-*"` target by globs
 - `--exclude "test-*"` skip by globs
-- `--jobs 8` parallelize (uses `xargs -P` if available)
+- `--jobs 8` parallelize (built-in bash job control; no external xargs dependency)
 - `--timeout 8` per-host connect timeout
 - `--resume` skip hosts already marked complete in the state file
 - `--old-keys-dir /mnt/c/Users/<You>/.ssh/backup-2025...` explicitly set which backup folder to use
+ - `--confirm-cleanup` actually remove old key blobs (without this flag cleanup is skipped for safety)
 
 Logs & state:
 - Logs: `~/.ssh/logs/deploy-ssh-key_*.log`
-- State (resumable): `~/.ssh/logs/deploy-ssh-key_state.json`
+- State (resumable): `~/.ssh/logs/deploy-ssh-key_state.tsv` (TSV: host<TAB>status<TAB>timestamp)
 
 
 ---
@@ -152,8 +153,29 @@ bash full-rotate-and-deploy.sh --only "prod-*,db-*" --jobs 8 --verbose
 
 ### Preflight & Preview
 ```bash
+# Human-readable checks
 bash preflight.sh
-bash list-hosts.sh
+
+# Strict mode (non-zero exit if any FAIL)
+bash preflight.sh --strict
+
+# Machine-readable summary
+bash preflight.sh --json | jq .
+
+# Minimal output (summary + advice only)
+bash preflight.sh --summary-only
+
+# Force color (if piping to less -R)
+bash preflight.sh --color
+
+# Convenience via just recipes
+just ssh-bridge-preflight
+just ssh-bridge-preflight-strict
+just ssh-bridge-preflight-json
+
+# Other quick views
+bash status.sh          # summary (or: just ssh-bridge-status)
+bash list-hosts.sh      # show parsed Host aliases
 ```
 
 ### Clean uninstall
@@ -164,3 +186,98 @@ powershell.exe -File uninstall-windows.ps1 -DisableAgent
 ```
 
 This package is intentionally **offline-first** and **self-contained** to avoid constant updates. If your environment changes (e.g., different `npiperelay.exe` path), just re-run `install-win-ssh-agent.ps1` to refresh the manifest—everything else reads from that source of truth.
+
+---
+
+## Troubleshooting: Windows ↔ WSL Bridge Install Failure
+
+If `just ssh-bridge-install-windows` failed with errors like:
+```
+Set-Service ssh-agent ... Access is denied
+Start-Service ssh-agent ... Access is denied
+ssh-add id_ed25519 -> Error connecting to agent: No such file or directory
+```
+and WSL reported:
+```
+socat not found. Install socat to enable SSH agent bridge.
+```
+follow the remediation below.
+
+### 1) Root Cause
+* Windows run was **non‑elevated**, so changing / starting the `ssh-agent` service failed.
+* Because the service never started, `ssh-add` could not contact the agent (pipe missing).
+* WSL lacked `socat`, so the UNIX socket bridge couldn’t be created.
+* The ed25519 key already existed; the issue was connectivity, not key generation.
+
+### 2) Fix (Windows – Elevated)
+Run (or from WSL use `just ssh-bridge-remediate-windows` which launches a PowerShell that self‑elevates):
+```powershell
+# In an elevated PowerShell
+Set-Service -Name ssh-agent -StartupType Automatic
+Start-Service ssh-agent
+
+$key = "$env:USERPROFILE\.ssh\id_ed25519"
+if (-not (Test-Path $key)) { Write-Error "Missing key: $key"; exit 1 }
+if (-not (ssh-add -l 2>$null | Select-String -SimpleMatch ((Get-Content "$key.pub") | Select-Object -First 1))) { ssh-add $key }
+ssh-add -l
+
+# Ensure/record npiperelay path + manifest
+if (-not (Get-Command npiperelay.exe -ErrorAction SilentlyContinue)) { Write-Warning "Install npiperelay (scoop install npiperelay OR choco install npiperelay)" }
+$np = (Get-Command npiperelay.exe -ErrorAction SilentlyContinue | Select -First 1 -Expand Source)
+@{
+  npiperelay_path     = $np                       # Windows path
+  npiperelay_wsl      = ($np -replace '^([A-Za-z]):\\','/mnt/$([string]::ToLower($1))/') -replace '\\','/'  # WSL-mount path
+  windows_user        = $env:USERNAME
+  windows_host        = $env:COMPUTERNAME
+  created_utc         = (Get-Date).ToUniversalTime().ToString('o')
+  key_public_path_wsl = "/mnt/c/Users/$($env:USERNAME)/.ssh/id_ed25519.pub"
+} | ConvertTo-Json -Depth 5 | Out-File -Encoding UTF8 "$env:USERPROFILE\.ssh\bridge-manifest.json"
+```
+
+### 3) Fix (WSL)
+```bash
+sudo apt-get update
+sudo apt-get install -y socat
+test -f /mnt/c/Users/$USER/.ssh/bridge-manifest.json || { echo "Manifest missing; fix Windows first"; exit 1; }
+bash ssh-agent-bridge/install-wsl-agent-bridge.sh --verbose
+```
+
+### 4) Verification
+Windows:
+```powershell
+Get-Service ssh-agent | Select Status,StartType
+ssh-add -l
+Test-Path $env:USERPROFILE\.ssh\bridge-manifest.json
+```
+WSL:
+```bash
+ls -l ~/.ssh/agent.sock
+ssh-add -l
+ssh-keygen -lf /mnt/c/Users/$USER/.ssh/id_ed25519.pub
+```
+Expected: service Running (Automatic), identical key fingerprints, `agent.sock` exists, key listed in both environments.
+
+### 5) Retry Script Snippets
+Windows elevated one‑shot (already implemented as `remediate-windows-agent.ps1`):
+```powershell
+PowerShell -NoProfile -ExecutionPolicy Bypass -File remediate-windows-agent.ps1
+```
+WSL quick retry:
+```bash
+just ssh-bridge-remediate-wsl
+```
+
+### 6) Fallback (No Elevation)
+Without elevation you cannot start/configure the Windows `ssh-agent` service. Do **not** generate a second private key in WSL (breaks single source of truth). Wait until you can elevate, then remediate.
+
+### 7) Idempotency / Clean Re-run
+* Windows remediation is safe: it only loads an existing key and overwrites the manifest when requested.
+* WSL installer replaces its managed block each run; no duplicate lines.
+* To reset: delete the manifest (`del %USERPROFILE%\.ssh\bridge-manifest.json`) and rerun the Windows remediation; remove `~/.ssh/agent.sock` + `~/.local/bin/win-ssh-agent-bridge` then reinstall on WSL.
+
+See also the helper Just recipes:
+```bash
+just ssh-bridge-remediate-windows   # Elevate + fix Windows side
+just ssh-bridge-remediate-wsl       # Install socat + reinstall bridge
+```
+

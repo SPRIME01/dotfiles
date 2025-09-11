@@ -3,12 +3,14 @@
 # Generated: 2025-08-04T22:08:57-04:00
 projects_setup=installed
 zsh_config=installed
-bash_config=installed
-pwsh_config=installed
-vscode_settings=installed
+bash_config=failed # Setting up shell symlinks and environment failed
+pwsh_config=skipped # PowerShell not available
+vscode_settings=failed # Installing VS Code settings failed
 git_hook=installed
 ssh_bridge=installed
-projects_setup=installed
 pwsh7_windows=skipped # Not WSL
 ssh_agent_windows=installed
-setup_completed=2025-09-05T15:03:38-04:00
+setup_completed=2025-09-11T16:45:40-04:00
+setup_completed=2025-09-11T16:45:47-04:00
+setup_completed=2025-09-11T16:45:52-04:00
+setup_completed=2025-09-11T16:45:56-04:00

@@ -277,7 +277,12 @@ ssh-bridge-help:
 	@echo "  just ssh-bridge-install-windows-dry-run   # Dry-run Windows install"
 	@echo "  just ssh-bridge-install-wsl               # Install WSL bridge block + helper"
 	@echo "  just ssh-bridge-install-wsl-dry-run       # Dry-run WSL bridge install"
+	@echo "  just ssh-bridge-remediate-windows         # Elevate + fix Windows agent & manifest"
+	@echo "  just ssh-bridge-remediate-wsl             # Install socat + re-run WSL installer"
+	@echo "  just ssh-bridge-manifest-path             # Print detected Windows + WSL manifest path"
+	@echo "  just ssh-bridge-manifest-cat              # Show manifest JSON"
 	@echo "  just ssh-bridge-uninstall                 # Remove bridge and helper"
+	@echo "  just ssh-bridge-status                    # Summarize bridge + deploy status"
 	@echo "  just ssh-bridge-fix-config                # Normalize ~/.ssh/config on WSL"
 	@echo "  just ssh-bridge-fix-config-dry-run        # Dry-run config fixes"
 	@echo "  just ssh-bridge-fix-config-no-acl         # Fix config without touching ACLs"
@@ -294,11 +299,29 @@ ssh-bridge-help:
 ssh-bridge-preflight:
 	@bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; bash ssh-agent-bridge/preflight.sh'
 
+ssh-bridge-preflight-strict:
+	@bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; bash ssh-agent-bridge/preflight.sh --strict'
+
+ssh-bridge-preflight-json:
+	@bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "{}"; exit 0; fi; bash ssh-agent-bridge/preflight.sh --json'
+
 ssh-bridge-install-windows:
 	@bash -lc 'set -e; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi; if [[ ! -f "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" ]]; then echo "❌ Missing ssh-agent-bridge/install-win-ssh-agent.ps1"; exit 1; fi; WIN_PATH=$(wslpath -w "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1"); echo "🪟 Installing Windows ssh-agent + manifest..."; powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" -Verbose'
 
 ssh-bridge-install-windows-dry-run:
 	@bash -lc 'set -e; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi; if [[ ! -f "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" ]]; then echo "❌ Missing ssh-agent-bridge/install-win-ssh-agent.ps1"; exit 1; fi; WIN_PATH=$(wslpath -w "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1"); echo "🧪 Dry-run: Windows ssh-agent install..."; powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" -DryRun -Verbose || true'
+
+ssh-bridge-remediate-windows:
+	@bash -lc 'set -e; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi; SCRIPT="$PWD/ssh-agent-bridge/remediate-windows-agent.ps1"; if [[ ! -f "$SCRIPT" ]]; then echo "❌ Missing $SCRIPT"; exit 1; fi; WIN_PATH=$(wslpath -w "$SCRIPT"); echo "🛠  Remediating Windows ssh-agent (will prompt for elevation)..."; powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" | tr -d "\r"'
+
+ssh-bridge-remediate-wsl:
+	@bash -lc 'set -euo pipefail; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; if ! command -v socat >/dev/null 2>&1; then echo "📦 Installing socat (required for bridge)..."; sudo apt-get update -y >/dev/null 2>&1 || true; sudo apt-get install -y socat; else echo "✅ socat already installed"; fi; echo "🔁 Re-running WSL bridge installer"; bash ssh-agent-bridge/install-wsl-agent-bridge.sh --verbose; echo "✅ Remediation complete; run: ssh-add -l"'
+
+ssh-bridge-manifest-path:
+	@bash -lc 'set -euo pipefail; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  Run inside WSL for path translation"; fi; WINUSER=$(powershell.exe -NoProfile -Command "[Environment]::UserName" 2>/dev/null | tr -d "\r" || true); if [[ -z "$WINUSER" ]]; then echo "❌ Could not resolve Windows user via powershell.exe"; exit 1; fi; WINPATH="/mnt/c/Users/$WINUSER/.ssh/bridge-manifest.json"; echo "Windows user: $WINUSER"; echo "Manifest path (WSL view): $WINPATH"; if [[ -f "$WINPATH" ]]; then echo "✅ Found manifest"; else echo "❌ Manifest not found"; fi'
+
+ssh-bridge-manifest-cat:
+	@bash -lc 'set -euo pipefail; WINUSER=$(powershell.exe -NoProfile -Command "[Environment]::UserName" 2>/dev/null | tr -d "\r" || true); [[ -z "$WINUSER" ]] && { echo "❌ Cannot determine Windows user"; exit 1; }; PATH_WSL="/mnt/c/Users/$WINUSER/.ssh/bridge-manifest.json"; if [[ ! -f "$PATH_WSL" ]]; then echo "❌ Manifest missing: $PATH_WSL"; exit 2; fi; sed -n "1,160p" "$PATH_WSL"'
 
 ssh-bridge-install-wsl:
 	@bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; echo "🐧 Installing WSL bridge..."; bash ssh-agent-bridge/install-wsl-agent-bridge.sh --verbose'
@@ -308,6 +331,9 @@ ssh-bridge-install-wsl-dry-run:
 
 ssh-bridge-uninstall:
 	@bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; echo "🧹 Uninstalling WSL bridge..."; bash ssh-agent-bridge/uninstall-wsl-bridge.sh'
+
+ssh-bridge-status:
+	@bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This should be run inside WSL for full accuracy"; fi; bash ssh-agent-bridge/status.sh'
 
 # --- WSL config & perms helpers ---
 ssh-bridge-fix-config:

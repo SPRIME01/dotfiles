@@ -8,6 +8,13 @@
 
 set -euo pipefail
 
+# Load shared helpers if present
+COMMON_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$COMMON_DIR/common.sh" ]]; then
+  # shellcheck disable=SC1091
+  source "$COMMON_DIR/common.sh"
+fi
+
 HOSTS_FILE="${HOSTS_FILE:-./hosts.txt}"
 OLD_KEYS_DIR=""
 DRY_RUN=0
@@ -24,8 +31,8 @@ Options:
   --hosts <file>           Hosts file (default: ./hosts.txt)
   --old-keys-dir <dir>     REQUIRED: directory containing *.pub to remove
   --jobs, -j <N>           Parallel jobs (default: 4)
-  --only "<h1,h2>"         Only these hosts (comma-separated)
-  --exclude "<h1,h2>"      Skip these hosts
+  --only "<h1,h2>"         Only these hosts (comma-separated shell globs)
+  --exclude "<h1,h2>"      Skip these hosts (comma-separated shell globs)
   --timeout <sec>          SSH connect timeout (default: 8)
   --resume                 Skip hosts already marked complete
   --dry-run                Show actions but do nothing
@@ -206,4 +213,8 @@ echo "State:     $STATE"
 echo "Processed: $total"
 echo "Completed: $done_count"
 echo "Failures:  $failed_count"
+if [[ $failed_count -gt 0 ]]; then
+  echo "Failed hosts (status):"
+  awk -F'\t' '$2 ~ /^failed_/{printf " - %s (%s)\n", $1,$2}' "$STATE" | sort -u
+fi
 exit $failures
