@@ -187,3 +187,103 @@ mise which node  # or any tool defined in your .mise.toml
 
 - Optional shims (global/non-interactive): If you need tools available without direnv, add `~/.local/share/mise/shims` to `PATH` or use `eval "$(mise activate zsh --shims)"` (adjust for your shell). This is not required for the direnv-first flow.
 - Updates: If `mise doctor` reports a newer version is available, update with `mise self-update`.
+
+### Why this repo does not add `eval "$(mise activate <shell>)"` globally
+
+This setup is intentionally “scoped activation”: tools only appear when you are inside an allowed project (direnv + [.envrc](http://_vscodecontentref_/0) + optional `.mise.toml`). Benefits:
+- Faster generic shell startup (no global hook-env runs).
+- Avoids PATH bloat and accidental tool version leakage into unrelated scripts.
+- Clear boundary: enter project → tools available; leave project → PATH clean.
+
+You will see `mise doctor` show `activated: no` outside allowed dirs—this is expected.
+
+### Temporary or global opt‑in (optional)
+
+One-off (current shell only):
+```bash
+eval "$(mise activate bash)"   # or zsh
+```
+
+Prefer shims only (lighter, fewer features):
+```bash
+eval "$(mise activate bash --shims)"
+```
+
+Permanent (add to your own *personal* rc, not managed by chezmoi):
+```bash
+echo 'eval "$(mise activate bash)"' >> ~/.bashrc
+# or for zsh
+echo 'eval "$(mise activate zsh)"' >> ~/.zshrc
+```
+
+## SSH
+
+GitHub Copilot
+
+Recommended sequence (WSL2 + Windows, fresh machine, wanting SSH agent bridge):
+
+1. Preflight (sanity + dependency checks)
+```bash
+just ssh-bridge-preflight
+```
+
+2. Install Windows side (run from WSL; sets up Windows agent + manifest)
+```bash
+just ssh-bridge-install-windows
+# Dry run: just ssh-bridge-install-windows-dry-run
+```
+
+3. Install WSL side bridge (creates launcher, rc blocks, socket)
+```bash
+just ssh-bridge-install-wsl
+# Dry run: just ssh-bridge-install-wsl-dry-run (if present) or use --dry-run flag if script supports
+```
+
+4. (Optional) Fix/repair config if something didn’t wire correctly
+```bash
+just ssh-bridge-fix-config
+# Or dry-run: just ssh-bridge-fix-config-dry-run
+```
+
+5. (Optional) Deploy your public key to LAN/remote hosts
+```bash
+just ssh-bridge-deploy           # full deploy using hosts file
+# Variants:
+just ssh-bridge-deploy-dry-run
+just ssh-bridge-deploy-custom only="host1,host2" exclude="oldhost"
+```
+
+6. (Optional, first-time host trust + hardening flow)
+```bash
+just ssh-bridge-lan-bootstrap
+# Dry run: just ssh-bridge-lan-bootstrap-dry-run
+```
+
+7. (Optional) Rotate Windows key then redeploy
+```bash
+just ssh-bridge-rotate-deploy
+# Dry run: just ssh-bridge-rotate-deploy-dry-run
+```
+
+8. (Maintenance) List or clean up
+```bash
+just ssh-bridge-list-hosts
+just ssh-bridge-cleanup-old-keys DIR=./old_keys_backup   # after verification
+```
+
+Minimal happy path (most users):
+```
+just ssh-bridge-preflight
+just ssh-bridge-install-windows
+just ssh-bridge-install-wsl
+ssh-add -l
+```
+
+Linux-only (no Windows): you don’t need the bridge—just generate keys and use ssh-agent (skip all ssh-bridge-* recipes).
+
+Windows-only (no WSL): run the PowerShell bootstrap; bridge recipes are WSL-focused.
+
+Need a condensed one-liner? Use:
+```
+just ssh-bridge-preflight && just ssh-bridge-install-windows && just ssh-bridge-install-wsl
+```

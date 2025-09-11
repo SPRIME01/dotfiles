@@ -110,3 +110,6 @@ fi
 
 export ZED_ALLOW_EMULATED_GPU=1
 alias zed="WAYLAND_DISPLAY= zed"
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

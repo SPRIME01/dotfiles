@@ -16,14 +16,14 @@
 #   prime@192.168.0.50
 #   ubuntu@host2.local
 #   root@192.168.0.77:2222
-#!/usr/bin/env bash
-# lan-bootstrap.sh — Bootstrap LAN SSH trust from WSL/Linux using your agent key.
-# - Reads hosts from a file (default: hosts.txt), lines like: user@host[:port]
-# - Appends your public key to each host's authorized_keys
-# - Verifies agent-only login (no password)
-# - (Optional) Disables password authentication on the server AFTER key login works
-# - Idempotent, resumable, logs to ~/.ssh/logs
 set -euo pipefail
+
+# Load shared helpers if available
+COMMON_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$COMMON_DIR/common.sh" ]]; then
+  # shellcheck disable=SC1091
+  source "$COMMON_DIR/common.sh"
+fi
 
 # Script directory (for resolving default hosts file)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -45,8 +45,15 @@ detect_win_user() {
   [[ -z "$u" ]] && u="$(ls -1 /mnt/c/Users 2>/dev/null | head -1 || true)"
   echo "$u"
 }
-WIN_USER="$(detect_win_user)"
-PUBKEY="${PUBKEY:-/mnt/c/Users/${WIN_USER}/.ssh/id_ed25519.pub}"
+MANIFEST="$(ssh_bridge_manifest_path || true)"
+PUBKEY="${PUBKEY:-}"
+if [[ -z "$PUBKEY" ]]; then
+  PUBKEY="$(ssh_bridge_public_key "$MANIFEST" || true)"
+fi
+if [[ -z "$PUBKEY" ]]; then
+  WIN_USER="$(detect_win_user)"
+  PUBKEY="/mnt/c/Users/${WIN_USER}/.ssh/id_ed25519.pub"
+fi
 
 usage() {
   cat <<'USAGE'
@@ -54,8 +61,8 @@ Options:
   --hosts <file>            Path to hosts file (default: ./hosts.txt)
   --pubkey <path>           Path to public key (.pub)
   --jobs, -j <N>            Parallel jobs (default: 4)
-  --only "host1,host2"      Process only these hosts (exact match)
-  --exclude "host1,..."     Skip these hosts
+  --only "h1,h2"            Process only these hosts (comma-separated shell globs)
+  --exclude "h1,..."        Skip these hosts (comma-separated shell globs)
   --timeout <sec>           SSH connect timeout (default: 8)
   --disable-password-auth   After verify, set PasswordAuthentication no on server
   --resume                  Skip hosts previously marked complete
@@ -271,5 +278,8 @@ echo "State:     $STATE"
 echo "Processed: $total"
 echo "Completed: $done_count"
 echo "Failures:  $failed_count"
+if [[ $failed_count -gt 0 ]]; then
+  echo "Failed hosts (status):"
+  awk -F'\t' '$2 ~ /^failed_/{printf " - %s (%s)\n", $1,$2}' "$STATE" | sort -u
+fi
 exit $failures
-    fi

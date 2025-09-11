@@ -15,8 +15,25 @@ Usage:
 [CmdletBinding()]
 param(
   [switch]$DryRun,
-  [switch]$Quiet
+  [switch]$Quiet,
+  [switch]$NoElevate
 )
+
+# --- Self-elevate (unless suppressed) so service operations succeed ---
+$isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $isAdmin -and -not $NoElevate) {
+  Write-Host "[INFO] Not elevated; relaunching with elevation..." -ForegroundColor Cyan
+  $args = @('-NoProfile','-ExecutionPolicy','Bypass','-File',"$PSCommandPath")
+  if ($DryRun)   { $args += '-DryRun' }
+  if ($Quiet)    { $args += '-Quiet' }
+  $args += '-NoElevate'
+  Start-Process -FilePath 'PowerShell' -Verb RunAs -ArgumentList $args -Wait | Out-Null
+  # After elevated run completes, print manifest path (if any) then exit.
+  $manifestCheck = Join-Path $env:USERPROFILE '.ssh\\bridge-manifest.json'
+  if (Test-Path $manifestCheck) { Write-Host "[INFO] Completed elevated install. Manifest: $manifestCheck" -ForegroundColor Green }
+  else { Write-Warning "Elevated run finished but manifest not found: $manifestCheck" }
+  return
+}
 
 # Warn if running from a UNC path (e.g., \\wsl.localhost\...)
 if ($PSCommandPath -like '\\\\*') {
@@ -31,6 +48,7 @@ $SshDir     = Join-Path $env:USERPROFILE ".ssh"
 $LogDir     = Join-Path $SshDir "logs"
 $LogFile    = Join-Path $LogDir ("win-ssh-agent-setup_{0}.log" -f (Get-Date -Format "yyyyMMdd_HHmmss"))
 $Manifest   = Join-Path $SshDir "bridge-manifest.json"
+if (-not (Test-Path $SshDir)) { New-Item -ItemType Directory -Force -Path $SshDir | Out-Null }
 
 # Try to create log folder
 try {
@@ -122,23 +140,41 @@ if (-not $NPipePath) {
   Write-Log "npiperelay: $NPipePath"
 }
 
-# Write/refresh manifest
+# Write/refresh manifest (backwards + forwards compatible)
 function To-WslPath([string]$WinPath) {
   if (-not $WinPath) { return "" }
+  if ($WinPath.Length -lt 3 -or $WinPath[1] -ne ':') { return "" }
   $drive = $WinPath.Substring(0,1).ToLower()
   $tail  = $WinPath.Substring(2) -replace '\\','/'
   return "/mnt/$drive/$tail"
 }
-$ManifestObj = [ordered]@{
-  version        = 1
-  windows_user   = $env:USERNAME
-  host           = $env:COMPUTERNAME
-  npiperelay_win = $NPipePath
-  npiperelay_wsl = if ($NPipePath) { To-WslPath $NPipePath } else { "" }
-  ssh_key_path   = $KeyPath
-  updated_at     = (Get-Date).ToString("s")
+
+$existingCreated = $null
+if (Test-Path $Manifest) {
+  try { $parsed = Get-Content $Manifest -Raw | ConvertFrom-Json -ErrorAction Stop; $existingCreated = $parsed.created_utc } catch { }
 }
-$ManifestJson = ($ManifestObj | ConvertTo-Json -Depth 3)
+
+$nowUtc = (Get-Date).ToUniversalTime().ToString('o')
+$wslNp  = if ($NPipePath) { To-WslPath $NPipePath } else { "" }
+$pubKeyPath = "$KeyPath.pub"
+$pubKeyWsl  = if (Test-Path $pubKeyPath) { To-WslPath $pubKeyPath } else { "/mnt/c/Users/$($env:USERNAME)/.ssh/id_ed25519.pub" }
+
+$ManifestObj = [ordered]@{
+  version              = 2
+  windows_user         = $env:USERNAME
+  windows_host         = $env:COMPUTERNAME
+  host                 = $env:COMPUTERNAME               # legacy alias
+  npiperelay_win       = $NPipePath
+  npiperelay_path      = $NPipePath                      # alias for older tooling
+  npiperelay_wsl       = $wslNp
+  ssh_key_path         = $KeyPath
+  key_private_path_win = $KeyPath
+  key_public_path_wsl  = $pubKeyWsl
+  created_utc          = if ($existingCreated) { $existingCreated } else { $nowUtc }
+  updated_utc          = $nowUtc
+}
+
+$ManifestJson = ($ManifestObj | ConvertTo-Json -Depth 4)
 Write-Log "Writing manifest: $Manifest"
 if (-not $DryRun) { Set-Content -Path $Manifest -Value $ManifestJson -Encoding UTF8 }
 

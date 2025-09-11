@@ -31,7 +31,17 @@ log() {
 }
 run() {
   [[ $VERBOSE -eq 1 ]] && log "+ $*" "DEBUG"
-  if [[ $DRY_RUN -eq 1 ]]; then log "DRY-RUN: $*" "WARN"; else eval "$@"; fi
+  if [[ $DRY_RUN -eq 1 ]]; then log "DRY-RUN (skip): $*" "WARN"; else eval "$@"; fi
+}
+
+write_file() { # usage: write_file <path> then provide stdin
+  local path="$1"; shift || true
+  if [[ $DRY_RUN -eq 1 ]]; then
+    log "DRY-RUN (skip write): $path" "WARN"
+    cat > /dev/null
+  else
+    cat > "$path"
+  fi
 }
 
 log "===== BEGIN WSL Bridge Install ====="
@@ -55,9 +65,30 @@ else
   NPIPERELAY="$(grep -oE '"npiperelay_wsl"\s*:\s*"[^"]+"' "$MANIFEST" | sed -E 's/.*:"([^"]+)"/\1/')"
 fi
 
+# Fallback chain: npiperelay_wsl -> npiperelay_path -> npiperelay_win (converted)
 if [[ -z "$NPIPERELAY" || ! -f "$NPIPERELAY" ]]; then
-  log "npiperelay path invalid in manifest: '$NPIPERELAY'." "ERROR"
-  log "Open manifest and verify npiperelay_wsl points to a valid .exe path." "ERROR"
+  if command -v jq >/dev/null 2>&1; then
+    alt_path="$(jq -r '.npiperelay_path' "$MANIFEST" 2>/dev/null || echo '')"
+    alt_win="$(jq -r '.npiperelay_win'  "$MANIFEST" 2>/dev/null || echo '')"
+  else
+    alt_path="$(grep -oE '"npiperelay_path"\s*:\s*"[^"]+"' "$MANIFEST" | sed -E 's/.*:"([^"]+)"/\1/')"
+    alt_win="$(grep -oE '"npiperelay_win"\s*:\s*"[^"]+"'  "$MANIFEST" | sed -E 's/.*:"([^"]+)"/\1/')"
+  fi
+  for candidate in "$alt_path" "$alt_win"; do
+    [[ -z "$candidate" ]] && continue
+    if [[ -f "$candidate" ]]; then NPIPERELAY="$candidate"; break; fi
+    if [[ "$candidate" =~ ^[A-Za-z]:\\\\ ]]; then
+      drive=$(printf '%s' "$candidate" | head -c1 | tr 'A-Z' 'a-z')
+      rest=${candidate:2}; rest=${rest//\\/\/}
+      guess="/mnt/${drive}/${rest}"
+      if [[ -f "$guess" ]]; then NPIPERELAY="$guess"; break; fi
+    fi
+  done
+fi
+
+if [[ -z "$NPIPERELAY" || ! -f "$NPIPERELAY" ]]; then
+  log "npiperelay path invalid in manifest (npiperelay_wsl + fallback failed)." "ERROR"
+  log "Open manifest and verify npiperelay_wsl (or npiperelay_path) points to a valid .exe path mounted in WSL." "ERROR"
   exit 1
 fi
 log "npiperelay: $NPIPERELAY"
@@ -77,7 +108,7 @@ bridge="$bindir/win-ssh-agent-bridge"
 sock="$HOME/.ssh/agent.sock"
 pipe='//./pipe/openssh-ssh-agent'
 
-cat >"$bridge" <<'EOF'
+write_file "$bridge" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 : "${SSH_AUTH_SOCK:="$HOME/.ssh/agent.sock"}"
@@ -99,23 +130,27 @@ run "chmod +x '$bridge'"
 # 4) Replace shell init block (idempotent)
 begin="# >>> WSL→Windows SSH agent bridge (BEGIN) >>>"
 end="# <<< WSL→Windows SSH agent bridge (END) <<<"
-block=$(cat <<BLOCK
-$begin
+block_content=$(cat <<BLOCK
 export WINUSER="$WINUSER"
 export NPIPERELAY="$NPIPERELAY"
 export SSH_AUTH_SOCK="$sock"
 "$bridge" >/dev/null 2>&1 || true
-$end
 BLOCK
 )
 
 replace_block() {
-  local file="$1"
-  touch "$file"
-  # Remove old managed block if present, then append fresh block
-  run "awk 'BEGIN{p=1} /$begin/{p=0} {if(p)print} /$end/{p=1}' '$file' > '$file.tmp'"
-  run "mv '$file.tmp' '$file'"
-  printf "\n%s\n" "$block" >>"$file"
+  local file="$1"; touch "$file"
+  if [[ $DRY_RUN -eq 1 ]]; then
+    log "DRY-RUN: would ensure managed block in $file" "WARN"
+    return 0
+  fi
+  local tmp="$file.tmp"
+  awk -v b="$begin" -v e="$end" 'BEGIN{p=1} $0==b{p=0} $0==e{p=1;next} p' "$file" > "$tmp" && mv "$tmp" "$file"
+  {
+    printf "\n%s\n" "$begin"
+    printf "%s\n" "$block_content"
+    printf "%s\n" "$end"
+  } >>"$file"
   log "Wrote bridge block to $file"
 }
 
@@ -130,10 +165,12 @@ fi
 if [[ $DRY_RUN -eq 0 ]]; then
   export NPIPERELAY="$NPIPERELAY" SSH_AUTH_SOCK="$sock"
   "$bridge" >/dev/null 2>&1 || true
+else
+  log "DRY-RUN: would start bridge process now" "WARN"
 fi
 
 # 6) Local manifest
-cat > "$HOME/.ssh/bridge-manifest.wsl.json" <<JSON
+write_file "$HOME/.ssh/bridge-manifest.wsl.json" <<JSON
 {
   "version": 1,
   "winuser": "$WINUSER",
@@ -144,9 +181,10 @@ cat > "$HOME/.ssh/bridge-manifest.wsl.json" <<JSON
 }
 JSON
 
-log "Verification:"
+log "Verification (post-run expectations):"
 log "  Windows:  ssh-add -l   (keys should be listed)"
 log "  WSL2:     ssh-add -l   (should match Windows)"
 log "  Test:     ssh -T git@github.com"
+[[ $DRY_RUN -eq 1 ]] && log "NOTE: Dry-run performed; no rc files or manifest were modified." "INFO"
 log "===== COMPLETE WSL Bridge Install ====="
 echo "Log: $logfile"

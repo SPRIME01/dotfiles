@@ -14,9 +14,17 @@
 # Usage:
 #   bash deploy-ssh-key-to-hosts.sh --dry-run --verbose
 #   bash deploy-ssh-key-to-hosts.sh --jobs 8 --only "prod-*,db-*"
+#   Add --confirm-cleanup to actually remove old keys when old backup blobs are detected.
 # =====================================================================
 
 set -euo pipefail
+
+# Load shared helpers if present
+COMMON_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$COMMON_DIR/common.sh" ]]; then
+  # shellcheck disable=SC1091
+  source "$COMMON_DIR/common.sh"
+fi
 
 # -------- CLI --------
 DRY_RUN=0
@@ -27,17 +35,19 @@ JOBS=4
 TIMEOUT=8
 RESUME=0
 OLD_KEYS_DIR=""
+CONFIRM_CLEANUP=0
 
 while (( "$#" )); do
   case "$1" in
     --dry-run) DRY_RUN=1 ;;
     --verbose|-v) VERBOSE=1 ;;
-    --only) ONLY_PATTERNS="${2:-}"; shift ;;
-    --exclude) EXCLUDE_PATTERNS="${2:-}"; shift ;;
+  --only) ONLY_PATTERNS="${2:-}"; shift ;;  # comma-separated shell globs
+  --exclude) EXCLUDE_PATTERNS="${2:-}"; shift ;;  # comma-separated shell globs
     --jobs|-j) JOBS="${2:-4}"; shift ;;
     --timeout) TIMEOUT="${2:-8}"; shift ;;
     --resume) RESUME=1 ;;
     --old-keys-dir) OLD_KEYS_DIR="${2:-}"; shift ;;
+  --confirm-cleanup) CONFIRM_CLEANUP=1 ;;
     -h|--help)
       sed -n '1,80p' "$0"; exit 0 ;;
     *) echo "Unknown arg: $1" >&2; exit 2 ;;
@@ -73,25 +83,25 @@ state_set() { # $1=host $2=status
   printf "%s\t%s\t%s\n" "$1" "$2" "$ts" >> "$statefile"
 }
 
+# -------- Remote cleanup command builder --------
+build_cleanup_remote_script() {
+  # Uses globals: run_id, old_keys[]
+  local script
+  script=$'set -e\n'
+  script+=$'umask 077\nD="$HOME/.ssh"\nF="$D/authorized_keys"\nmkdir -p "$D"\ntouch "$F"\nchmod 700 "$D"; chmod 600 "$F"\n'
+  script+=$'B="$F.bak.'"$run_id"$'"\ncp "$F" "$B"\nT="$F.new.'"$run_id"$'"\ncp "$F" "$T"\n'
+  local k ek
+  for k in "${old_keys[@]}"; do
+    # Escape single quotes for safe embedding inside single quotes
+    ek=${k//\'/\'"\'"\'}
+    script+=$'grep -vF '\''"$ek"'\'' "\$T" > "\$T.f" && mv "\$T.f" "\$T"\n'
+  done
+  script+=$'mv "$T" "$F"\n'
+  printf '%s' "$script"
+}
+
 # -------- Manifest / public key discovery --------
-detect_manifest() {
-  local winuser
-  winuser="$(powershell.exe '$env:UserName' 2>/dev/null | tr -d '\r' || true)"
-  [[ -z "$winuser" ]] && winuser="$(ls -1 /mnt/c/Users 2>/dev/null | head -n1 || true)"
-  [[ -z "$winuser" ]] && { log "Cannot determine Windows user." "ERROR"; exit 1; }
-  echo "/mnt/c/Users/${winuser}/.ssh/bridge-manifest.json"
-}
-to_wsl_path() { # convert C:\foo\bar -> /mnt/c/foo/bar if needed
-  local p="$1"
-  if [[ "$p" =~ ^[A-Za-z]:\\ ]]; then
-    local d="${p:0:1}"; d="${d,,}"
-    local t="${p:2}"; t="${t//\\//}"
-    echo "/mnt/${d}/${t}"
-  else
-    echo "$p"
-  fi
-}
-manifest="$(detect_manifest)"
+manifest="$(ssh_bridge_manifest_path || true)"
 if [[ ! -f "$manifest" ]]; then
   if (( DRY_RUN )); then
     log "Manifest not found at $manifest. (dry-run) Continuing without it." "WARN"
@@ -103,29 +113,7 @@ if [[ ! -f "$manifest" ]]; then
 fi
 
 # Try jq, fallback to grep/sed
-ssh_key_win=""
-ssh_key_wsl=""
-pubkey=""
-if [[ -n "$manifest" && -f "$manifest" ]]; then
-  if command -v jq >/dev/null 2>&1; then
-    ssh_key_win="$(jq -r '.ssh_key_path' "$manifest" 2>/dev/null || true)"
-  else
-    ssh_key_win="$(grep -oE '"ssh_key_path"\s*:\s*"[^"]+"' "$manifest" | sed -E 's/.*:\s*"([^"]+)"/\1/')"
-  fi
-  ssh_key_wsl="$(to_wsl_path "$ssh_key_win")"
-  pubkey="${ssh_key_wsl}.pub"
-  if [[ ! -f "$pubkey" ]]; then
-    # Regenerate .pub from private key if missing
-    if [[ -f "$ssh_key_wsl" ]]; then
-      runeq "ssh-keygen -y -f \"$ssh_key_wsl\" > \"$pubkey\""
-    fi
-  fi
-fi
-if [[ -z "$pubkey" || ! -f "$pubkey" ]]; then
-  if [[ -f "$HOME/.ssh/id_ed25519.pub" ]]; then
-    pubkey="$HOME/.ssh/id_ed25519.pub"
-  fi
-fi
+pubkey="$(ssh_bridge_public_key "$manifest" || true)"
 if [[ -z "$pubkey" || ! -f "$pubkey" ]]; then
   if (( DRY_RUN )); then
     log "Public key not found; (dry-run) continuing without key." "WARN"
@@ -188,14 +176,19 @@ log "Target hosts (${#hosts[@]}): ${hosts[*]}"
 
 # -------- Discover old keys to remove (by exact blob match) --------
 discover_old_key_blobs() {
-  local dir="$1" base keydir
-  if [[ -n "$dir" && -d "$dir" ]]; then
-    find "$dir" -maxdepth 1 -type f -name '*.pub' -print
-    return
-  fi
-  base="$(dirname "$ssh_key_wsl")" # /mnt/c/Users/<You>/.ssh
-  mapfile -t backups < <(ls -1d "$base"/backup-* 2>/dev/null | sort -r)
-  [[ ${#backups[@]} -gt 0 ]] && find "${backups[0]}" -maxdepth 1 -type f -name '*.pub' -print
+    local dir="$1"
+    if [[ -n "$dir" && -d "$dir" ]]; then
+      find "$dir" -maxdepth 1 -type f -name '*.pub' -print
+      return
+    fi
+    # Derive base directory from the currently selected public key (remove trailing .pub if present)
+    local pk_dir
+    if [[ -n "$pubkey" ]]; then
+      pk_dir="$(dirname "$pubkey")"
+    fi
+    [[ -d "$pk_dir" ]] || return 0
+    mapfile -t backups < <(ls -1d "$pk_dir"/backup-* 2>/dev/null | sort -r)
+    [[ ${#backups[@]} -gt 0 ]] && find "${backups[0]}" -maxdepth 1 -type f -name '*.pub' -print
 }
 mapfile -t old_pub_files < <(discover_old_key_blobs "$OLD_KEYS_DIR" || true)
 old_keys=()
@@ -258,12 +251,23 @@ process_host() {
 
   # 3) Cleanup: remove ONLY the old exact key blobs (after backup)
   if [[ ${#old_keys[@]} -gt 0 ]]; then
+    if [[ $CONFIRM_CLEANUP -ne 1 ]]; then
+      log "Cleanup skipped on $host (old keys detected but --confirm-cleanup not provided)" "WARN"
+      state_set "$host" "complete"
+      log "[✓] Completed $host"
+      return 0
+    fi
     local rc=0
     local rcmd
     rcmd=$'set -e\numask 077\nD="$HOME/.ssh"\nF="$D/authorized_keys"\nmkdir -p "$D"\ntouch "$F"\nchmod 700 "$D"; chmod 600 "$F"\nB="$F.bak.'"$run_id"$'"\ncp "$F" "$B"\nT="$F.new.'"$run_id"$'"\ncp "$F" "$T"\n'
-    for k in "${old_keys[@]}"; do
+     rcmd=$'set -e\n'
+     rcmd+=$'umask 077\nD="$HOME/.ssh"\nF="$D/authorized_keys"\nmkdir -p "$D"\ntouch "$F"\nchmod 700 "$D"; chmod 600 "$F"\n'
+     rcmd+=$'B="$F.bak.'"$run_id"$'"\ncp "$F" "$B"\nT="$F.new.'"$run_id"$'"\ncp "$F" "$T"\n'
+     local k ek
       ek="${k//\'/\'\"\'\"\'}"
-      rcmd+=$'\n'"grep -vF '$ek' \"\$T\" > \"\$T.f\" && mv \"\$T.f\" \"\$T\""
+      # Escape single quotes for safe single-quoted embedding
+      ek=${k//\'/\'"\'"\'}
+      rcmd+=$'grep -vF '\'''"$ek"'\'' \"\$T\" > \"\$T.f\" && mv \"\$T.f\" \"\$T\""
     done
     rcmd+=$'\n''mv "$T" "$F"'
     if ! ssh -o BatchMode=yes -o ConnectTimeout="$TIMEOUT" "$host" "$rcmd" >>"$logfile" 2>&1; then
@@ -322,6 +326,19 @@ failed_count=$(awk '$2 ~ /^failed_/{c++} END{print c+0}' "$statefile")
 echo "Hosts processed: $total"
 echo "Completed:       $done_count"
 echo "Failures:        $failed_count"
+cleanup_done=$(grep -c 'MARK: CLEANUP_DONE' "$logfile" 2>/dev/null || true)
+cleanup_skipped=$(grep -c 'MARK: CLEANUP_SKIPPED' "$logfile" 2>/dev/null || true)
+if [[ ${#old_keys[@]} -gt 0 ]]; then
+  echo "Cleanup (done/skipped): $cleanup_done / $cleanup_skipped"
+else
+  echo "Cleanup: (no old keys discovered)"
+fi
 log "Details in $logfile"
+
+if [[ $failed_count -gt 0 ]]; then
+  echo
+  echo "Failed hosts (status):"
+  awk -F'\t' '$2 ~ /^failed_/{printf " - %s (%s)\n", $1,$2}' "$statefile" | sort -u
+fi
 
 exit $fail
