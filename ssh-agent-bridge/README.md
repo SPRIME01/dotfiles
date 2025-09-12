@@ -253,7 +253,8 @@ WSL:
 ```bash
 ls -l ~/.ssh/agent.sock
 ssh-add -l
-ssh-keygen -lf /mnt/c/Users/$USER/.ssh/id_ed25519.pub
+WINUSER=$(powershell.exe -NoProfile -Command "[Environment]::UserName" | tr -d '\r')
+ssh-keygen -lf /mnt/c/Users/$WINUSER/.ssh/id_ed25519.pub
 ```
 Expected: service Running (Automatic), identical key fingerprints, `agent.sock` exists, key listed in both environments.
 
@@ -279,5 +280,8 @@ See also the helper Just recipes:
 ```bash
 just ssh-bridge-remediate-windows   # Elevate + fix Windows side
 just ssh-bridge-remediate-wsl       # Install socat + reinstall bridge
+just ssh-bridge-preflight-strict    # Run diagnostics (strict)
+just ssh-bridge-preflight-args --strict --verbose  # Alternate flag style
+just ssh-bridge-sync                # One-shot install+verify (Windows→WSL)
 ```
 

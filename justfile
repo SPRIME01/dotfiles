@@ -281,6 +281,8 @@ ssh-bridge-help:
 	@echo "  just ssh-bridge-remediate-wsl             # Install socat + re-run WSL installer"
 	@echo "  just ssh-bridge-manifest-path             # Print detected Windows + WSL manifest path"
 	@echo "  just ssh-bridge-manifest-cat              # Show manifest JSON"
+	@echo "  just ssh-bridge-preflight-args --flags    # Run preflight with custom flags (e.g. --strict)"
+	@echo "  just ssh-bridge-sync                      # One-shot: Windows install → WSL install → preflight"
 	@echo "  just ssh-bridge-uninstall                 # Remove bridge and helper"
 	@echo "  just ssh-bridge-status                    # Summarize bridge + deploy status"
 	@echo "  just ssh-bridge-fix-config                # Normalize ~/.ssh/config on WSL"
@@ -305,6 +307,9 @@ ssh-bridge-preflight-strict:
 ssh-bridge-preflight-json:
 	@bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "{}"; exit 0; fi; bash ssh-agent-bridge/preflight.sh --json'
 
+ssh-bridge-preflight-args *ARGS:
+	@bash -c 'set -e; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ Must run inside WSL"; exit 1; fi; echo "▶ preflight: {{ARGS}}"; bash ssh-agent-bridge/preflight.sh {{ARGS}}'
+
 ssh-bridge-install-windows:
 	@bash -lc 'set -e; if ! command -v powershell.exe >/dev/null 2>&1; then echo "❌ powershell.exe not found (run inside WSL)"; exit 1; fi; if [[ ! -f "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1" ]]; then echo "❌ Missing ssh-agent-bridge/install-win-ssh-agent.ps1"; exit 1; fi; WIN_PATH=$(wslpath -w "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1"); echo "🪟 Installing Windows ssh-agent + manifest..."; powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PATH" -Verbose'
 
@@ -316,6 +321,9 @@ ssh-bridge-remediate-windows:
 
 ssh-bridge-remediate-wsl:
 	@bash -lc 'set -euo pipefail; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ This must be run inside WSL"; exit 1; fi; if ! command -v socat >/dev/null 2>&1; then echo "📦 Installing socat (required for bridge)..."; sudo apt-get update -y >/dev/null 2>&1 || true; sudo apt-get install -y socat; else echo "✅ socat already installed"; fi; echo "🔁 Re-running WSL bridge installer"; bash ssh-agent-bridge/install-wsl-agent-bridge.sh --verbose; echo "✅ Remediation complete; run: ssh-add -l"'
+
+ssh-bridge-sync:
+	@bash -lc 'set -euo pipefail; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "❌ Run inside WSL"; exit 1; fi; echo "🪟 Step 1: Windows agent + manifest (auto-elevate)"; if command -v powershell.exe >/dev/null 2>&1; then WIN_PS=$(wslpath -w "$PWD/ssh-agent-bridge/install-win-ssh-agent.ps1"); powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$WIN_PS" -Verbose || true; else echo "⚠️ powershell.exe not available; skipping Windows install"; fi; echo "🐧 Step 2: WSL bridge install"; set +e; bash ssh-agent-bridge/install-wsl-agent-bridge.sh --verbose; rc=$?; set -e; if (( rc != 0 )); then echo "❌ WSL install failed (rc=$rc)"; last=$(ls -1t ~/.ssh/logs/wsl-agent-bridge_*.log 2>/dev/null | head -n1 || true); if [[ -f "$last" ]]; then echo "--- Last WSL bridge log (head) ---"; sed -n '1,120p' "$last"; echo "--- Tail ---"; tail -n 40 "$last"; fi; echo "💡 Run: just ssh-bridge-preflight-args --verbose"; exit $rc; fi; echo "🔍 Step 3: Preflight strict"; just ssh-bridge-preflight-args --strict || true; echo "🔑 ssh-add -l:"; ssh-add -l || true; echo "✅ Sync complete"'
 
 ssh-bridge-manifest-path:
 	@bash -lc 'set -euo pipefail; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  Run inside WSL for path translation"; fi; WINUSER=$(powershell.exe -NoProfile -Command "[Environment]::UserName" 2>/dev/null | tr -d "\r" || true); if [[ -z "$WINUSER" ]]; then echo "❌ Could not resolve Windows user via powershell.exe"; exit 1; fi; WINPATH="/mnt/c/Users/$WINUSER/.ssh/bridge-manifest.json"; echo "Windows user: $WINUSER"; echo "Manifest path (WSL view): $WINPATH"; if [[ -f "$WINPATH" ]]; then echo "✅ Found manifest"; else echo "❌ Manifest not found"; fi'
@@ -350,6 +358,10 @@ ssh-bridge-fix-perms:
 
 ssh-bridge-list-hosts:
 	@bash -c 'set -e; bash ssh-agent-bridge/list-hosts.sh'
+
+# Verify npiperelay resolution from manifest and show details
+ssh-bridge-verify-npiperelay:
+	@bash -lc 'set -euo pipefail; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  Run inside WSL for path translation"; fi; MANI="$(bash -lc "source ssh-agent-bridge/common.sh; ssh_bridge_manifest_path" 2>/dev/null || true)"; if [[ -z "$MANI" ]]; then echo "❌ Manifest not found"; exit 1; fi; bash -lc "source ssh-agent-bridge/common.sh; require_jq || exit 2; p=\$(resolve_npiperelay_from_manifest '$MANI'); echo Resolved: \$p; ls -l \"\$p\""'
 
 # --- Deployment workflows ---
 ssh-bridge-deploy:

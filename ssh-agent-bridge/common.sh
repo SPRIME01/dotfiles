@@ -118,3 +118,59 @@ ssh_bridge_public_key() {
   if [[ -f "$HOME/.ssh/id_rsa.pub" ]]; then printf '%s\n' "$HOME/.ssh/id_rsa.pub"; return 0; fi
   return 1
 }
+
+# Ensure jq exists or emit guidance and fail.
+require_jq() {
+  if ! command -v jq >/dev/null 2>&1; then
+    ssh_bridge_log ERROR "jq is required for robust JSON parsing. Install with: sudo apt-get update && sudo apt-get install -y jq"
+    return 1
+  fi
+  return 0
+}
+
+# Normalize Windows path (C:\.. or \\?\C:\..) to WSL path (/mnt/c/..),
+# collapse duplicate slashes, and avoid trailing spaces.
+normalize_win_path() {
+  local p="$1"
+  # Strip optional UNC prefix like \\?\
+  p="${p#\\\\?\\}"
+  if [[ "$p" =~ ^[A-Za-z]:\\\\ ]]; then
+    local d="${p:0:1}"; d="${d,,}"
+    local rest="${p:2}"
+    rest="${rest//\\/\/}"
+    # Remove potential leading slash in rest
+    [[ "$rest" == /* ]] && rest="${rest:1}"
+    # Collapse duplicate slashes
+    rest="$(printf '%s' "$rest" | sed -E 's#/+#/#g')"
+    printf '/mnt/%s/%s\n' "$d" "$rest"
+  else
+    # Already a WSL path or something else; collapse duplicate slashes
+    printf '%s\n' "$p" | sed -E 's#/+#/#g'
+  fi
+}
+
+# Resolve npiperelay path from manifest with robust fallback chain:
+# npiperelay_wsl -> npiperelay_path -> npiperelay_win (converted)
+# Prints resolved path (WSL view) or nothing; returns non-zero on failure.
+resolve_npiperelay_from_manifest() {
+  local manifest="$1"
+  [[ -f "$manifest" ]] || return 1
+  require_jq || return 2
+  local np_wsl np_path np_win guess
+  np_wsl=$(jq -r '.npiperelay_wsl // empty' "$manifest" 2>/dev/null)
+  if [[ -n "$np_wsl" ]]; then
+    np_wsl="$(normalize_win_path "$np_wsl")"
+    if [[ -f "$np_wsl" ]]; then printf '%s\n' "$np_wsl"; return 0; fi
+  fi
+  np_path=$(jq -r '.npiperelay_path // empty' "$manifest" 2>/dev/null)
+  if [[ -n "$np_path" ]]; then
+    guess="$(normalize_win_path "$np_path")"
+    if [[ -f "$guess" ]]; then printf '%s\n' "$guess"; return 0; fi
+  fi
+  np_win=$(jq -r '.npiperelay_win // empty' "$manifest" 2>/dev/null)
+  if [[ -n "$np_win" ]]; then
+    guess="$(normalize_win_path "$np_win")"
+    if [[ -f "$guess" ]]; then printf '%s\n' "$guess"; return 0; fi
+  fi
+  return 3
+}

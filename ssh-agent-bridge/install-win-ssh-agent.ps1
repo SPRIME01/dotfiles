@@ -146,6 +146,7 @@ function To-WslPath([string]$WinPath) {
   if ($WinPath.Length -lt 3 -or $WinPath[1] -ne ':') { return "" }
   $drive = $WinPath.Substring(0,1).ToLower()
   $tail  = $WinPath.Substring(2) -replace '\\','/'
+  if ($tail.StartsWith('/')) { $tail = $tail.Substring(1) }
   return "/mnt/$drive/$tail"
 }
 
@@ -175,8 +176,16 @@ $ManifestObj = [ordered]@{
 }
 
 $ManifestJson = ($ManifestObj | ConvertTo-Json -Depth 4)
-Write-Log "Writing manifest: $Manifest"
-if (-not $DryRun) { Set-Content -Path $Manifest -Value $ManifestJson -Encoding UTF8 }
+Write-Log "Writing manifest atomically: $Manifest"
+if (-not $DryRun) {
+  $tmp = [System.IO.Path]::GetTempFileName()
+  try {
+    Set-Content -Path $tmp -Value $ManifestJson -Encoding UTF8
+    Move-Item -Force -Path $tmp -Destination $Manifest
+  } finally {
+    if (Test-Path $tmp) { Remove-Item -Force $tmp -ErrorAction SilentlyContinue }
+  }
+}
 
 Write-Log "===== COMPLETE Windows SSH-Agent Install ====="
 Write-Log "Log: $LogFile"

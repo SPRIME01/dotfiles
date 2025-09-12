@@ -11,6 +11,8 @@
 
 set -euo pipefail
 
+FAIL_REASON=""
+
 DRY_RUN=0
 VERBOSE=0
 for arg in "$@"; do
@@ -54,41 +56,42 @@ if [[ -z "$WINUSER" ]]; then WINUSER="$(ls -1 /mnt/c/Users 2>/dev/null | head -n
 
 MANIFEST="/mnt/c/Users/$WINUSER/.ssh/bridge-manifest.json"
 if [[ ! -f "$MANIFEST" ]]; then
-  log "Windows manifest not found at $MANIFEST. Run install-win-ssh-agent.ps1 first." "ERROR"
+  FAIL_REASON="manifest_missing"
+  log "Windows manifest not found at $MANIFEST. Run install-win-ssh-agent.ps1 (or just ssh-bridge-install-windows) first." "ERROR"
+  echo "FAIL_REASON=$FAIL_REASON" >> "$logfile"
   exit 1
 fi
 
 # Prefer jq for robust parsing; fallback to grep/sed if missing
-if command -v jq >/dev/null 2>&1; then
-  NPIPERELAY="$(jq -r '.npiperelay_wsl' "$MANIFEST" 2>/dev/null || echo '')"
-else
-  NPIPERELAY="$(grep -oE '"npiperelay_wsl"\s*:\s*"[^"]+"' "$MANIFEST" | sed -E 's/.*:"([^"]+)"/\1/')"
+if [[ $VERBOSE -eq 1 ]]; then
+  log "Manifest (first 20 lines):" "DEBUG"
+  head -n 20 "$MANIFEST" | while IFS= read -r l; do log "  $l" "DEBUG"; done
+fi
+if ! command -v jq >/dev/null 2>&1; then
+  FAIL_REASON="jq_missing"
+  log "jq is required for parsing manifest. Install: sudo apt-get update && sudo apt-get install -y jq" "ERROR"
+  echo "FAIL_REASON=$FAIL_REASON" >> "$logfile"
+  exit 1
 fi
 
-# Fallback chain: npiperelay_wsl -> npiperelay_path -> npiperelay_win (converted)
-if [[ -z "$NPIPERELAY" || ! -f "$NPIPERELAY" ]]; then
-  if command -v jq >/dev/null 2>&1; then
-    alt_path="$(jq -r '.npiperelay_path' "$MANIFEST" 2>/dev/null || echo '')"
-    alt_win="$(jq -r '.npiperelay_win'  "$MANIFEST" 2>/dev/null || echo '')"
-  else
-    alt_path="$(grep -oE '"npiperelay_path"\s*:\s*"[^"]+"' "$MANIFEST" | sed -E 's/.*:"([^"]+)"/\1/')"
-    alt_win="$(grep -oE '"npiperelay_win"\s*:\s*"[^"]+"'  "$MANIFEST" | sed -E 's/.*:"([^"]+)"/\1/')"
+# Use shared resolver from common.sh if available
+NPIPERELAY=""
+if [[ -f "$(dirname "$0")/common.sh" ]]; then
+  # shellcheck disable=SC1090
+  source "$(dirname "$0")/common.sh"
+  if resolved="$(resolve_npiperelay_from_manifest "$MANIFEST" 2>/dev/null || true)" && [[ -n "$resolved" ]]; then
+    NPIPERELAY="$resolved"
   fi
-  for candidate in "$alt_path" "$alt_win"; do
-    [[ -z "$candidate" ]] && continue
-    if [[ -f "$candidate" ]]; then NPIPERELAY="$candidate"; break; fi
-    if [[ "$candidate" =~ ^[A-Za-z]:\\\\ ]]; then
-      drive=$(printf '%s' "$candidate" | head -c1 | tr 'A-Z' 'a-z')
-      rest=${candidate:2}; rest=${rest//\\/\/}
-      guess="/mnt/${drive}/${rest}"
-      if [[ -f "$guess" ]]; then NPIPERELAY="$guess"; break; fi
-    fi
-  done
+else
+  # Minimal inline logic if common.sh not found (should not happen)
+  NPIPERELAY="$(jq -r '.npiperelay_wsl // empty' "$MANIFEST" 2>/dev/null || true)"
 fi
 
 if [[ -z "$NPIPERELAY" || ! -f "$NPIPERELAY" ]]; then
+  FAIL_REASON="npiperelay_invalid"
   log "npiperelay path invalid in manifest (npiperelay_wsl + fallback failed)." "ERROR"
-  log "Open manifest and verify npiperelay_wsl (or npiperelay_path) points to a valid .exe path mounted in WSL." "ERROR"
+  log "Open manifest and verify npiperelay_wsl / _path / _win points to a valid .exe path accessible in WSL." "ERROR"
+  echo "FAIL_REASON=$FAIL_REASON" >> "$logfile"
   exit 1
 fi
 log "npiperelay: $NPIPERELAY"
@@ -187,4 +190,5 @@ log "  WSL2:     ssh-add -l   (should match Windows)"
 log "  Test:     ssh -T git@github.com"
 [[ $DRY_RUN -eq 1 ]] && log "NOTE: Dry-run performed; no rc files or manifest were modified." "INFO"
 log "===== COMPLETE WSL Bridge Install ====="
+echo "FAIL_REASON=${FAIL_REASON}" >> "$logfile"
 echo "Log: $logfile"

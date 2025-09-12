@@ -96,26 +96,25 @@ if [[ -z "$manifest" ]]; then
   need "Run: just ssh-bridge-install-windows"
 else
   emit PASS "Manifest present: $manifest"
-  npirelay="$(read_manifest_field "$manifest" npiperelay_wsl 2>/dev/null || true)"
-  if [[ -z "$npirelay" ]]; then
-    # Attempt legacy / alternate fields
-    winpath="$(read_manifest_field "$manifest" npiperelay_path 2>/dev/null || true)"
-    [[ -z "$winpath" ]] && winpath="$(read_manifest_field "$manifest" npiperelay_win 2>/dev/null || true)"
-    if [[ -n "$winpath" && "$winpath" =~ ^[A-Za-z]:\\\\ ]]; then
-      drv=$(printf '%s' "$winpath" | head -c1 | tr 'A-Z' 'a-z')
-      rest=${winpath:2}; rest=${rest//\\/\/}
-      guess="/mnt/${drv}/${rest}"
-      [[ -f "$guess" ]] && npirelay="$guess"
-    fi
-  fi
-  if [[ -z "$npirelay" ]]; then
-    emit FAIL "npiperelay field(s) empty (npiperelay_wsl / _path / _win)"
-    need "Re-run Windows bridge installer to populate manifest"
-  elif [[ ! -f "$npirelay" ]]; then
-    emit FAIL "npiperelay missing: $npirelay"
-    need "Install npiperelay (Scoop/Choco) then reinstall bridge"
+  if ! command -v jq >/dev/null 2>&1; then
+    emit FAIL "jq missing; cannot parse manifest"
+    need "Install jq: sudo apt-get update && sudo apt-get install -y jq"
   else
-    emit PASS "npiperelay present: $npirelay"
+    if command -v resolve_npiperelay_from_manifest >/dev/null 2>&1; then
+      npirelay="$(resolve_npiperelay_from_manifest "$manifest" 2>/dev/null || true)"
+    else
+      # Fallback to minimal jq-only path extraction
+      npirelay="$(jq -r '.npiperelay_wsl // .npiperelay_path // .npiperelay_win // empty' "$manifest" 2>/dev/null || true)"
+    fi
+    if [[ -z "$npirelay" ]]; then
+      emit FAIL "npiperelay fields empty (npiperelay_wsl/_path/_win)"
+      need "Re-run Windows bridge installer to populate manifest"
+    elif [[ ! -f "$npirelay" ]]; then
+      emit FAIL "npiperelay missing: $npirelay"
+      need "Install npiperelay (Scoop/Choco) then reinstall bridge"
+    else
+      emit PASS "npiperelay present: $npirelay"
+    fi
   fi
 fi
 
