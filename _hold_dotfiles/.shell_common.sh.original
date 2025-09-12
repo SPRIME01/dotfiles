@@ -184,3 +184,8 @@ EOF
         fi
     fi
 fi
+
+if [ -z "${DOTFILES_PATH_DEDUP_DONE:-}" ]; then
+  export PATH="$(printf '%s' "$PATH" | tr ':' '\n' | awk 'NF && !seen[$0]++' | paste -sd: -)"
+  export DOTFILES_PATH_DEDUP_DONE=1
+fi

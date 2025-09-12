@@ -114,6 +114,23 @@ else
 fi
 set +x
 
+# Validate and remediate .chezmoiignore patterns (destination-based)
+SRC_IGNORE="$SOURCE_DIR/.chezmoiignore"
+if [[ -f "$SRC_IGNORE" ]]; then
+  if rg -n '^!dot_\*' "$SRC_IGNORE" >/dev/null 2>&1; then
+    echo "⚠️  Invalid pattern detected in $SRC_IGNORE: !dot_* (matches source names, not destinations)."
+    echo "   Updating to destination-based whitelist (backup will be created)."
+    cp "$SRC_IGNORE" "$SRC_IGNORE.bak.$(date +%s)" || true
+    cat >"$SRC_IGNORE" <<'EOF'
+# Minimal whitelist for destination paths
+*
+!.chezmoiignore
+!.*
+!.*/**
+EOF
+  fi
+fi
+
 # Ensure Git uses the global ignore file installed by chezmoi
 if command -v git >/dev/null 2>&1; then
   GITIGNORE_GLOBAL_PATH="$HOME/.gitignore_global"
