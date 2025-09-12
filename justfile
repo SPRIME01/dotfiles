@@ -427,3 +427,116 @@ windows-chezmoi-diff-apply:
 # Interactive apply (prompts enabled, no pager)
 windows-chezmoi-apply-interactive:
 	@bash scripts/windows-chezmoi-apply-interactive.sh
+
+# ============================================================================
+# Chezmoi diagnostics & remediation (Linux/WSL side)
+# ============================================================================
+
+# Show chezmoi status: version, sourceDir, managed count.
+chezmoi-status:
+		@bash -lc 'set -euo pipefail; \
+		  if ! command -v chezmoi >/dev/null 2>&1; then echo "❌ chezmoi not on PATH"; exit 1; fi; \
+		  CHZ_VER=$(chezmoi --version); \
+		  echo "🔍 Chezmoi version: $CHZ_VER"; \
+		  if [[ -n "${CHEZMOI_SOURCE_DIR:-}" ]]; then echo "⚠️  CHEZMOI_SOURCE_DIR is set: $CHEZMOI_SOURCE_DIR (overrides config)"; fi; \
+		  SRC_JSON=$(chezmoi data 2>/dev/null | jq -r ".chezmoi.sourceDir? // \"\"" 2>/dev/null || echo ""); \
+		  if [[ -z "$SRC_JSON" || "$SRC_JSON" == "null" ]]; then \
+		    echo "⚠️  sourceDir not resolved via template data (config may not have sourceDir)"; \
+		    SRC=$(chezmoi source-path 2>/dev/null || true); \
+		  else SRC="$SRC_JSON"; fi; \
+		  echo "📂 sourceDir: $SRC"; \
+		  if [[ -n "$SRC" && -f "$SRC/.chezmoiignore" ]]; then \
+		    if rg -n "^!dot_\\*" "$SRC/.chezmoiignore" >/dev/null 2>&1; then \
+		      echo "⚠️  Invalid pattern in $SRC/.chezmoiignore: !dot_* (patterns match destination paths)."; \
+		      echo "   Fix with: just chezmoi-fix-ignore"; \
+		    fi; \
+		  fi; \
+			COUNT=$(chezmoi managed 2>/dev/null | wc -l | tr -d " "); \
+			echo "📊 managed entries: $COUNT"; \
+			if [[ "$COUNT" -eq 0 ]]; then echo "⚠️  No managed entries detected (run: just chezmoi-init-if-empty)"; fi; \
+		  echo "📝 doctor (source-dir line):"; CHEZMOI_NO_PAGER=1 chezmoi doctor | grep -E "config-file|source-dir|working-tree" || true'
+
+# List first 40 managed entries (safe even if empty)
+chezmoi-managed:
+    @bash -lc 'set -euo pipefail; CHEZMOI_NO_PAGER=1 chezmoi managed 2>/dev/null | head -40 || true'
+
+# Show diff (no pager). Warn if state empty.
+chezmoi-diff:
+	@bash -lc 'set -euo pipefail; COUNT=$(chezmoi managed 2>/dev/null | wc -l | tr -d " "); if [[ "$COUNT" -eq 0 ]]; then echo "⚠️  No source entries – diff meaningless. Run: just chezmoi-status"; exit 0; fi; CHEZMOI_NO_PAGER=1 PAGER=cat chezmoi diff || true'
+
+# Reconfigure sourceDir to this repo & ensure minimal whitelist ignore (backs up existing files)
+chezmoi-fix-source:
+	@bash -lc 'set -euo pipefail; ROOT="$PWD"; CFG=~/.config/chezmoi/chezmoi.toml; mkdir -p "$(dirname "$CFG")"; if [[ -f "$CFG" ]]; then cp "$CFG" "$CFG.bak.$(date +%s)"; echo "🗂  Backed up config to $CFG.bak.*"; fi; printf "sourceDir = \"%s\"\n" "$ROOT" > "$CFG"; echo "✅ Wrote sourceDir to $CFG"; IGN=".chezmoiignore"; if [[ -f "$IGN" ]]; then cp "$IGN" "$IGN.bak.$(date +%s)"; echo "🗂  Backed up $IGN"; fi; { echo "# Minimal whitelist for destination paths"; echo "*"; echo "!.chezmoiignore"; echo "!.*"; echo "!.*/**"; } > "$IGN"; if rg -n "^!dot_\*" "$IGN" >/dev/null 2>&1; then echo "❌ Refusing to write invalid pattern !dot_* to $IGN"; exit 2; fi; echo "✅ Wrote destination-based whitelist $IGN"; echo "🔁 Re-checking..."; just chezmoi-status'
+
+# Replace .chezmoiignore with minimal whitelist (backup prior)
+chezmoi-minimal-ignore:
+		@bash -lc 'set -euo pipefail; IGN=".chezmoiignore"; [[ -f "$IGN" ]] && cp "$IGN" "$IGN.bak.$(date +%s)" && echo "🗂  Backed up $IGN"; { echo "# Minimal whitelist for destination paths"; echo "*"; echo "!.chezmoiignore"; echo "!.*"; echo "!.*/**"; } > "$IGN"; if rg -n "^!dot_\*" "$IGN" >/dev/null 2>&1; then echo "❌ Invalid pattern written to $IGN"; exit 2; fi; echo "✅ Installed destination-based whitelist $IGN";'
+
+# Self-test chezmoi in an isolated temp source to diagnose scanning issues
+chezmoi-selftest:
+	@bash -lc 'set -euo pipefail; tmp=$(mktemp -d); pushd "$tmp" >/dev/null; printf "*\n!.chezmoiignore\n!.probe_file\n" > .chezmoiignore; echo "HELLO" > dot_probe_file; CHEZMOI_NO_PAGER=1 chezmoi -S "$tmp" managed | head || true; COUNT=$(chezmoi -S "$tmp" managed | wc -l | tr -d " "); echo "🧪 Temp managed count: $COUNT (expected >=1)"; popd >/dev/null; rm -rf "$tmp"'
+
+# Show raw chezmoi template metadata (useful for debugging)
+chezmoi-meta:
+    @bash -lc 'set -euo pipefail; chezmoi data | jq ".chezmoi"'
+
+# Reinstall chezmoi (Linux/WSL) preserving backup. For Windows, use choco upgrade chezmoi.
+chezmoi-reinstall:
+	@bash -lc 'set -euo pipefail; if ! command -v curl >/dev/null 2>&1; then echo "❌ curl required"; exit 1; fi; \
+	  if command -v chezmoi >/dev/null 2>&1; then OLD=$(command -v chezmoi); cp "$OLD" "$OLD.bak.$(date +%s)"; echo "🗂  Backed up existing binary"; fi; \
+	  echo "⬇️  Downloading latest chezmoi..."; sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin >/dev/null; \
+	  echo "✅ Installed: $(chezmoi --version)"; [[ -n "${WSL_DISTRO_NAME:-}" ]] && echo "💡 Windows upgrade via: choco upgrade chezmoi -y" || true'
+
+# Update (alias) – for Linux/WSL (Windows users: choco upgrade chezmoi)
+chezmoi-upgrade: chezmoi-reinstall
+
+# Initialize or repair chezmoi state if empty (guard)
+chezmoi-init-if-empty:
+	@bash -lc 'set -euo pipefail; if ! command -v chezmoi >/dev/null 2>&1; then echo "❌ chezmoi not installed"; exit 1; fi; COUNT=$(chezmoi managed 2>/dev/null | wc -l | tr -d " "); if [[ "$COUNT" -gt 0 ]]; then echo "✅ Already have managed entries ($COUNT)"; exit 0; fi; echo "🛠  State empty – initializing..."; just chezmoi-fix-source >/dev/null 2>&1 || true; just chezmoi-fix-ignore >/dev/null 2>&1 || true; ORIGIN=$(git config --get remote.origin.url 2>/dev/null || true); TMPCOUNT=$(chezmoi managed 2>/dev/null | wc -l | tr -d " "); if [[ "$TMPCOUNT" -eq 0 && -n "$ORIGIN" ]]; then echo "🌐 Attempting re-init from origin: $ORIGIN"; rm -rf ~/.local/share/chezmoi; CHEZMOI_NO_PAGER=1 chezmoi init --apply "$ORIGIN" || true; just chezmoi-fix-ignore >/dev/null 2>&1 || true; fi; NEWCOUNT=$(chezmoi managed 2>/dev/null | wc -l | tr -d " "); if [[ "$NEWCOUNT" -eq 0 ]]; then echo "❌ Still empty. Use: just chezmoi-reinit-from-origin OR just chezmoi-reinit REPO=..."; exit 2; fi; echo "✅ Populated managed entries ($NEWCOUNT)."'
+
+# Auto-populate then show status (convenience)
+chezmoi-autopopulate:
+	@bash -lc 'set -euo pipefail; just chezmoi-init-if-empty; just chezmoi-status'
+
+# Reinitialize chezmoi source from current repo origin (destructive to existing default source)
+chezmoi-reinit-from-origin:
+	@bash -lc 'set -euo pipefail; ORIGIN=$(git config --get remote.origin.url 2>/dev/null || true); \
+	  if [[ -z "$ORIGIN" ]]; then echo "❌ No git origin detected. Use: just chezmoi-reinit REPO=..."; exit 2; fi; \
+	  echo "🌐 Reinitializing from $ORIGIN"; \
+	  backup=~/.local/share/chezmoi.backup.$(date +%s); [[ -d ~/.local/share/chezmoi ]] && mv ~/.local/share/chezmoi "$backup" && echo "🗂  Previous source backed up to $backup"; \
+	  CHEZMOI_NO_PAGER=1 chezmoi init --apply "$ORIGIN" || { echo "❌ init failed"; exit 3; }; \
+	  just chezmoi-fix-ignore >/dev/null 2>&1 || true; \
+	  just chezmoi-status'
+
+# Reinitialize from specified repository URL
+chezmoi-reinit REPO:
+	@bash -lc 'set -euo pipefail; REPO="{{REPO}}"; if [[ -z "$REPO" ]]; then echo "Usage: just chezmoi-reinit REPO=https://..."; exit 2; fi; \
+	  echo "🌐 Reinitializing from $REPO"; backup=~/.local/share/chezmoi.backup.$(date +%s); \
+	  [[ -d ~/.local/share/chezmoi ]] && mv ~/.local/share/chezmoi "$backup" && echo "🗂  Previous source backed up to $backup"; \
+	  CHEZMOI_NO_PAGER=1 chezmoi init --apply "$REPO" || { echo "❌ init failed"; exit 3; }; \
+	  just chezmoi-fix-ignore >/dev/null 2>&1 || true; \
+	  just chezmoi-status'
+
+# Sync dot_* templates from repo working tree to default source (non-destructive overwrite of same names)
+chezmoi-sync-to-default:
+	@bash -lc 'set -euo pipefail; SRC_REPO="$PWD"; DEST=~/.local/share/chezmoi; mkdir -p "$DEST"; count=0; for f in "$SRC_REPO"/dot_*; do [ -e "$f" ] || continue; cp -f "$f" "$DEST/" && count=$((count+1)); done; echo "⬆️  Copied $count dot_* files to $DEST"; just chezmoi-status'
+
+# Sync from default source back to repo (refuses if repo dirty unless FORCE=1)
+chezmoi-sync-from-default:
+	@bash -lc 'set -euo pipefail; if [[ "${FORCE:-0}" != "1" && -n "$(git status --porcelain 2>/dev/null)" ]]; then echo "❌ Repo dirty. Commit/stash or run with FORCE=1 just chezmoi-sync-from-default"; exit 2; fi; SRC=~/.local/share/chezmoi; DEST="$PWD"; count=0; for f in "$SRC"/dot_*; do [ -e "$f" ] || continue; cp -f "$f" "$DEST/" && count=$((count+1)); done; echo "⬇️  Copied $count dot_* files to repo";'
+
+# Show and optionally clear CHEZMOI_SOURCE_DIR (cannot persistently unset for parent shell)
+chezmoi-env-check:
+	@bash -lc 'if [[ -n "${CHEZMOI_SOURCE_DIR:-}" ]]; then echo "CHEZMOI_SOURCE_DIR=$CHEZMOI_SOURCE_DIR"; else echo "CHEZMOI_SOURCE_DIR not set"; fi;'
+
+# Repair .chezmoiignore in the default sourceDir (newline corruption safeguard)
+chezmoi-fix-ignore:
+	@bash -lc 'set -euo pipefail; SRC=~/.local/share/chezmoi; [[ -d "$SRC" ]] || { echo "❌ Source dir $SRC missing"; exit 1; }; IGN="$SRC/.chezmoiignore"; TMP="$IGN.new"; { echo "# Autogenerated minimal whitelist for destination paths"; echo "*"; echo "!.chezmoiignore"; echo "!.*"; echo "!.*/**"; } > "$TMP"; if rg -n "^!dot_\*" "$TMP" >/dev/null 2>&1; then echo "❌ Refusing to write invalid pattern !dot_* to $TMP"; rm -f "$TMP"; exit 2; fi; mv "$TMP" "$IGN"; echo "✅ Regenerated destination-based whitelist $IGN"; head -n 20 "$IGN"'
+
+# Validate .chezmoiignore files to prevent wrong source-name patterns.
+chezmoi-validate-ignore:
+	@bash -lc 'set -euo pipefail; ERR=0; for F in "$PWD/.chezmoiignore" "$HOME/.local/share/chezmoi/.chezmoiignore"; do [[ -f "$F" ]] || continue; if rg -n "^!dot_\\*" "$F" >/dev/null 2>&1; then echo "❌ Invalid pattern in $F: !dot_* (matches source names, not destinations)"; ERR=1; fi; done; exit $ERR'
+
+# Adopt default source as repo: move existing repo aside, move source in, and symlink
+chezmoi-adopt-default:
+	@bash -lc 'set -euo pipefail; if [[ ! -d ~/.local/share/chezmoi ]]; then echo "❌ Default source missing"; exit 1; fi; if [[ -d "$PWD/.git" ]]; then echo "⚠️  Current directory already a git repo. Aborting."; exit 2; fi; echo "🚚 Moving current directory aside and adopting default source"; backup="$PWD.backup.$(date +%s)"; mv "$PWD" "$backup"; mv ~/.local/share/chezmoi "$PWD"; ln -sfn "$PWD" ~/.local/share/chezmoi; echo "✅ Adopted. Original moved to $backup";'

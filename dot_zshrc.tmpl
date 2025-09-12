@@ -8,24 +8,30 @@ if [[ -d "${ZSH:-$HOME/.oh-my-zsh}" ]]; then
   source "$ZSH/oh-my-zsh.sh"
 fi
 
-{{ template "partials/direnv_hook.tmpl" . }}
+# Include direnv hook partial by filename
+{{- include "templates/partials/direnv_hook.tmpl" -}}
 
-{{ template "partials/ssh_agent_bridge.tmpl" . }}
+# Include ssh agent bridge partial
+{{- include "templates/partials/ssh_agent_bridge.tmpl" -}}
 
-{{ template "partials/projects_path.tmpl" . }}
+# Include projects path partial
+{{- include "templates/partials/projects_path.tmpl" -}}
 
 {{ if eq .chezmoi.os "linux" }}
-{{   $rel := lower .chezmoi.kernel.release }}
+{{   $rel := lower .chezmoi.kernel.osrelease }}
 {{   if contains $rel "microsoft" }}
-{{     /* WSL-specific PATH configuration */ }}
-{{     template "partials/wsl_path.tmpl" . }}
+# WSL-specific PATH configuration
+# Include WSL path partial
+{{-    include "templates/partials/wsl_path.tmpl" -}}
 {{   end }}
 {{ else if eq .chezmoi.os "windows" }}
-{{   /* Windows-specific PATH configuration */ }}
-{{   template "partials/windows_path.tmpl" . }}
+# Windows-specific PATH configuration
+# Include Windows path partial
+{{-  include "templates/partials/windows_path.tmpl" -}}
 {{ else if eq .chezmoi.os "darwin" }}
-{{   /* macOS-specific PATH configuration */ }}
-{{   template "partials/macos_path.tmpl" . }}
+# macOS-specific PATH configuration
+# Include macOS path partial
+{{-  include "templates/partials/macos_path.tmpl" -}}
 {{ end }}
 
 # End of minimal template — extend via ~/.zshrc.local as needed

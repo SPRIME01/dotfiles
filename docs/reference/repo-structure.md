@@ -8,7 +8,7 @@ Top‑level
 - `bootstrap.sh`: links shell configs and performs first‑run setup; idempotent.
 - `justfile`: project tasks (inside repo); discover with `just --list`.
 - `dot_justfile`: template for global `~/.justfile` installed by chezmoi (see docs/how-to/use-just.md).
-- `.chezmoiignore`: deny‑by‑default; only explicit `dot_*`, `Documents/**`, `AppData/**` are applied; excludes Windows PowerShell profile target for safety.
+- `.chezmoiignore`: deny‑by‑default; patterns match destination paths (not source names). For example, whitelist dotfiles with `!.*` and dot directories with `!.*/**`; on Windows, include destinations like `Documents/**` or `AppData/**` as needed. The Windows PowerShell profile target is excluded for safety.
 - `.envrc` and `.envrc.example`: direnv configuration and patterns.
 
 Templates
@@ -45,4 +45,3 @@ Windows integration
 Tests
 
 - `test/`: shell and PowerShell tests verifying idempotence, templates (direnv hooks present), global justfile management, etc. Use them as behavioral references (do not run destructive tasks in production shells).
-

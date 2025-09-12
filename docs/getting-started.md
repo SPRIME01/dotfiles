@@ -5,6 +5,7 @@ Goal: Set up a new machine with this dotfiles repo using existing recipes in a s
 ## Prerequisites
 
 - Git and `curl` or `wget` installed.
+- Install chezmoi (see `how-to/use-chezmoi.md`) and mise (see `how-to/use-mise.md`).
 - Choose a projects directory (default: `~/projects`).
 
 ## Linux/macOS
@@ -163,7 +164,7 @@ CHEZMOI_NO_PAGER=1 PAGER=cat chezmoi diff
 
 - Core
   - `bash install.sh` (bootstrap)
-  - `bash scripts/doctor.sh` and `chezmoi doctor` (validate)
+  - `just doctor` (or `bash scripts/doctor.sh`) `chezmoi doctor` (validate)
   - `just install-direnv` or `bash scripts/install-direnv.sh` (direnv install)
   - `direnv allow` (enable per-dir env)
 
