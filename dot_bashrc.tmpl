@@ -7,30 +7,31 @@ export HISTIGNORE="ls:cd:cd -:pwd:exit:date:* --help"
 export HISTTIMEFORMAT='%F %T '
 shopt -s histappend checkwinsize
 
-# Include direnv hook partial by filename
-{{- include "templates/partials/direnv_hook.tmpl" -}}
+# Direnv (project-scoped environments) — quiet by default
+if command -v direnv >/dev/null 2>&1; then
+  eval "$(direnv hook bash)"
+  [[ -z "${DIRENV_LOG_FORMAT:-}" ]] && export DIRENV_LOG_FORMAT=""
+fi
 
-# Include ssh agent bridge partial
-{{- include "templates/partials/ssh_agent_bridge.tmpl" -}}
+{{ include "templates/partials/direnv_hook.tmpl" }}
 
-# Include projects path partial
-{{- include "templates/partials/projects_path.tmpl" -}}
+{{ include "templates/partials/ssh_agent_bridge.tmpl" }}
+
+{{ include "templates/partials/projects_path.tmpl" }}
 
 {{ if eq .chezmoi.os "linux" }}
 {{-   $rel := lower .chezmoi.kernel.osrelease -}}
 {{   if or (contains $rel "microsoft") (hasPrefix $rel "microsoft") (ne (env "WSL_DISTRO_NAME") "") }}
 # WSL-specific PATH configuration
-# Include WSL path partial
-{{- include "templates/partials/wsl_path.tmpl" -}}
+{{/* WSL-specific PATH additions */}}
+{{ include "templates/partials/wsl_path.tmpl" }}
 {{   end }}
 {{ else if eq .chezmoi.os "windows" }}
 # Windows-specific PATH configuration
-# Include Windows path partial
-{{- include "templates/partials/windows_path.tmpl" -}}
+{{ include "templates/partials/windows_path.tmpl" }}
 {{ else if eq .chezmoi.os "darwin" }}
 # macOS-specific PATH configuration
-# Include macOS path partial
-{{- include "templates/partials/macos_path.tmpl" -}}
+{{ include "templates/partials/macos_path.tmpl" }}
 {{ end }}
 
 # End of minimal template — extend via ~/.bashrc.local as needed

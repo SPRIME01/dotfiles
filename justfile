@@ -462,7 +462,16 @@ chezmoi-managed:
 
 # Show diff (no pager). Warn if state empty.
 chezmoi-diff:
-	@bash -lc 'set -euo pipefail; COUNT=$(chezmoi managed 2>/dev/null | wc -l | tr -d " "); if [[ "$COUNT" -eq 0 ]]; then echo "⚠️  No source entries – diff meaningless. Run: just chezmoi-status"; exit 0; fi; CHEZMOI_NO_PAGER=1 PAGER=cat chezmoi diff || true'
+	@bash -lc 'set -euo pipefail; \
+	  SRC=$(chezmoi data 2>/dev/null | jq -r ".chezmoi.sourceDir? // \"\"" 2>/dev/null || echo ""); \
+	  if [[ -n "$SRC" && -f "$SRC/.chezmoiignore" ]] && rg -n "^!dot_\\*" "$SRC/.chezmoiignore" >/dev/null 2>&1; then \
+	    echo "❌ Invalid ignore pattern detected in $SRC/.chezmoiignore: !dot_*"; \
+	    echo "   Fix it with: just chezmoi-fix-ignore"; \
+	    exit 2; \
+	  fi; \
+	  COUNT=$(chezmoi managed 2>/dev/null | wc -l | tr -d " "); \
+	  if [[ "$COUNT" -eq 0 ]]; then echo "⚠️  No source entries – diff meaningless. Run: just chezmoi-status"; exit 0; fi; \
+	  CHEZMOI_NO_PAGER=1 PAGER=cat chezmoi diff || true'
 
 # Reconfigure sourceDir to this repo & ensure minimal whitelist ignore (backs up existing files)
 chezmoi-fix-source:
@@ -519,11 +528,17 @@ chezmoi-reinit REPO:
 
 # Sync dot_* templates from repo working tree to default source (non-destructive overwrite of same names)
 chezmoi-sync-to-default:
-	@bash -lc 'set -euo pipefail; SRC_REPO="$PWD"; DEST=~/.local/share/chezmoi; mkdir -p "$DEST"; count=0; for f in "$SRC_REPO"/dot_*; do [ -e "$f" ] || continue; cp -f "$f" "$DEST/" && count=$((count+1)); done; echo "⬆️  Copied $count dot_* files to $DEST"; just chezmoi-status'
+	@bash -lc 'set -euo pipefail; just chezmoi-sync-templates >/dev/null 2>&1 || true; SRC_REPO="$PWD"; DEST=~/.local/share/chezmoi; mkdir -p "$DEST"; count=0; for f in "$SRC_REPO"/dot_*; do [ -e "$f" ] || continue; cp -f "$f" "$DEST/" && count=$((count+1)); done; echo "⬆️  Copied $count dot_* files to $DEST"; just chezmoi-status'
 
 # Sync from default source back to repo (refuses if repo dirty unless FORCE=1)
 chezmoi-sync-from-default:
 	@bash -lc 'set -euo pipefail; if [[ "${FORCE:-0}" != "1" && -n "$(git status --porcelain 2>/dev/null)" ]]; then echo "❌ Repo dirty. Commit/stash or run with FORCE=1 just chezmoi-sync-from-default"; exit 2; fi; SRC=~/.local/share/chezmoi; DEST="$PWD"; count=0; for f in "$SRC"/dot_*; do [ -e "$f" ] || continue; cp -f "$f" "$DEST/" && count=$((count+1)); done; echo "⬇️  Copied $count dot_* files to repo";'
+
+# Sync templates directory from repo into default source (~/.local/share/chezmoi/templates)
+chezmoi-sync-templates:
+	@bash -lc 'set -euo pipefail; SRC_TEMPL="$PWD/templates"; DEST_TEMPL="$HOME/.local/share/chezmoi/templates"; \
+	  if [[ ! -d "$SRC_TEMPL" ]]; then echo "ℹ️  No templates/ directory in repo; skipping."; exit 0; fi; \
+	  mkdir -p "$DEST_TEMPL"; rsync -a "$SRC_TEMPL/" "$DEST_TEMPL/"; echo "⬆️  Synced templates to $DEST_TEMPL";'
 
 # Show and optionally clear CHEZMOI_SOURCE_DIR (cannot persistently unset for parent shell)
 chezmoi-env-check:
