@@ -1,11 +1,3 @@
-{{/* Common direnv hook setup (quiet + dotenv parity) */}}
-# Direnv (project-scoped environments) — quiet by default
-if command -v direnv >/dev/null 2>&1; then
-  eval "$(direnv hook {{ .chezmoi.shell }})"
-  # quiet logs by default to reduce noise; toggle with direnv_verbose helpers
-  [[ -z "${DIRENV_LOG_FORMAT:-}" ]] && export DIRENV_LOG_FORMAT=""
-fi
-
 # Minimal dotenv loader for shells (parity with PowerShell Load-Env)
 # - Safe: ignores comments/blank lines; accepts KEY=VALUE; strips surrounding quotes
 # - Scope: loads from $DOTFILES_ROOT/.env and $DOTFILES_ROOT/mcp/.env if present
