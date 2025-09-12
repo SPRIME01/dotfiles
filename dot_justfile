@@ -23,7 +23,7 @@ direnv-install:
 
 # ===== Windows chezmoi helpers (run from WSL) =====
 windows-chezmoi-diff SRC="${HOME}/dotfiles":
-	@bash -lc 'bash "$HOME/dotfiles/scripts/windows-chezmoi-diff.sh" "{{SRC}}" || true'
+	@bash -lc 'set -euo pipefail; ROOT="{{SRC}}"; if [[ ! -d "$ROOT" ]]; then echo "❌ dotfiles not found at $ROOT"; exit 2; fi; just -f "$ROOT/justfile" windows-chezmoi-diff || true'
 
 windows-chezmoi-apply SRC="${HOME}/dotfiles":
-	@bash -lc 'bash "$HOME/dotfiles/scripts/windows-chezmoi-apply.sh" "{{SRC}}" || true'
+	@bash -lc 'set -euo pipefail; ROOT="{{SRC}}"; if [[ ! -d "$ROOT" ]]; then echo "❌ dotfiles not found at $ROOT"; exit 2; fi; just -f "$ROOT/justfile" windows-chezmoi-apply || true'

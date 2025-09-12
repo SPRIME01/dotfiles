@@ -420,13 +420,7 @@ windows-chezmoi-apply:
 
 # Preview then apply Windows-side chezmoi changes (convenience alias)
 # Usage: `just windows-chezmoi-diff-apply` (run from WSL)
-windows-chezmoi-diff-apply:
-	@just windows-chezmoi-diff
-	@just windows-chezmoi-apply
 
-# Interactive apply (prompts enabled, no pager)
-windows-chezmoi-apply-interactive:
-	@bash scripts/windows-chezmoi-apply-interactive.sh
 
 # ============================================================================
 # Chezmoi diagnostics & remediation (Linux/WSL side)
