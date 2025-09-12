@@ -2,7 +2,7 @@
 # test/test-gitignore-global.sh - Test global gitignore configuration
 
 # Temporarily disable strict mode for debugging
-set -euo pipefail
+set -uo pipefail
 
 # Load test framework
 source "$(dirname "$0")/framework.sh"

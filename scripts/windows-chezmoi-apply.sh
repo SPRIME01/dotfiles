@@ -1,4 +1,62 @@
 #!/usr/bin/env bash
+# scripts/windows-chezmoi-apply.sh — Run chezmoi apply on Windows from WSL using this repo as source
+# Usage: windows-chezmoi-apply.sh [SOURCE_DIR]
+# Default SOURCE_DIR: $HOME/dotfiles
+
+set -euo pipefail
+
+SRC_DIR="${1:-$HOME/dotfiles}"
+
+echo "🪟 Chezmoi apply (Windows) from WSL"
+
+if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
+  echo "❌ This helper is intended to run inside WSL." >&2
+  exit 2
+fi
+
+if [[ ! -d "$SRC_DIR" ]]; then
+  echo "❌ Source directory not found: $SRC_DIR" >&2
+  exit 2
+fi
+
+if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then
+  echo "❌ powershell.exe / pwsh.exe not found from WSL." >&2
+  exit 3
+fi
+
+# Build a UNC path to the WSL source directory for Windows to read templates directly
+UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}$(printf '%s' "$SRC_DIR" | sed 's#^/#\\#; s#/#\\#g')"
+
+# Prefer pwsh.exe if present for better unicode handling
+PSBIN="pwsh.exe"; command -v pwsh.exe >/dev/null 2>&1 || PSBIN="powershell.exe"
+
+# Write a temporary PowerShell script in WSL and pass its Windows path to -File
+PS_TMP="$(mktemp --suffix=.ps1)"
+cat >"$PS_TMP" <<'EOF'
+param(
+  [Parameter(Mandatory=$true)][string]$Src
+)
+Write-Host "🔧 Applying Chezmoi from source: $Src" -ForegroundColor Cyan
+if (-not (Get-Command chezmoi.exe -ErrorAction SilentlyContinue)) {
+  Write-Warning "chezmoi.exe not found on Windows PATH. Install with: choco install chezmoi or winget install chezmoi"
+  exit 4
+}
+try {
+  chezmoi.exe apply --source $Src -v
+  $code = $LASTEXITCODE
+  if ($code -eq 0) { Write-Host "✅ Windows apply complete" -ForegroundColor Green }
+  exit $code
+} catch {
+  Write-Error $_.Exception.Message
+  exit 5
+}
+EOF
+PS_TMP_WIN="$(wslpath -w "$PS_TMP")"
+"$PSBIN" -NoProfile -ExecutionPolicy Bypass -File "$PS_TMP_WIN" -Src "$UNC"
+rc=$?
+rm -f -- "$PS_TMP" || true
+exit $rc
+#!/usr/bin/env bash
 set -euo pipefail
 
 SRC="${SRC:-$HOME/dotfiles}"

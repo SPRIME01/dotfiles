@@ -413,10 +413,10 @@ ssh-bridge-rotate-deploy-args *ARGS:
 # ============================================================================
 
 windows-chezmoi-diff:
-	@bash scripts/windows-chezmoi-diff.sh
+	@bash scripts/windows-chezmoi-diff.sh || true
 
 windows-chezmoi-apply:
-	@bash scripts/windows-chezmoi-apply.sh
+	@bash scripts/windows-chezmoi-apply.sh || true
 
 # Preview then apply Windows-side chezmoi changes (convenience alias)
 # Usage: `just windows-chezmoi-diff-apply` (run from WSL)

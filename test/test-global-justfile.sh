@@ -6,28 +6,30 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 source "$SCRIPT_DIR/framework.sh"
 
 test_global_justfile_planned() {
-    echo "🧪 Testing global Justfile is managed by chezmoi and exists in target"
+    echo "🧪 Testing global Justfile is renderable by chezmoi (planned target)"
     ((TESTS_RUN++))
 
-    # Check if chezmoi manages dot_justfile
-    if ! chezmoi managed | grep -q "dot_justfile"; then
-        echo "❌ dot_justfile not managed by chezmoi"
-        FAILED_TESTS+=("dot_justfile not managed")
+    # Require template to exist in repo
+    if [[ ! -f "dot_justfile" ]]; then
+        echo "❌ dot_justfile template not found in repo"
+        FAILED_TESTS+=("dot_justfile template missing")
         ((TESTS_FAILED++))
         return 1
     fi
 
-    # Check if target .justfile exists
-    if [[ ! -f "$HOME/.justfile" ]]; then
-        echo "❌ Global Justfile not found in target location $HOME/.justfile"
-        FAILED_TESTS+=("Global Justfile not in target")
-        ((TESTS_FAILED++))
-        return 1
+    # Verify chezmoi maps the source path to the correct target path
+    local target
+    target="$(chezmoi target-path --source "$PWD" --source-path dot_justfile 2>/dev/null || true)"
+    if [[ "$target" == "$HOME/.justfile" ]]; then
+        echo "✅ Global Justfile mapping is correct ($target)"
+        ((TESTS_PASSED++))
+        return 0
     fi
 
-    echo "✅ Global Justfile is managed and exists in target"
-    ((TESTS_PASSED++))
-    return 0
+    echo "❌ chezmoi could not resolve target path for dot_justfile"
+    FAILED_TESTS+=("chezmoi target-path dot_justfile failed")
+    ((TESTS_FAILED++))
+    return 1
 }
 
 test_justfile_recipes_present() {

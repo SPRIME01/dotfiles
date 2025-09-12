@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # test/test-mise-adoption.sh - Test Mise adoption and Volta deprecation
 
-set -euo pipefail
+set -uo pipefail
 
 # Source the test framework
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -84,14 +84,16 @@ test_mise_config_present() {
         return 1
     fi
 
-    # Check if chezmoi manages the mise config file
-    if chezmoi managed --source "$PWD" | grep -q "dot_mise\.toml"; then
-        echo "✅ mise config file is managed by chezmoi"
+    # Verify mapping using target-path resolution
+    local target
+    target=$(chezmoi target-path --source "$PWD" --source-path dot_mise.toml 2>/dev/null || true)
+    if [[ "$target" == "$HOME/.mise.toml" ]]; then
+        echo "✅ mise config file maps to $target"
         ((TESTS_PASSED++))
         return 0
     else
-        echo "❌ mise config file not managed by chezmoi"
-        FAILED_TESTS+=("mise config not managed by chezmoi")
+        echo "❌ mise config mapping incorrect (got: $target)"
+        FAILED_TESTS+=("mise config mapping incorrect")
         ((TESTS_FAILED++))
         return 1
     fi

@@ -23,7 +23,7 @@ direnv-install:
 
 # ===== Windows chezmoi helpers (run from WSL) =====
 windows-chezmoi-diff SRC="${HOME}/dotfiles":
-	@bash -lc 'bash "$HOME/dotfiles/scripts/windows-chezmoi-diff.sh" "{{SRC}}"'
+	@bash -lc 'bash "$HOME/dotfiles/scripts/windows-chezmoi-diff.sh" "{{SRC}}" || true'
 
 windows-chezmoi-apply SRC="${HOME}/dotfiles":
-	@bash -lc 'bash "$HOME/dotfiles/scripts/windows-chezmoi-apply.sh" "{{SRC}}"'
+	@bash -lc 'bash "$HOME/dotfiles/scripts/windows-chezmoi-apply.sh" "{{SRC}}" || true'

@@ -35,10 +35,12 @@ if compgen -G "$SCRIPT_DIR/test-*.sh" >/dev/null; then
 		output="$(env -i HOME="$HOME" PATH="$PATH" DOTFILES_ROOT="$REPO_ROOT" bash "$test_script" 2>&1)"
 		exit_code=$?
 		set -e
-		echo "$output"
+	echo "$output"
 
+		# Treat explicit SKIP markers as skipped
 		if grep -Eq '^[[:space:]]*SKIP:' <<<"$output"; then
 			SKIPPED=$((SKIPPED + 1))
+		# Explicitly treat "no output + exit 0" as PASS (useful for very quiet tests)
 		elif [[ $exit_code -eq 0 ]]; then
 			PASSED=$((PASSED + 1))
 		else

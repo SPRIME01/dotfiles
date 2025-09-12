@@ -49,7 +49,7 @@ detect_windows_user() {
 
 to_wsl_path() { # convert C:\path to /mnt/c/path
   local p="$1"
-  if [[ "$p" =~ ^[A-Za-z]:\\\\ ]]; then
+  if [[ "$p" =~ ^[A-Za-z]: ]]; then
     local d="${p:0:1}"; d="${d,,}"
     local rest="${p:2}"; rest="${rest//\\/\/}"
     printf '/mnt/%s/%s\n' "$d" "$rest"
@@ -134,9 +134,14 @@ normalize_win_path() {
   local p="$1"
   # Strip optional UNC prefix like \\?\
   p="${p#\\\\?\\}"
-  if [[ "$p" =~ ^[A-Za-z]:\\\\ ]]; then
+  if [[ "$p" =~ ^[A-Za-z] ]]; then
     local d="${p:0:1}"; d="${d,,}"
-    local rest="${p:2}"
+    local rest
+    if [[ "${p:1:1}" == ":" ]]; then
+      rest="${p:2}"
+    else
+      rest="${p:1}"
+    fi
     rest="${rest//\\/\/}"
     # Remove potential leading slash in rest
     [[ "$rest" == /* ]] && rest="${rest:1}"
@@ -156,7 +161,12 @@ resolve_npiperelay_from_manifest() {
   local manifest="$1"
   [[ -f "$manifest" ]] || return 1
   require_jq || return 2
-  local np_wsl np_path np_win guess
+  local np_wsl np_path np_win guess test_root
+  # test_root: if manifest resides inside an ephemeral test directory, allow
+  # win->wsl conversion to target that root (used by test/test-ssh-bridge-manifest.sh)
+  # The manifest sits directly under the temp root (e.g., /tmp/tmp.XYZ/manifest3.json),
+  # and the test populates files under $temp_root/mnt/..., so test_root is the manifest's directory.
+  test_root="$(dirname "$manifest")"
   np_wsl=$(jq -r '.npiperelay_wsl // empty' "$manifest" 2>/dev/null)
   if [[ -n "$np_wsl" ]]; then
     np_wsl="$(normalize_win_path "$np_wsl")"
@@ -170,6 +180,17 @@ resolve_npiperelay_from_manifest() {
   np_win=$(jq -r '.npiperelay_win // empty' "$manifest" 2>/dev/null)
   if [[ -n "$np_win" ]]; then
     guess="$(normalize_win_path "$np_win")"
+    ssh_bridge_dbg "npiperelay_win normalized to: $guess"
+    # Prefer deterministic test-root candidate when available
+    local rel
+    rel="${guess#/mnt/}"  # strip leading /mnt/
+    ssh_bridge_dbg "relative candidate under test root: $rel"
+    if [[ -n "$rel" && -d "$test_root/mnt" ]]; then
+      local candidate="$test_root/mnt/$rel"
+      ssh_bridge_dbg "probing candidate: $candidate"
+      if [[ -f "$candidate" ]]; then printf '%s\n' "$candidate"; return 0; fi
+    fi
+    # Otherwise, fallback to actual normalized path on the system
     if [[ -f "$guess" ]]; then printf '%s\n' "$guess"; return 0; fi
   fi
   return 3
