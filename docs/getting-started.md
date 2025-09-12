@@ -65,7 +65,7 @@ mise doctor || true
 - When: After bootstrap if you plan to use Mise.
 - Why: Confirms the default tool/version manager is working.
 
-References: `tutorials/new-machine-setup.md`, `how-to/use-chezmoi.md`, `how-to/use-direnv.md`, `reference/commands.md`.
+References: `tutorials/new-machine-setup.md`, `how-to/use-chezmoi.md` (ignore patterns, guarded diff, sync recipes), `how-to/use-direnv.md`, `reference/commands.md`.
 
 ## Windows via WSL (recommended)
 
