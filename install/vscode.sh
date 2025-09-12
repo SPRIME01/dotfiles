@@ -45,7 +45,7 @@ require_jq() {
 }
 
 # Merge JSON objects with repo values overriding existing values.
-# Usage: merge_json_files <existing.json|-> <repo_base.json|-> <repo_overlay.json|-> > out.json
+# Usage: merge_json_files <existing.json> <repo_base.json> <repo_overlay.json> > out.json
 merge_json_files() {
   jq -s 'reduce .[] as $x ({}; . * $x)' "$@"
 }
@@ -66,26 +66,27 @@ setup_settings_file() {
   local base_json="$base_dir/settings.json"
   local overlay_json="$base_dir/settings.$context.json"
 
-  # Fallbacks if files are missing
-  local base_input
-  local overlay_input
+  # Build concrete file inputs (avoid process substitution so jq never sees dead FDs)
+  local base_input overlay_input existing_input tmp_base="" tmp_overlay="" tmp_existing=""
   if [[ -f "$base_json" ]]; then
     base_input="$base_json"
   else
-    base_input=<(echo '{}')
+    tmp_base="$(mktemp)" && printf '{}' >"$tmp_base"
+    base_input="$tmp_base"
   fi
   if [[ -f "$overlay_json" ]]; then
     overlay_input="$overlay_json"
   else
-    overlay_input=<(echo '{}')
+    tmp_overlay="$(mktemp)" && printf '{}' >"$tmp_overlay"
+    overlay_input="$tmp_overlay"
   fi
 
   # Existing user settings (if any)
-  local existing_input
   if [[ -s "$target_path" ]]; then
     existing_input="$target_path"
   else
-    existing_input=<(echo '{}')
+    tmp_existing="$(mktemp)" && printf '{}' >"$tmp_existing"
+    existing_input="$tmp_existing"
   fi
 
   # Ensure directory exists
@@ -99,8 +100,17 @@ setup_settings_file() {
   # Merge: existing <- base <- overlay (repo overrides existing where defined)
   if ! merge_json_files "$existing_input" "$base_input" "$overlay_input" >"$target_path"; then
     echo "Error: failed to merge/write $target_path" >&2
+    # Cleanup temp files before returning
+    [[ -n "$tmp_base" && -f "$tmp_base" ]] && rm -f "$tmp_base"
+    [[ -n "$tmp_overlay" && -f "$tmp_overlay" ]] && rm -f "$tmp_overlay"
+    [[ -n "$tmp_existing" && -f "$tmp_existing" ]] && rm -f "$tmp_existing"
     return 1
   fi
+
+  # Cleanup temp files
+  [[ -n "$tmp_base" && -f "$tmp_base" ]] && rm -f "$tmp_base"
+  [[ -n "$tmp_overlay" && -f "$tmp_overlay" ]] && rm -f "$tmp_overlay"
+  [[ -n "$tmp_existing" && -f "$tmp_existing" ]] && rm -f "$tmp_existing"
 
   return 0
 }

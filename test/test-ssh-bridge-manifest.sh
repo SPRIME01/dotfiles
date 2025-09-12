@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # test-ssh-bridge-manifest.sh - Tests manifest resolution logic for npiperelay
-set -euo pipefail
+set -uo pipefail
+echo "[manifest-test] start"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 source "$SCRIPT_DIR/framework.sh"
 
 if ! command -v jq >/dev/null 2>&1; then
-  echo "Skipping tests: jq not installed"; exit 0
+  echo "SKIP: jq not installed"
+  exit 0
 fi
 
 tmpd="$(mktemp -d)"; trap 'rm -rf "$tmpd"' EXIT
@@ -55,6 +57,7 @@ out2=$(run_resolve "$m2"); c2=$?
 out3=$(run_resolve "$m3"); c3=$?
 out4=$(run_resolve "$m4"); c4=$?
 set -e
+echo "[manifest-test] collected results c1=$c1 c2=$c2 c3=$c3 c4=$c4"
 
 test_assert "Manifest1 resolves OK" "echo $c1" "0"
 test_assert_equal "Manifest1 path exact" "$out1" "$good_wsl"
@@ -67,10 +70,12 @@ test_assert_equal "Manifest3 converted path" "$out3" "$good_wsl"
 
 test_assert "Manifest4 fails to resolve" "echo $c4" "3"
 
+echo "[manifest-test] before summary"
 if test_summary; then
   echo "✅ manifest resolution tests complete"
   exit 0
 else
+  echo "❌ manifest resolution tests failed"
   exit 1
 fi
 

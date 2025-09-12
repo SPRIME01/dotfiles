@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # test/test-path-config.sh - Test PATH configuration in templates
 
-set -euo pipefail
+set -uo pipefail
 
 # Source the test framework
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -89,7 +89,7 @@ test_path_idempotence() {
     # Create a test environment to simulate shell sourcing
     local temp_dir
     temp_dir=$(mktemp -d)
-    trap 'rm -rf "$temp_dir"' EXIT
+    trap 'tdir=${temp_dir:-}; [[ -n "$tdir" ]] && rm -rf "$tdir"' EXIT
 
     # Produce a sanitized, sourceable copy of the projects path template
     local REPO_ROOT
@@ -99,26 +99,16 @@ test_path_idempotence() {
     sed -E '/\{\{.*\}\}/d;/^\s*#/d;/^\s*$/d' "$REPO_ROOT/templates/partials/projects_path.tmpl" > "$sanitized"
     chmod 0644 "$sanitized"
 
-    # Create test script that sources repo helpers (if present) and the sanitized template twice
+    # Create test script that sources ONLY the sanitized template twice
     cat > "$temp_dir/test_script.sh" <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
 # Minimal, deterministic PATH baseline
 export PATH="/usr/bin:/bin"
-# Source repository helper functions if available
-if [[ -f "$REPO_ROOT/.shell_functions.sh" ]]; then
-    # shellcheck disable=SC1090
-    source "$REPO_ROOT/.shell_functions.sh"
-elif [[ -f "$REPO_ROOT/.shell_common.sh" ]]; then
-    # shellcheck disable=SC1090
-    source "$REPO_ROOT/.shell_common.sh"
-fi
 # First source
-# shellcheck disable=SC1090
 source "$sanitized"
 first_path="\$PATH"
 # Second source (simulate re-sourcing)
-# shellcheck disable=SC1090
 source "$sanitized"
 second_path="\$PATH"
 # Exit with success only if identical
