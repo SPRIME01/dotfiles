@@ -288,3 +288,43 @@ Need a condensed one-liner? Use:
 ```
 just ssh-bridge-preflight && just ssh-bridge-install-windows && just ssh-bridge-install-wsl
 ```
+---
+
+
+## Here’s a fast way to verify the install and catch any gaps.
+
+### Quick Check
+- just install-dry-run: show pending changes; should be empty
+- just doctor: repo’s environment checks
+- CHEZMOI_NO_PAGER=1 PAGER=cat chezmoi doctor: chezmoi’s diagnostics
+
+### No-Pending-Changes
+
+- CHEZMOI_NO_PAGER=1 PAGER=cat chezmoi diff --source "$PWD": no output ⇒ fully applied
+- chezmoi status and chezmoi managed: confirm what’s tracked/applied
+
+### Source Location
+
+- chezmoi source-path: shows the active source dir (repo path or ~/.local/share/chezmoi)
+- If it’s not your repo and you want it to be, run: chezmoi init --source "$PWD" && chezmoi apply
+
+### Key Files Present
+
+- ls -l ~/.zshrc ~/.bashrc ~/.justfile ~/.gitignore_global ~/.mise.toml || true
+- rg -n "Managed by chezmoi" ~/.zshrc ~/.bashrc: headers present ⇒ templates applied
+- git config --global --get core.excludesfile: should be ~/.gitignore_global
+
+### Tooling Checks (optional but useful)
+
+- direnv version; direnv status
+- mise doctor || true (if you use mise)
+- oh-my-posh --version (PowerShell on Windows)
+
+### WSL/Windows Extras (if applicable)
+
+- just verify-windows-profile: profile points to this repo
+- just verify-windows-theme: Oh My Posh theme resolves correctly
+
+If any diffs show up in the dry-run, re-apply with just install (or CHEZMOI_NO_PAGER=1 chezmoi apply --source "$PWD") and re-run the checks.
+
+
