@@ -18,6 +18,36 @@ lint:
 format:
 	@shfmt -w .
 
+# Harden .env file permissions
+env-fix-perms:
+	@bash -lc 'set -euo pipefail; echo "🔐 Fixing .env permissions..."; bash scripts/fix-env-perms.sh'
+
+# .env helpers
+env-add KEY_VALUE:
+	@bash -lc 'set -euo pipefail; KVT="{{KEY_VALUE}}"; if [[ -z "$KVT" ]]; then echo "Usage: just env-add KEY:VALUE | KEY=VALUE"; exit 2; fi; scripts/envctl.sh add "$KVT"; echo "💡 If direnv is active here, it reloads automatically."'
+
+env-remove KEY:
+	@bash -lc 'set -euo pipefail; K="{{KEY}}"; if [[ -z "$K" ]]; then echo "Usage: just env-remove KEY"; exit 2; fi; scripts/envctl.sh remove "$K"; echo "💡 If direnv is active here, it reloads automatically."'
+
+env-list:
+	@bash -lc 'set -euo pipefail; scripts/envctl.sh list'
+
+# Install PowerShell 7 inside WSL (Ubuntu)
+install-pwsh-wsl:
+	@bash -lc 'set -euo pipefail; if command -v pwsh >/dev/null 2>&1; then echo "✅ PowerShell already installed: $$(pwsh --version)"; exit 0; fi; echo "📦 Installing PowerShell 7 for WSL..."; if [[ -f packages-microsoft-prod.deb ]]; then sudo dpkg -i packages-microsoft-prod.deb || true; fi; sudo apt-get update -y; sudo apt-get install -y powershell; pwsh --version'
+
+# Run a Windows PowerShell command from WSL
+win-cmd CMD:
+	@bash -lc 'set -euo pipefail; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  Run from WSL"; exit 0; fi; powershell.exe -NoProfile -Command "{{CMD}}" | tr -d "\r"'
+
+# Repair zshrc by reapplying the template via chezmoi
+repair-zshrc:
+	@bash -lc 'set -euo pipefail; if ! command -v chezmoi >/dev/null 2>&1; then echo "❌ chezmoi not found"; exit 1; fi; echo "🔧 Reapplying ~/.zshrc from dotfiles template..."; chezmoi apply --source "$(pwd)" "$HOME/.zshrc" --verbose'
+
+# Repair bashrc by reapplying the template via chezmoi
+repair-bashrc:
+	@bash -lc 'set -euo pipefail; if ! command -v chezmoi >/dev/null 2>&1; then echo "❌ chezmoi not found"; exit 1; fi; echo "🔧 Reapplying ~/.bashrc from dotfiles template..."; chezmoi apply --source "$(pwd)" "$HOME/.bashrc" --verbose'
+
 # Install direnv across supported platforms (idempotent)
 install-direnv:
 	@bash -c 'set -euo pipefail; echo "🌱 Installing direnv..."; if command -v direnv >/dev/null 2>&1; then echo "✅ direnv already installed: $$(command -v direnv)"; direnv version || true; exit 0; fi; OS=$$(uname -s); if command -v apt >/dev/null 2>&1; then echo "📦 Using apt"; sudo apt update -y >/dev/null 2>&1 || true; sudo apt install -y direnv; elif command -v brew >/dev/null 2>&1; then echo "🍺 Using Homebrew"; brew install direnv; elif command -v dnf >/dev/null 2>&1; then echo "📦 Using dnf"; sudo dnf install -y direnv; elif command -v pacman >/dev/null 2>&1; then echo "📦 Using pacman"; sudo pacman -Sy --noconfirm direnv; elif command -v zypper >/dev/null 2>&1; then echo "📦 Using zypper"; sudo zypper install -y direnv; elif command -v scoop >/dev/null 2>&1; then echo "🪟 Using scoop (Windows)"; scoop install direnv; elif command -v choco >/dev/null 2>&1; then echo "🪟 Using choco (Windows)"; choco install direnv -y; else echo "❌ No supported package manager found. Install manually from https://direnv.net"; exit 1; fi; if command -v direnv >/dev/null 2>&1; then echo "🎉 direnv installed: $$(direnv version)"; echo "💡 Create a .envrc in a project and run: direnv allow"; echo "💡 To disable temporarily: export DISABLE_DIRENV=1"; else echo "❌ direnv installation appears to have failed"; exit 1; fi'
@@ -69,7 +99,7 @@ doctor-strict:
 
 # Bootstrap/apply dotfiles via chezmoi (wrapper around install.sh)
 install:
-	@bash -lc 'set -euo pipefail; echo "🚀 Running install.sh (chezmoi apply)..."; bash install.sh'
+	@bash -lc 'set -euo pipefail; echo "🚀 Running install.sh (chezmoi apply)..."; bash install.sh; echo "🔐 Hardening .env permissions..."; bash scripts/fix-env-perms.sh'
 
 # Dry-run the bootstrap (no changes; shows diff)
 install-dry-run:
@@ -78,6 +108,29 @@ install-dry-run:
 # Set up projects directory and Windows symlink (WSL2 only)
 setup-projects:
 	@bash scripts/setup-projects-idempotent.sh
+
+# Force-create Windows symlink for projects (UAC prompt expected)
+# Usage: `just force-projects-symlink` (run from WSL)
+force-projects-symlink:
+	@bash -lc 'set -euo pipefail; \
+	  if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then \
+	    echo "ℹ️  This recipe targets WSL; run from WSL."; \
+	    exit 0; \
+	  fi; \
+	  if ! command -v powershell.exe >/dev/null 2>&1 && ! command -v pwsh.exe >/dev/null 2>&1; then \
+	    echo "❌ Neither powershell.exe nor pwsh.exe available from WSL."; \
+	    exit 1; \
+	  fi; \
+	  ROOT="${PROJECTS_ROOT:-$HOME/projects}"; \
+	  UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}${ROOT//\//\\}"; \
+	  SCRIPT_WIN=$(wslpath -w "$PWD/scripts/invoke-elevated-projects-symlink.ps1"); \
+	  echo "🔗 Requesting elevated symlink: %USERPROFILE%\\projects -> $UNC"; \
+	  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_WIN" -Target "$UNC" | tr -d "\r"'
+
+# Create/update Windows global justfile that proxies to WSL
+# Usage: `just windows-setup-global-justfile` (run from WSL)
+windows-setup-global-justfile:
+	@bash -lc 'set -euo pipefail; if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then echo "ℹ️  Run from WSL to configure Windows justfile."; exit 0; fi; bash scripts/setup-windows-global-justfile.sh'
 
 # Set up PowerShell 7 profile for Windows (requires PowerShell 7 installed)
 # Usage: `just setup-pwsh7` (run from WSL)

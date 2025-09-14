@@ -284,3 +284,115 @@ function Link-WSLProjects {
         Write-Warning "Failed to create symlink. Try enabling Developer Mode or run elevated."
     }
 }
+
+# --- WSL Interop Convenience (Windows only) ---
+if ($IsWindows) {
+    function Initialize-WSLInterop {
+        # Gently wake WSL to ensure UNC is available
+        try { wsl.exe -l -q *> $null } catch {}
+        try {
+            # Prefer quiet list of distro names
+            $d = (wsl.exe -l -q 2>$null | Where-Object { $_ -and $_.Trim() -ne '' } | Select-Object -First 1)
+            if (-not $d) {
+                # Fallback: parse starred default from verbose list and take the first token (name)
+                $d = (wsl.exe -l -v 2>$null | Select-String '^\s*\*' | ForEach-Object { ($_ -replace '^\s*\*','').Trim().Split()[0] } | Select-Object -First 1)
+            }
+        } catch { $d = '' }
+        if (-not $d) { $d = 'Ubuntu' }
+        # Sanitize any embedded nulls and whitespace
+        $d = ($d -replace "`0", '').Trim()
+        $global:WSLDistro = $d
+        # Prefer \\wsl.localhost, fallback to legacy \\wsl$
+        $rootCandidates = @(("\\wsl.localhost\" + $d), ("\\wsl$\" + $d))
+        $chosen = $null
+        foreach ($rc in $rootCandidates) {
+            # Retry a few times to allow UNC to appear
+            for ($i=0; $i -lt 8; $i++) {
+                if (Test-Path $rc) { $chosen = $rc; break }
+                Start-Sleep -Milliseconds 150
+            }
+            if ($chosen) { break }
+        }
+        if (-not $chosen) { $chosen = ("\\wsl.localhost\" + $d) }
+        $global:WSLRoot = $chosen
+        try { $global:WSLUser = (wsl.exe -d $d -e sh -lc 'echo -n $USER' 2>$null) } catch { $global:WSLUser = $env:USERNAME.ToLower() }
+        $global:wsl = $global:WSLRoot
+        if (-not (Get-PSDrive -Name 'WSL' -ErrorAction SilentlyContinue)) {
+            try { New-PSDrive -Name 'WSL' -PSProvider FileSystem -Root $global:WSLRoot -Scope Global -ErrorAction SilentlyContinue | Out-Null } catch {}
+        }
+    }
+    Initialize-WSLInterop
+
+    # Aliases + helpers
+    Set-Alias ubuntu wsl -ErrorAction SilentlyContinue
+    function Run-LinuxCommand {
+        param([Parameter(ValueFromRemainingArguments = $true)][string[]] $Args)
+        if (-not $Args -or $Args.Count -eq 0) { Write-Host 'Usage: Run-LinuxCommand <command...>'; return }
+        $cmd = ($Args -join ' ')
+        wsl.exe bash -lc $cmd
+    }
+    Set-Alias rlc Run-LinuxCommand -ErrorAction SilentlyContinue
+
+    function wslcd {
+        param([string]$Path = '~')
+        if (-not $global:WSLRoot) { Initialize-WSLInterop }
+        $p = $Path
+        if ($p -eq '~') { $p = "home/$global:WSLUser" }
+        if ($p.StartsWith('/')) { $p = $p.TrimStart('/') }
+        $p = ($p -replace '/', '\\')
+        $dest = Join-Path $global:WSLRoot $p
+        Set-Location -LiteralPath $dest
+    }
+
+    function Mount-WSLDrive {
+        param([string]$Name = 'L', [switch]$Persist)
+        if (-not $global:WSLRoot) { Initialize-WSLInterop }
+        $args = @{ Name = $Name; PSProvider = 'FileSystem'; Root = $global:WSLRoot }
+        if ($Persist) { $args['Persist'] = $true }
+        try { New-PSDrive @args | Out-Null; Write-Host ("✅ Mounted ${Name}: -> " + $global:WSLRoot) -ForegroundColor Green } catch { Write-Warning $_.Exception.Message }
+    }
+}
+
+# Make `just` work globally in Windows by falling back to a global justfile
+# Only apply on Windows so WSL/Linux pwsh aren't affected
+if ($IsWindows) {
+    function just {
+        param([Parameter(ValueFromRemainingArguments = $true)][string[]] $Args)
+
+        # Ensure just.exe is installed
+        $justCmd = Get-Command just.exe -ErrorAction SilentlyContinue
+        if (-not $justCmd) {
+            Write-Error 'just.exe not found on PATH. Install from https://github.com/casey/just/releases or via winget/choco.'
+            return
+        }
+
+        # Detect a local justfile by walking up directories
+        $hasLocal = $false
+        $dir = (Get-Location).Path
+        while ($true) {
+            if (Test-Path (Join-Path $dir 'justfile')) { $hasLocal = $true; break }
+            $parent = Split-Path -Parent $dir
+            if (-not $parent -or $parent -eq $dir) { break }
+            $dir = $parent
+        }
+
+        if ($hasLocal) {
+            & $justCmd @Args
+            return
+        }
+
+        # Fallback global justfile locations
+        $candidates = @(
+            (Join-Path $env:APPDATA 'just\justfile'),
+            (Join-Path $HOME '.config\just\justfile')
+        )
+        $global = ($candidates | Where-Object { Test-Path $_ } | Select-Object -First 1)
+
+        if ($global) {
+            & $justCmd --justfile $global @Args
+        } else {
+            # No global justfile: run normally (will error with "No justfile found")
+            & $justCmd @Args
+        }
+    }
+}
