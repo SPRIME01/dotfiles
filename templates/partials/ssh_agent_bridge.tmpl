@@ -1,4 +1,4 @@
-{{/* SSH agent bridge setup for WSL */}}
+# SSH agent bridge setup for WSL
 # SSH agent bridge integration (WSL optional)
 if [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
   # Set default SSH_AUTH_SOCK if not already set
@@ -20,7 +20,7 @@ if [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/nu
 
   # Helper function to check bridge status
   ssh-bridge-status() {
-    local preflight_script="{{ .chezmoi.sourceDir }}/ssh-agent-bridge/preflight.sh"
+    local preflight_script="$DOTFILES_ROOT/ssh-agent-bridge/preflight.sh"
     if [[ -f "$preflight_script" ]]; then
       "$preflight_script"
     else
