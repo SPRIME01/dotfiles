@@ -1,4 +1,3 @@
-{{- define "templates/partials/direnv_hook.tmpl" -}}
 # Minimal dotenv loader for shells (parity with PowerShell Load-Env)
 # - Safe: ignores comments/blank lines; accepts KEY=VALUE; strips surrounding quotes
 # - Scope: loads from $DOTFILES_ROOT/.env and $DOTFILES_ROOT/mcp/.env if present
@@ -34,4 +33,3 @@ if [ -z "${DOTFILES_DOTENV_LOADED:-}" ]; then
   [ -f "$DOTFILES_ROOT/mcp/.env" ] && __dotfiles_load_dotenv_file "$DOTFILES_ROOT/mcp/.env"
   export DOTFILES_DOTENV_LOADED=1
 fi
-{{- end -}}
