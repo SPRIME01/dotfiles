@@ -7,62 +7,69 @@ set -uo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 source "$SCRIPT_DIR/framework.sh"
 
-test_no_volta_path_injection() {
-    echo "🧪 Testing no Volta PATH injection in new shells"
+test_volta_path_managed_centrally() {
+    echo "🧪 Testing Volta PATH management is centralized"
     ((TESTS_RUN++))
 
-    local files_to_check=(
-        ".shell_common.sh"
+    local required_files=(
+        "shell/common/environment.sh"
+        "shell/common/environment.ps1"
         "lib/env-loader.sh"
+        "PowerShell/Utils/Load-Env.ps1"
+    )
+
+    local ok=true
+
+    for file in "${required_files[@]}"; do
+        if [[ ! -f "$file" ]]; then
+            echo "❌ Required Volta integration file missing: $file"
+            FAILED_TESTS+=("Missing Volta integration file: $file")
+            ((TESTS_FAILED++))
+            ok=false
+        fi
+    done
+
+    if [[ "$ok" == true ]]; then
+        local shell_file="shell/common/environment.sh"
+        if ! grep -q "VOLTA_HOME" "$shell_file" || ! grep -q "VOLTA_HOME/bin" "$shell_file"; then
+            echo "❌ $shell_file missing Volta PATH logic"
+            FAILED_TESTS+=("Volta PATH missing in $shell_file")
+            ((TESTS_FAILED++))
+            ok=false
+        fi
+
+        local ps_file="shell/common/environment.ps1"
+        if ! grep -q "VOLTA_HOME" "$ps_file" || ! grep -q "voltaBin;\$env:PATH" "$ps_file"; then
+            echo "❌ $ps_file missing Volta PATH logic"
+            FAILED_TESTS+=("Volta PATH missing in $ps_file")
+            ((TESTS_FAILED++))
+            ok=false
+        fi
+    fi
+
+    # Ensure legacy files no longer inject Volta directly into PATH
+    local disallowed_files=(
+        ".shell_common.sh"
         "zsh/path.zsh"
         ".envrc"
     )
 
-    local found_injection=false
-
-    for file in "${files_to_check[@]}"; do
-        if [[ -f "$file" ]]; then
-            # Check for explicit Volta PATH injection patterns
-            # Use explicit exit code checking to avoid set -e issues
-            local grep_result=0
-            grep -q "export PATH.*VOLTA_HOME" "$file" || grep_result=$?
-            if [[ $grep_result -eq 0 ]]; then
-                echo "❌ Volta PATH injection found in $file (export PATH pattern)"
-                FAILED_TESTS+=("Volta PATH injection in $file")
-                ((TESTS_FAILED++))
-                found_injection=true
-                continue
-            fi
-
-            grep_result=0
-            grep -q "VOLTA_HOME.*PATH" "$file" || grep_result=$?
-            if [[ $grep_result -eq 0 ]]; then
-                echo "❌ Volta PATH injection found in $file (VOLTA_HOME PATH pattern)"
-                FAILED_TESTS+=("Volta PATH injection in $file")
-                ((TESTS_FAILED++))
-                found_injection=true
-                continue
-            fi
-
-            grep_result=0
-            grep -q "PATH.*VOLTA_HOME" "$file" || grep_result=$?
-            if [[ $grep_result -eq 0 ]]; then
-                echo "❌ Volta PATH injection found in $file (PATH VOLTA_HOME pattern)"
-                FAILED_TESTS+=("Volta PATH injection in $file")
-                ((TESTS_FAILED++))
-                found_injection=true
-                continue
-            fi
+    for file in "${disallowed_files[@]}"; do
+        if [[ -f "$file" ]] && grep -Eq "VOLTA_HOME.*PATH|PATH.*VOLTA_HOME" "$file"; then
+            echo "❌ Legacy Volta PATH injection still present in $file"
+            FAILED_TESTS+=("Legacy Volta PATH injection in $file")
+            ((TESTS_FAILED++))
+            ok=false
         fi
     done
 
-    if [[ "$found_injection" == "true" ]]; then
-        return 1
+    if [[ "$ok" == true ]]; then
+        echo "✅ Volta PATH is managed centrally"
+        ((TESTS_PASSED++))
+        return 0
     fi
 
-    echo "✅ No Volta PATH injection found in any shell configuration files"
-    ((TESTS_PASSED++))
-    return 0
+    return 1
 }
 
 test_mise_config_present() {
@@ -229,7 +236,7 @@ main() {
     echo "=============================================="
 
     # Run all tests
-    test_no_volta_path_injection
+    test_volta_path_managed_centrally
     test_mise_config_present
     test_mise_dry_run
     test_mise_idempotence

@@ -63,6 +63,15 @@ if [[ -d "$HOME/.npm-global/bin" ]]; then
 	export PATH="$HOME/.npm-global/bin:$PATH"
 fi
 
+# Volta (Node.js toolchain manager)
+if [[ -d "$HOME/.volta/bin" ]]; then
+	export VOLTA_HOME="${VOLTA_HOME:-$HOME/.volta}"
+	case ":$PATH:" in
+	*":$VOLTA_HOME/bin:"*) ;;
+	*) export PATH="$VOLTA_HOME/bin:$PATH" ;;
+	esac
+fi
+
 # Color settings for various tools
 export GREP_OPTIONS="--color=auto"
 export CLICOLOR=1

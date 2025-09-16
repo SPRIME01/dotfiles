@@ -23,12 +23,15 @@
         locate and load a `.env` file from the repository root.
 #>
 # --- Quiet mode defaults & legacy compatibility ---
-# Keep VOLTA_HOME export for compatibility with existing Volta installations
 # Ensure quiet defaults for parity with bash/zsh direnv hooks
 if (-not $env:DIRENV_LOG_FORMAT) { $env:DIRENV_LOG_FORMAT = '' }
-$voltaHome = Join-Path $HOME ".volta"
-if (Test-Path -LiteralPath $voltaHome) {
+$voltaHome = if ($env:VOLTA_HOME) { $env:VOLTA_HOME } else { Join-Path $HOME '.volta' }
+$voltaBin = Join-Path $voltaHome 'bin'
+if (Test-Path -LiteralPath $voltaBin) {
     $env:VOLTA_HOME = $voltaHome
+    if (!(($env:PATH -split ';') -contains $voltaBin)) {
+        $env:PATH = "$voltaBin;$env:PATH"
+    }
 }
 
 # --- Toolchain activation (Mise first) ---
