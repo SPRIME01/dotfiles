@@ -24,6 +24,9 @@ __dotfiles_try_source_common() {
 __dotfiles_try_source_common
 unset -f __dotfiles_try_source_common
 
+# Theme configuration (Powerlevel10k via Oh My Zsh)
+export ZSH_THEME="powerlevel10k/powerlevel10k"
+
 # Oh My Zsh (optional)
 if [[ -d "${ZSH:-$HOME/.oh-my-zsh}" ]]; then
   export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
@@ -40,8 +43,10 @@ fi
 {{/* template "templates/partials/direnv_hook.tmpl" . */}}
 {{ include "templates/partials/direnv_hook.tmpl" }}
 
+{{/* template "templates/partials/ssh_agent_bridge.tmpl" . */}}
 {{ include "templates/partials/ssh_agent_bridge.tmpl" }}
 
+{{/* template "templates/partials/projects_path.tmpl" . */}}
 {{ include "templates/partials/projects_path.tmpl" }}
 
 {{ if eq .chezmoi.os "linux" }}

@@ -1,4 +1,3 @@
-{{- define "templates/partials/projects_path.tmpl" -}}
 # Common projects path setup
 # Path for common projects (customize in a separate file if desired)
 if [[ -d "$HOME/projects" ]]; then
@@ -7,4 +6,3 @@ if [[ -d "$HOME/projects" ]]; then
     *) export PATH="$HOME/projects/bin:$PATH" ;;
   esac
 fi
-{{- end -}}

@@ -39,8 +39,10 @@ fi
 {{/* template "templates/partials/direnv_hook.tmpl" . */}}
 {{ include "templates/partials/direnv_hook.tmpl" }}
 
+{{/* template "templates/partials/ssh_agent_bridge.tmpl" . */}}
 {{ include "templates/partials/ssh_agent_bridge.tmpl" }}
 
+{{/* template "templates/partials/projects_path.tmpl" . */}}
 {{ include "templates/partials/projects_path.tmpl" }}
 
 {{ if eq .chezmoi.os "linux" }}
