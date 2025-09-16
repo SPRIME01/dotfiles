@@ -1,3 +1,4 @@
+{{- define "templates/partials/ssh_agent_bridge.tmpl" -}}
 # SSH agent bridge setup for WSL
 # SSH agent bridge integration (WSL optional)
 if [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
@@ -30,3 +31,4 @@ if [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/nu
     fi
   }
 fi
+{{- end -}}
