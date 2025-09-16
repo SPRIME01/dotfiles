@@ -69,13 +69,6 @@ if [ -f "$DOTFILES_ROOT/shell/loader.sh" ]; then
 	. "$DOTFILES_ROOT/shell/loader.sh"
 fi
 
-# --- Node.js Version Management (Volta) ---
-# Note: Volta PATH injection has been deprecated in favor of Mise
-# Keep VOLTA_HOME export for compatibility with existing Volta installations
-if [ -d "$HOME/.volta" ]; then
-	export VOLTA_HOME="$HOME/.volta"
-fi
-
 # --- Snap Package Manager ---
 # Note: Snap PATH management is now handled by platform-specific templates
 
@@ -83,6 +76,7 @@ fi
 alias projects='cd "$PROJECTS_ROOT"'
 # Clarified dotfiles alias for a standard repo in $HOME/dotfiles
 alias dotfiles='git --git-dir="$DOTFILES_ROOT/.git" --work-tree="$DOTFILES_ROOT"'
+alias cddot='cd "$DOTFILES_ROOT"'
 
 # --- Conditional Aliases ---
 if command -v code >/dev/null; then

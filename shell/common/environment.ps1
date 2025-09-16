@@ -27,6 +27,16 @@ foreach ($BinPath in $LocalBinPaths) {
     }
 }
 
+# Volta (Node.js toolchain manager)
+$voltaHome = if ($env:VOLTA_HOME) { $env:VOLTA_HOME } else { Join-Path $env:USERPROFILE '.volta' }
+$voltaBin = Join-Path $voltaHome 'bin'
+if (Test-Path $voltaBin) {
+    $env:VOLTA_HOME = $voltaHome
+    if (!(($env:PATH -split ';') -contains $voltaBin)) {
+        $env:PATH = "$voltaBin;$env:PATH"
+    }
+}
+
 # Go development
 if (Test-Path (Join-Path $env:USERPROFILE "go")) {
     $env:GOPATH = Join-Path $env:USERPROFILE "go"

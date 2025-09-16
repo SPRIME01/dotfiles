@@ -83,8 +83,12 @@ export_computed_variables() {
 	fi
 
 	# Set Volta path if directory exists
-	if [[ -d "$HOME/.volta" ]]; then
-		export VOLTA_HOME="$HOME/.volta"
+	if [[ -d "$HOME/.volta/bin" ]]; then
+		export VOLTA_HOME="${VOLTA_HOME:-$HOME/.volta}"
+		case ":$PATH:" in
+		*":$VOLTA_HOME/bin:"*) ;;
+		*) export PATH="$VOLTA_HOME/bin:$PATH" ;;
+		esac
 	fi
 }
 

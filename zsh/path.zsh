@@ -1,7 +1,6 @@
 # Path configuration for zsh
 #
-# This file adds Volta and PNPM to the PATH.  Paths are computed from
-# environment variables or default locations relative to $HOME.
+# This file adds PNPM and other zsh-specific overrides to the PATH.
 
 # Local bin directory (for oh-my-posh and other user-installed tools)
 if [[ -d "$HOME/.local/bin" ]]; then
@@ -9,11 +8,6 @@ if [[ -d "$HOME/.local/bin" ]]; then
 	*":$HOME/.local/bin:"*) ;;
 	*) export PATH="$HOME/.local/bin:$PATH" ;;
 	esac
-fi
-
-# Volta (Node version manager) - PATH injection deprecated in favor of Mise
-if [[ -d "$HOME/.volta" ]]; then
-	export VOLTA_HOME="$HOME/.volta"
 fi
 
 # Pulumi (Infrastructure as Code)
