@@ -22,15 +22,69 @@
         executed directly (e.g., `pwsh Load-Env.ps1`) it will automatically
         locate and load a `.env` file from the repository root.
 #>
+$scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
+$repoRoot = Split-Path -Parent (Split-Path -Parent $scriptRoot)
+
+function Add-PathIfMissing {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return
+    }
+
+    if (!(($env:PATH -split ';') -contains $Path)) {
+        $env:PATH = "$Path;$env:PATH"
+    }
+}
+
+function Get-UserProfilePath {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$Segments
+    )
+
+    $root = if ($env:USERPROFILE) { $env:USERPROFILE } else { $HOME }
+    foreach ($segment in $Segments) {
+        $root = [System.IO.Path]::Combine($root, $segment)
+    }
+    return $root
+}
+
 # --- Quiet mode defaults & legacy compatibility ---
 # Ensure quiet defaults for parity with bash/zsh direnv hooks
 if (-not $env:DIRENV_LOG_FORMAT) { $env:DIRENV_LOG_FORMAT = '' }
-$voltaHome = if ($env:VOLTA_HOME) { $env:VOLTA_HOME } else { Join-Path $HOME '.volta' }
-$voltaBin = Join-Path $voltaHome 'bin'
+
+# Shared PATH entries so automation matches interactive shells
+$sharedPaths = @(
+    (Get-UserProfilePath -Segments @('.local', 'bin')),
+    (Get-UserProfilePath -Segments @('bin')),
+    (Get-UserProfilePath -Segments @('.cargo', 'bin')),
+    (Get-UserProfilePath -Segments @('go', 'bin')),
+    (Get-UserProfilePath -Segments @('.poetry', 'bin')),
+    (Get-UserProfilePath -Segments @('.npm-global'))
+)
+
+foreach ($pathEntry in $sharedPaths) {
+    Add-PathIfMissing -Path $pathEntry
+}
+
+$voltaHome = if ($env:VOLTA_HOME) { $env:VOLTA_HOME } else { Get-UserProfilePath -Segments @('.volta') }
+$voltaBin = [System.IO.Path]::Combine($voltaHome, 'bin')
 if (Test-Path -LiteralPath $voltaBin) {
     $env:VOLTA_HOME = $voltaHome
-    if (!(($env:PATH -split ';') -contains $voltaBin)) {
-        $env:PATH = "$voltaBin;$env:PATH"
+    Add-PathIfMissing -Path $voltaBin
+}
+
+# Load shared cross-shell tooling modules
+$toolDir = Join-Path $repoRoot 'shell/common/tools.d/ps1'
+if (Test-Path -LiteralPath $toolDir) {
+    Get-ChildItem -Path $toolDir -Filter '*.ps1' -File | Sort-Object Name | ForEach-Object {
+        . $_.FullName
     }
 }
 

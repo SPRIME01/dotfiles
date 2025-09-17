@@ -32,6 +32,10 @@ env-remove KEY:
 env-list:
 	@bash -lc 'set -euo pipefail; scripts/envctl.sh list'
 
+# Scaffold shared environment modules for a new cross-shell tool
+cross-shell-tool-add:
+	@scripts/add-cross-shell-tool.sh
+
 # Install PowerShell 7 inside WSL (Ubuntu)
 install-pwsh-wsl:
 	@bash -lc 'set -euo pipefail; if command -v pwsh >/dev/null 2>&1; then echo "✅ PowerShell already installed: $$(pwsh --version)"; exit 0; fi; echo "📦 Installing PowerShell 7 for WSL..."; if [[ -f packages-microsoft-prod.deb ]]; then sudo dpkg -i packages-microsoft-prod.deb || true; fi; sudo apt-get update -y; sudo apt-get install -y powershell; pwsh --version'
