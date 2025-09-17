@@ -2,6 +2,19 @@
 # Common environment variables for all shells and platforms
 # Part of the modular dotfiles configuration system
 
+# Resolve repository paths for shared tooling modules
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+
+add_path_once() {
+	local dir="$1"
+	[[ -n "$dir" && -d "$dir" ]] || return 0
+	case ":$PATH:" in
+		*":$dir:"*) ;;
+		*) PATH="$dir:$PATH" ;;
+	esac
+	return 0
+}
+
 # Editor settings
 export EDITOR="${EDITOR:-vim}"
 export VISUAL="${VISUAL:-$EDITOR}"
@@ -35,45 +48,39 @@ export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 
 # Path additions (platform-specific paths will be added by platform modules)
-if [[ -d "$HOME/.local/bin" ]]; then
-	export PATH="$HOME/.local/bin:$PATH"
-fi
+add_path_once "$HOME/.local/bin"
+add_path_once "$HOME/bin"
+add_path_once "$HOME/.cargo/bin"
+add_path_once "$HOME/go/bin"
+add_path_once "$HOME/.poetry/bin"
+add_path_once "$HOME/.npm-global/bin"
 
-if [[ -d "$HOME/bin" ]]; then
-	export PATH="$HOME/bin:$PATH"
-fi
+# Ensure PATH is exported after mutations
+export PATH
 
 # Development tool paths
-if [[ -d "$HOME/.cargo/bin" ]]; then
-	export PATH="$HOME/.cargo/bin:$PATH"
-fi
-
 if [[ -d "$HOME/go/bin" ]]; then
-	export PATH="$HOME/go/bin:$PATH"
 	export GOPATH="$HOME/go"
-fi
-
-# Python development
-if [[ -d "$HOME/.poetry/bin" ]]; then
-	export PATH="$HOME/.poetry/bin:$PATH"
-fi
-
-# Node.js development
-if [[ -d "$HOME/.npm-global/bin" ]]; then
-	export PATH="$HOME/.npm-global/bin:$PATH"
 fi
 
 # Volta (Node.js toolchain manager)
 if [[ -d "$HOME/.volta/bin" ]]; then
 	export VOLTA_HOME="${VOLTA_HOME:-$HOME/.volta}"
-	case ":$PATH:" in
-	*":$VOLTA_HOME/bin:"*) ;;
-	*) export PATH="$VOLTA_HOME/bin:$PATH" ;;
-	esac
+	add_path_once "$VOLTA_HOME/bin"
 fi
 
 # Color settings for various tools
 export GREP_OPTIONS="--color=auto"
 export CLICOLOR=1
+
+# Load shared cross-shell tooling modules (bash/zsh compatible)
+TOOLS_DIR="$SCRIPT_DIR/tools.d/sh"
+if [[ -d "$TOOLS_DIR" ]]; then
+	while IFS= read -r tool_script; do
+		[[ -f "$tool_script" ]] || continue
+		# shellcheck source=/dev/null
+		. "$tool_script"
+	done < <(find "$TOOLS_DIR" -maxdepth 1 -type f -name '*.sh' | sort)
+fi
 
 # Platform-specific environment variables will be loaded by platform modules

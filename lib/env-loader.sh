@@ -11,6 +11,26 @@ if [[ ! -f "$SCRIPT_DIR/error-handling.sh" ]]; then
 	SCRIPT_DIR="$DOTFILES_ROOT/lib"
 fi
 
+add_path_once() {
+	local dir="$1"
+	[[ -n "$dir" && -d "$dir" ]] || return 0
+	case ":$PATH:" in
+		*:"$dir:"*) ;;
+		*) PATH="$dir:$PATH" ;;
+	esac
+	return 0
+}
+
+load_tool_modules() {
+	local tools_dir="$1"
+	[[ -d "$tools_dir" ]] || return 0
+	while IFS= read -r tool_script; do
+		[[ -f "$tool_script" ]] || continue
+		# shellcheck source=/dev/null
+		. "$tool_script"
+	done < <(find "$tools_dir" -maxdepth 1 -type f -name '*.sh' | sort)
+}
+
 # Source dependencies safely
 . "$SCRIPT_DIR/error-handling.sh" 2>/dev/null || true
 . "$SCRIPT_DIR/platform-detection.sh" 2>/dev/null || true
@@ -82,15 +102,23 @@ export_computed_variables() {
 		fi
 	fi
 
+	# Shared PATH entries for headless contexts
+	add_path_once "$HOME/.local/bin"
+	add_path_once "$HOME/bin"
+	add_path_once "$HOME/.cargo/bin"
+	add_path_once "$HOME/go/bin"
+	add_path_once "$HOME/.poetry/bin"
+	add_path_once "$HOME/.npm-global/bin"
+	export PATH
+
 	# Set Volta path if directory exists
 	if [[ -d "$HOME/.volta/bin" ]]; then
 		export VOLTA_HOME="${VOLTA_HOME:-$HOME/.volta}"
-		case ":$PATH:" in
-		*":$VOLTA_HOME/bin:"*) ;;
-		*) export PATH="$VOLTA_HOME/bin:$PATH" ;;
-		esac
+		add_path_once "$VOLTA_HOME/bin"
 	fi
+	export PATH
 }
+
 
 # Main environment loading function
 load_dotfiles_environment() {
@@ -126,6 +154,9 @@ load_dotfiles_environment() {
 
 	# Export computed variables
 	export_computed_variables "$dotfiles_root"
+
+	# Load shared cross-shell tooling modules
+	load_tool_modules "$dotfiles_root/shell/common/tools.d/sh"
 
 	# Final validation
 	if ! validate_required_environment; then

@@ -9,12 +9,35 @@ This sequence also runs for non-interactive contexts that source `lib/env-loader
 
 ## Adding Cross-Shell Tools
 
-When you need a tool on every shell, follow this checklist:
+Shared environment files now sweep dedicated module directories on every load:
 
-1. **POSIX shells** – add a guarded block to `shell/common/environment.sh`. Prefer the existing `case ":$PATH:"` pattern to avoid duplicates and only prepend when the directory exists.
-2. **PowerShell** – mirror the change in `shell/common/environment.ps1`. Use the `$env:PATH -split ';'` approach already in the file to keep the Windows-style PATH deduplicated.
-3. **Headless loaders** – keep `lib/env-loader.sh` and `PowerShell/Utils/Load-Env.ps1` in sync so scripts that run those helpers inherit the same environment without invoking an interactive shell.
-4. **Shell-specific files** – only touch `shell/zsh/*.sh` or similar when a tool truly needs per-shell behavior. Shared tools should live in the common modules above.
+- POSIX shells: `shell/common/tools.d/sh/*.sh`
+- PowerShell: `shell/common/tools.d/ps1/*.ps1`
+- Headless loaders: `lib/env-loader.sh` and `PowerShell/Utils/Load-Env.ps1` source the same directories so CI and scripts see identical PATH updates.
+
+### Quick scaffolding
+
+Use the `just cross-shell-tool-add` recipe (wrapper around `scripts/add-cross-shell-tool.sh`) to scaffold matching modules for a new tool. The helper prompts for values, or you can provide them up front. For example, to register uv after installing it under `$HOME/.local/bin`:
+
+```sh
+TOOL_NAME=uv POSIX_PATH='$HOME/.local/bin' just cross-shell-tool-add
+```
+
+This command creates:
+
+- `shell/common/tools.d/sh/uv.sh` for POSIX shells
+- `shell/common/tools.d/ps1/uv.ps1` for PowerShell
+
+Each snippet simply checks the install directory, uses the shared helpers to dedupe `PATH`, and is auto-sourced by every shell and automation context.
+
+### Manual checklist
+
+When you need custom behaviour beyond the generator, keep the layers aligned:
+
+1. **POSIX shells** – add a guarded block or module that uses the `add_path_once` helper in `shell/common/environment.sh`. Only prepend when the directory exists to avoid PATH bloat.
+2. **PowerShell** – mirror the change in `shell/common/environment.ps1` with `Add-PathIfMissing` so `$env:PATH` stays deduplicated.
+3. **Headless loaders** – ensure `lib/env-loader.sh` and `PowerShell/Utils/Load-Env.ps1` include the logic so scripts that invoke them inherit the same environment without requiring an interactive shell.
+4. **Shell-specific files** – only touch `shell/zsh/*.sh` or similar when a tool truly needs per-shell behaviour. Shared tools should live in the common modules above.
 
 ## Example: Volta
 

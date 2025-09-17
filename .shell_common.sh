@@ -83,42 +83,93 @@ if command -v code >/dev/null; then
 	alias pcode='code -n "$PROJECTS_ROOT" --disable-extensions'
 fi
 
-# --- Shell-Specific Greetings ---
-# Only show greetings in interactive sessions and not during instant prompt
-if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]] && [[ -z "${POWERLEVEL9K_INSTANT_PROMPT:-}" ]]; then
-	# Auto-navigate to home if starting in Windows user directory (common WSL issue)
-	if [[ "$PWD" == "/mnt/c/Users/"* ]] && [[ "$PWD" != "$HOME" ]]; then
-		cd "$HOME" 2>/dev/null || return
-	fi
-
-	if [ -n "$BASH_VERSION" ]; then
-		echo "👋 Welcome back, Bash commander."
-	elif [ -n "$ZSH_VERSION" ]; then
-		echo "✨ All hail the Zsh wizard."
-	fi
-fi
-
 # --- Hostname-Specific Configuration ---
-# Only show hostname messages in interactive sessions and not during instant prompt
-case "$(hostname | tr '[:upper:]' '[:lower:]')" in
+__dotfiles_hostname="$(hostname 2>/dev/null || true)"
+__dotfiles_hostname_lower="$(printf '%s' "$__dotfiles_hostname" | tr '[:upper:]' '[:lower:]')"
+__DOTFILES_HOST_MESSAGE=""
+case "$__dotfiles_hostname_lower" in
 workstation-name)
 	export SPECIAL_VAR="true"
-	if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]] && [[ -z "${POWERLEVEL9K_INSTANT_PROMPT:-}" ]]; then
-		echo "🔒 Loaded workstation-specific config for $(hostname)"
-	fi
+	__DOTFILES_HOST_MESSAGE="🔒 Loaded workstation-specific config for $__dotfiles_hostname"
 	;;
 dev-laptop)
 	export SPECIAL_VAR="false"
-	if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]] && [[ -z "${POWERLEVEL9K_INSTANT_PROMPT:-}" ]]; then
-		echo "🔒 Loaded dev laptop config for $(hostname)"
-	fi
+	__DOTFILES_HOST_MESSAGE="🔒 Loaded dev laptop config for $__dotfiles_hostname"
 	;;
 *)
-	if [[ -z "${P10K_INSTANT_PROMPT:-}" ]] && [[ $- == *i* ]] && [[ -z "${POWERLEVEL9K_INSTANT_PROMPT:-}" ]]; then
-		echo "ℹ️  No specific config for $(hostname), loading defaults."
-	fi
+	__DOTFILES_HOST_MESSAGE="ℹ️  No specific config for $__dotfiles_hostname, loading defaults."
 	;;
 esac
+unset __dotfiles_hostname_lower
+
+# --- Shell-Specific Greetings ---
+# Delay greeting until after prompt to keep Powerlevel10k instant prompt quiet
+__dotfiles_show_shell_greeting() {
+	if [[ -n "${__DOTFILES_GREETING_SHOWN:-}" ]]; then
+		return
+	fi
+	local lines=()
+	if [[ -n "${BASH_VERSION:-}" ]]; then
+		lines+=("👋 Welcome back, Bash commander.")
+	elif [[ -n "${ZSH_VERSION:-}" ]]; then
+		lines+=("✨ All hail the Zsh wizard.")
+	fi
+	if [[ -n "${__DOTFILES_HOST_MESSAGE:-}" ]]; then
+		lines+=("${__DOTFILES_HOST_MESSAGE}")
+	fi
+	if (( ${#lines[@]} > 0 )); then
+		printf '%s\n' "${lines[@]}"
+	fi
+	__DOTFILES_GREETING_SHOWN=1
+	unset __DOTFILES_HOST_MESSAGE
+	if [[ -n "${ZSH_VERSION:-}" ]]; then
+		add-zsh-hook -d precmd __dotfiles_show_shell_greeting 2>/dev/null || true
+	fi
+}
+
+__dotfiles_schedule_greeting() {
+	if [[ -n "${__DOTFILES_GREETING_SCHEDULED:-}" ]]; then
+		return
+	fi
+	__DOTFILES_GREETING_SCHEDULED=1
+	if [[ -n "${ZSH_VERSION:-}" ]]; then
+		autoload -Uz add-zsh-hook 2>/dev/null || return
+		add-zsh-hook -Uz precmd __dotfiles_show_shell_greeting
+	elif [[ -n "${BASH_VERSION:-}" ]]; then
+		case ";${PROMPT_COMMAND:-};" in
+		*";__dotfiles_show_shell_greeting;"*) ;;
+		*)
+			if [[ -n "${PROMPT_COMMAND:-}" ]]; then
+				PROMPT_COMMAND="__dotfiles_show_shell_greeting;${PROMPT_COMMAND}"
+			else
+				PROMPT_COMMAND="__dotfiles_show_shell_greeting"
+			fi
+			export PROMPT_COMMAND
+			;;
+		esac
+	fi
+}
+
+if [[ $- == *i* ]]; then
+    if [[ "$PWD" == "/mnt/c/Users/"* ]] && [[ "$PWD" != "$HOME" ]]; then
+        cd "$HOME" 2>/dev/null || true
+    fi
+
+    case "${DOTFILES_FORCE_SHELL_GREETING:-}" in
+        1|true|TRUE|yes|YES)
+            __dotfiles_schedule_greeting
+            ;;
+        *)
+            if [[ "${POWERLEVEL9K_INSTANT_PROMPT:-off}" == "off" ]]; then
+                __dotfiles_schedule_greeting
+            else
+                unset __DOTFILES_HOST_MESSAGE
+            fi
+            ;;
+    esac
+fi
+
+unset __dotfiles_hostname
 
 # --- WSL2 Integration ---
 # Consolidated configuration for WSL2: Kubernetes, SSH, and Projects symlinks.
