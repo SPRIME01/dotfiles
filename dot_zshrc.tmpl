@@ -21,6 +21,12 @@ __dotfiles_try_source_common() {
   return 1
 }
 
+# Fix broken Docker completion to prevent compinit errors
+if [[ -L /usr/share/zsh/vendor-completions/_docker ]] && [[ ! -e /usr/share/zsh/vendor-completions/_docker ]]; then
+  # Temporarily hide broken Docker completion from compinit
+  fpath=(${fpath[@]:#/usr/share/zsh/vendor-completions})
+fi
+
 __dotfiles_try_source_common
 unset -f __dotfiles_try_source_common
 
