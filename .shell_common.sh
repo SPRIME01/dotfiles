@@ -105,7 +105,8 @@ unset __dotfiles_hostname_lower
 # --- Shell-Specific Greetings ---
 # Delay greeting until after prompt to keep Powerlevel10k instant prompt quiet
 __dotfiles_show_shell_greeting() {
-	if [[ -n "${__DOTFILES_GREETING_SHOWN:-}" ]]; then
+	# Skip greeting if already shown or in VS Code terminal to avoid P10k instant prompt issues
+	if [[ -n "${__DOTFILES_GREETING_SHOWN:-}" ]] || [[ "${TERM_PROGRAM:-}" == "vscode" ]]; then
 		return
 	fi
 	local lines=()
