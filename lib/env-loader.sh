@@ -12,12 +12,22 @@ if [[ ! -f "$SCRIPT_DIR/error-handling.sh" ]]; then
 fi
 
 add_path_once() {
-	local dir="$1"
+	local dir="${1%/}"
+	[[ "$1" == "/" ]] && dir="/"
 	[[ -n "$dir" && -d "$dir" ]] || return 0
-	case ":$PATH:" in
-		*:"$dir:"*) ;;
-		*) PATH="$dir:$PATH" ;;
-	esac
+
+	local path=":${PATH}:"
+	while [[ $path == *":$dir:"* ]]; do
+		path="${path//:$dir:/:}"
+	done
+	path="${path#:}"
+	path="${path%:}"
+
+	if [[ -n "$path" ]]; then
+		PATH="$dir:$path"
+	else
+		PATH="$dir"
+	fi
 	return 0
 }
 
