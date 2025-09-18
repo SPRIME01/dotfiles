@@ -1,7 +1,8 @@
 # Global Justfile (managed by chezmoi)
 
 default:
-	@echo "Global tasks: bootstrap | lint | format | direnv-install"
+	@echo "Global tasks: bootstrap | lint | format | direnv-install | env-* recipes"
+	@echo "Environment: env-list | env-add KEY=VALUE | env-remove KEY | env-fix-perms"
 
 # Bootstrap development environment
 bootstrap:
@@ -27,3 +28,21 @@ windows-chezmoi-diff SRC="${HOME}/dotfiles":
 
 windows-chezmoi-apply SRC="${HOME}/dotfiles":
 	@bash -lc 'set -euo pipefail; ROOT="{{SRC}}"; if [[ ! -d "$ROOT" ]]; then echo "❌ dotfiles not found at $ROOT"; exit 2; fi; just -f "$ROOT/justfile" windows-chezmoi-apply || true'
+
+# ===== Environment Management =====
+
+# List environment variables from .env file (if present)
+env-list:
+	@bash -c 'set -euo pipefail; if [[ -f .env ]]; then echo "📋 Environment variables in .env:"; grep -v "^#" .env | grep -v "^$$" | sort || true; else echo "ℹ️  No .env file found in current directory"; fi'
+
+# Add or update environment variable in .env file
+env-add KEY_VALUE:
+	@bash -c 'set -euo pipefail; KV="{{KEY_VALUE}}"; if [[ -z "$KV" ]]; then echo "Usage: just env-add KEY=VALUE"; exit 1; fi; if [[ "$KV" != *"="* ]]; then echo "❌ Format must be KEY=VALUE"; exit 1; fi; KEY="$${KV%%=*}"; VALUE="$${KV#*=}"; echo "Setting $KEY=$VALUE"; if [[ -f .env ]]; then if grep -q "^$KEY=" .env; then sed -i "s/^$KEY=.*/$KEY=$VALUE/" .env; echo "✅ Updated $KEY in .env"; else echo "$KEY=$VALUE" >> .env; echo "✅ Added $KEY to .env"; fi; else echo "$KEY=$VALUE" > .env; echo "✅ Created .env with $KEY"; fi; echo "💡 Run: source .env  # to apply to current shell"'
+
+# Remove environment variable from .env file
+env-remove KEY:
+	@bash -c 'set -euo pipefail; K="{{KEY}}"; if [[ -z "$K" ]]; then echo "Usage: just env-remove KEY"; exit 1; fi; if [[ ! -f .env ]]; then echo "ℹ️  No .env file found"; exit 0; fi; if grep -q "^$K=" .env; then grep -v "^$K=" .env > .env.tmp && mv .env.tmp .env; echo "✅ Removed $K from .env"; else echo "ℹ️  $K not found in .env"; fi'
+
+# Fix .env file permissions (600 = user read/write only)
+env-fix-perms:
+	@bash -c 'set -euo pipefail; if [[ -f .env ]]; then chmod 600 .env; echo "🔐 Fixed .env permissions (600)"; ls -la .env; else echo "ℹ️  No .env file found"; fi'
