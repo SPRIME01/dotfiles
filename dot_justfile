@@ -2,7 +2,8 @@
 
 default:
 	@echo "Global tasks: bootstrap | lint | format | direnv-install | env-* recipes"
-	@echo "Environment: env-list | env-add KEY=VALUE | env-remove KEY | env-fix-perms"
+	@echo "Global Environment: env-list | env-add KEY=VALUE | env-remove KEY | env-fix-perms"
+	@echo "Environment file: ~/dotfiles/.env"
 
 # Bootstrap development environment
 bootstrap:
@@ -31,18 +32,18 @@ windows-chezmoi-apply SRC="${HOME}/dotfiles":
 
 # ===== Environment Management =====
 
-# List environment variables from .env file (if present)
+# List environment variables from global .env file (if present)
 env-list:
-	@bash -c 'set -euo pipefail; if [[ -f .env ]]; then echo "📋 Environment variables in .env:"; grep -v "^#" .env | grep -v "^$$" | sort || true; else echo "ℹ️  No .env file found in current directory"; fi'
+	@bash -c 'set -euo pipefail; ENV_FILE="$$HOME/dotfiles/.env"; if [[ -f "$$ENV_FILE" ]]; then echo "📋 Global environment variables in $$ENV_FILE:"; grep -v "^#" "$$ENV_FILE" | grep -v "^$$" | sort || true; else echo "ℹ️  No global .env file found at $$ENV_FILE"; fi'
 
-# Add or update environment variable in .env file
+# Add or update environment variable in global .env file
 env-add KEY_VALUE:
-	@bash -c 'set -euo pipefail; KV="{{KEY_VALUE}}"; if [[ -z "$KV" ]]; then echo "Usage: just env-add KEY=VALUE"; exit 1; fi; if [[ "$KV" != *"="* ]]; then echo "❌ Format must be KEY=VALUE"; exit 1; fi; KEY="$${KV%%=*}"; VALUE="$${KV#*=}"; echo "Setting $KEY=$VALUE"; if [[ -f .env ]]; then if grep -q "^$KEY=" .env; then sed -i "s/^$KEY=.*/$KEY=$VALUE/" .env; echo "✅ Updated $KEY in .env"; else echo "$KEY=$VALUE" >> .env; echo "✅ Added $KEY to .env"; fi; else echo "$KEY=$VALUE" > .env; echo "✅ Created .env with $KEY"; fi; echo "💡 Run: source .env  # to apply to current shell"'
+	@bash -c 'set -euo pipefail; KV="{{KEY_VALUE}}"; if [[ -z "$$KV" ]]; then echo "Usage: just env-add KEY=VALUE"; exit 1; fi; if [[ "$$KV" != *"="* ]]; then echo "❌ Format must be KEY=VALUE"; exit 1; fi; KEY="$${KV%%=*}"; VALUE="$${KV#*=}"; ENV_FILE="$$HOME/dotfiles/.env"; echo "Setting $$KEY=$$VALUE in global .env"; mkdir -p "$$(dirname "$$ENV_FILE")"; if [[ -f "$$ENV_FILE" ]]; then if grep -q "^$$KEY=" "$$ENV_FILE"; then sed -i "s/^$$KEY=.*/$$KEY=$$VALUE/" "$$ENV_FILE"; echo "✅ Updated $$KEY in $$ENV_FILE"; else echo "$$KEY=$$VALUE" >> "$$ENV_FILE"; echo "✅ Added $$KEY to $$ENV_FILE"; fi; else echo "$$KEY=$$VALUE" > "$$ENV_FILE"; echo "✅ Created $$ENV_FILE with $$KEY"; fi; chmod 600 "$$ENV_FILE"; echo "💡 Restart your shell or run: source $$ENV_FILE"'
 
-# Remove environment variable from .env file
+# Remove environment variable from global .env file
 env-remove KEY:
-	@bash -c 'set -euo pipefail; K="{{KEY}}"; if [[ -z "$K" ]]; then echo "Usage: just env-remove KEY"; exit 1; fi; if [[ ! -f .env ]]; then echo "ℹ️  No .env file found"; exit 0; fi; if grep -q "^$K=" .env; then grep -v "^$K=" .env > .env.tmp && mv .env.tmp .env; echo "✅ Removed $K from .env"; else echo "ℹ️  $K not found in .env"; fi'
+	@bash -c 'set -euo pipefail; K="{{KEY}}"; if [[ -z "$$K" ]]; then echo "Usage: just env-remove KEY"; exit 1; fi; ENV_FILE="$$HOME/dotfiles/.env"; if [[ ! -f "$$ENV_FILE" ]]; then echo "ℹ️  No global .env file found at $$ENV_FILE"; exit 0; fi; if grep -q "^$$K=" "$$ENV_FILE"; then grep -v "^$$K=" "$$ENV_FILE" > "$$ENV_FILE.tmp" && mv "$$ENV_FILE.tmp" "$$ENV_FILE"; echo "✅ Removed $$K from $$ENV_FILE"; else echo "ℹ️  $$K not found in $$ENV_FILE"; fi'
 
-# Fix .env file permissions (600 = user read/write only)
+# Fix global .env file permissions (600 = user read/write only)
 env-fix-perms:
-	@bash -c 'set -euo pipefail; if [[ -f .env ]]; then chmod 600 .env; echo "🔐 Fixed .env permissions (600)"; ls -la .env; else echo "ℹ️  No .env file found"; fi'
+	@bash -c 'set -euo pipefail; ENV_FILE="$$HOME/dotfiles/.env"; if [[ -f "$$ENV_FILE" ]]; then chmod 600 "$$ENV_FILE"; echo "🔐 Fixed $$ENV_FILE permissions (600)"; ls -la "$$ENV_FILE"; else echo "ℹ️  No global .env file found at $$ENV_FILE"; fi'
