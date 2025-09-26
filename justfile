@@ -32,6 +32,22 @@ env-remove KEY:
 env-list:
 	@bash -lc 'set -euo pipefail; scripts/envctl.sh list'
 
+# OpenVINO GenAI helpers
+openvino-setup *ARGS:
+	@bash -lc 'set -euo pipefail; scripts/setup-openvino-genai.sh {{ARGS}}'
+
+openvino-info:
+	@bash -lc 'set -euo pipefail; source ./.shell_common.sh; openvino_genai_info'
+
+openvino-python *ARGS:
+	@bash -lc 'set -euo pipefail; VENV_PATH="${OPENVINO_GENAI_VENV:-/opt/openvino-genai/venv}"; if [[ ! -f "$VENV_PATH/bin/activate" ]]; then echo "❌ OpenVINO GenAI venv missing at $VENV_PATH"; exit 1; fi; source "$VENV_PATH/bin/activate"; python "$@"' -- {{ARGS}}
+
+openvino-pip *ARGS:
+	@bash -lc 'set -euo pipefail; VENV_PATH="${OPENVINO_GENAI_VENV:-/opt/openvino-genai/venv}"; if [[ ! -f "$VENV_PATH/bin/activate" ]]; then echo "❌ OpenVINO GenAI venv missing at $VENV_PATH"; exit 1; fi; source "$VENV_PATH/bin/activate"; pip "$@"' -- {{ARGS}}
+
+openvino-freeze-reqs OUTPUT="docs/reference/openvino-genai/requirements.lock":
+	@bash -lc 'set -euo pipefail; VENV_PATH="${OPENVINO_GENAI_VENV:-/opt/openvino-genai/venv}"; if [[ ! -f "$VENV_PATH/bin/activate" ]]; then echo "❌ OpenVINO GenAI venv missing at $VENV_PATH"; exit 1; fi; mkdir -p "$(dirname "{{OUTPUT}}")"; source "$VENV_PATH/bin/activate"; pip list --format=freeze > "{{OUTPUT}}"; echo "📝 Wrote requirements to {{OUTPUT}}"'
+
 # Scaffold shared environment modules for a new cross-shell tool
 cross-shell-tool-add:
 	@scripts/add-cross-shell-tool.sh
