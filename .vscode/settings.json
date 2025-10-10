@@ -9,5 +9,6 @@
     "**/node_modules": true,
     "**/build": true
   },
-  "terminal.integrated.fontFamily": "MesloLGS Nerd Font"
+  "terminal.integrated.fontFamily": "MesloLGS Nerd Font",
+  "semgrep.scan.onlyGitDirty": false
 }
