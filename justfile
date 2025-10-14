@@ -22,6 +22,10 @@ format:
 env-fix-perms:
 	@bash -lc 'set -euo pipefail; echo "🔐 Fixing .env permissions..."; bash scripts/fix-env-perms.sh'
 
+# Sync environment variables to systemd (for GUI apps like VS Code)
+sync-env:
+	@bash -lc 'set -euo pipefail; echo "🔄 Syncing environment to systemd..."; bash scripts/sync-env-to-systemd.sh'
+
 # .env helpers
 env-add KEY_VALUE:
 	@bash -lc 'set -euo pipefail; KVT="{{KEY_VALUE}}"; if [[ -z "$KVT" ]]; then echo "Usage: just env-add KEY:VALUE | KEY=VALUE"; exit 2; fi; scripts/envctl.sh add "$KVT"; echo "💡 If direnv is active here, it reloads automatically."'

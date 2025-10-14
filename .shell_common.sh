@@ -60,6 +60,15 @@ if [ -f "$DOTFILES_ROOT/lib/env-loader.sh" ]; then
 	load_dotfiles_environment "$DOTFILES_ROOT"
 fi
 
+# --- Auto-sync environment to systemd (for GUI apps like VS Code) ---
+# Automatically sync .env changes to systemd user environment so GUI applications
+# can access environment variables without needing to be launched from terminal
+if [ -f "$DOTFILES_ROOT/scripts/auto-sync-env.sh" ]; then
+	# shellcheck source=dotfiles-main/scripts/auto-sync-env.sh
+	# shellcheck disable=SC1091
+	. "$DOTFILES_ROOT/scripts/auto-sync-env.sh"
+fi
+
 # --- Modular Shell Configuration ---
 # Load the new modular configuration system that organizes shell settings
 # into common, platform-specific, and shell-specific modules for better maintainability
@@ -77,6 +86,11 @@ alias projects='cd "$PROJECTS_ROOT"'
 # Clarified dotfiles alias for a standard repo in $HOME/dotfiles
 alias dotfiles='git --git-dir="$DOTFILES_ROOT/.git" --work-tree="$DOTFILES_ROOT"'
 alias cddot='cd "$DOTFILES_ROOT"'
+
+# --- Environment Sync Aliases ---
+# Sync environment variables to systemd so GUI apps (VS Code, etc.) can access them
+alias sync-env='bash "$DOTFILES_ROOT/scripts/sync-env-to-systemd.sh"'
+alias reload-vscode='echo "Close VS Code, then run: code" && echo "Or use Ctrl+Shift+P → Developer: Reload Window"'
 
 # --- Conditional Aliases ---
 if command -v code >/dev/null; then
