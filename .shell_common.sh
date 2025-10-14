@@ -69,6 +69,15 @@ if [ -f "$DOTFILES_ROOT/scripts/auto-sync-env.sh" ]; then
 	. "$DOTFILES_ROOT/scripts/auto-sync-env.sh"
 fi
 
+# --- Optional Locale Sanitizer ---
+# Controlled by DOTFILES_ENABLE_LOCALE_SANITIZER (set to 1 to enable)
+if [[ "${DOTFILES_ENABLE_LOCALE_SANITIZER:-0}" == "1" ]]; then
+    if [[ -f "$DOTFILES_ROOT/scripts/locale-sanitizer.sh" ]]; then
+        # shellcheck disable=SC1091
+        . "$DOTFILES_ROOT/scripts/locale-sanitizer.sh"
+    fi
+fi
+
 # --- Modular Shell Configuration ---
 # Load the new modular configuration system that organizes shell settings
 # into common, platform-specific, and shell-specific modules for better maintainability
@@ -249,3 +258,21 @@ EOF
         fi
     fi
 fi
+
+# Ensure a safe UTF-8 locale fallback without overriding user settings
+# Prefer existing LC_ALL > LANG > fallback to C.UTF-8 then POSIX
+if [[ -z "${LC_ALL:-}" ]]; then
+    if [[ -n "${LANG:-}" ]]; then
+        export LC_ALL="$LANG"
+    else
+        # Prefer C.UTF-8 (widely available), fallback to POSIX if needed
+        if locale -a 2>/dev/null | rg -q '^C\.UTF-8$'; then
+            export LANG='C.UTF-8'
+        else
+            export LANG='POSIX'
+        fi
+        export LC_ALL="$LANG"
+    fi
+fi
+
+# --- End of File ---
