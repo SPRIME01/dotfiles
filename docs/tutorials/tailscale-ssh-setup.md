@@ -21,25 +21,46 @@ The dotfiles now include automated Tailscale installation and configuration via 
 
 You should see your WSL2 instance listed with the `tag:homelab-wsl2` tag.
 
+> **Note**: If you have `direnv` enabled, your `.env` file will be automatically loaded when you `cd` into the dotfiles directory, making `TAILSCALE_AUTH_KEY` available to the installation script.
+
 ## Automated Authentication
 
-To avoid interactive authentication during installation, you can provide a Tailscale Auth Key:
+To avoid interactive authentication during installation, store your Tailscale Auth Key securely using the project's sops-based secret management:
 
-1. Generate a reusable auth key in the [Tailscale Admin Console](https://login.tailscale.com/admin/settings/keys)
+1. **Generate a reusable auth key** in the [Tailscale Admin Console](https://login.tailscale.com/admin/settings/keys)
 
    - Enable **Reusable** and **Ephemeral** (optional)
    - Add the tag `tag:homelab-wsl2` to the key
 
-2. Set the environment variable:
+2. **Add the key to your encrypted secrets**:
 
    ```bash
-   export TAILSCALE_AUTH_KEY="tskey-auth-..."
+   just secrets-add TAILSCALE_AUTH_KEY
    ```
 
-3. Run the installation:
+   When prompted, paste your auth key (e.g., `tskey-auth-...`).
+
+3. **Decrypt secrets to `.env`** (if not already done):
+
+   ```bash
+   just secrets-decrypt
+   ```
+
+4. **Install Tailscale** (the script will automatically pick up `TAILSCALE_AUTH_KEY` from `.env`):
    ```bash
    just install-tailscale
    ```
+
+> **Note**: Secrets are now stored in `.secrets.json` (encrypted JSON format) instead of the previous `.env.encrypted` (dotenv format). This makes secret management much more reliable.
+
+### Alternative: One-time Export
+
+For testing or one-time use, you can export the key temporarily:
+
+```bash
+export TAILSCALE_AUTH_KEY="tskey-auth-..."
+just install-tailscale
+```
 
 ## Access Control
 
