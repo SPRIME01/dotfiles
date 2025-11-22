@@ -23,6 +23,30 @@ format:
 direnv-install:
 	@bash -c 'set -euo pipefail; if command -v direnv >/dev/null 2>&1; then echo "✅ direnv: $$(direnv version)"; exit 0; fi; if command -v apt >/dev/null 2>&1; then sudo apt update -y >/dev/null 2>&1 || true; sudo apt install -y direnv; elif command -v dnf >/dev/null 2>&1; then sudo dnf install -y direnv; elif command -v pacman >/dev/null 2>&1; then sudo pacman -Sy --noconfirm direnv; elif command -v zypper >/dev/null 2>&1; then sudo zypper install -y direnv; elif command -v brew >/dev/null 2>&1; then brew install direnv; elif command -v scoop >/dev/null 2>&1; then scoop install direnv; elif command -v choco >/dev/null 2>&1; then choco install direnv -y; else echo "❌ No supported package manager found. Install manually from https://direnv.net"; exit 1; fi'
 
+# Initialize sops with age encryption
+sops-init:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	SOPS_AGE_KEY_FILE="${SOPS_AGE_KEY_FILE:-$HOME/.config/sops/age/keys.txt}"
+	if [[ -f "$SOPS_AGE_KEY_FILE" ]]; then
+		echo "✅ Age key already exists at $SOPS_AGE_KEY_FILE"
+		echo "Public key:"
+		grep "# public key:" "$SOPS_AGE_KEY_FILE" || age-keygen -y "$SOPS_AGE_KEY_FILE"
+	else
+		echo "🔑 Generating new age key for sops..."
+		mkdir -p "$(dirname "$SOPS_AGE_KEY_FILE")"
+		age-keygen -o "$SOPS_AGE_KEY_FILE"
+		chmod 600 "$SOPS_AGE_KEY_FILE"
+		echo "✅ Age key generated at $SOPS_AGE_KEY_FILE"
+		echo ""
+		echo "📝 Next steps:"
+		echo "1. Extract your public key:"
+		echo "   age-keygen -y $SOPS_AGE_KEY_FILE"
+		echo "2. Update .sops.yaml with your public key"
+		echo "3. Encrypt secrets with: sops -e .env > .env.encrypted"
+	fi
+
+
 # ===== Windows chezmoi helpers (run from WSL) =====
 windows-chezmoi-diff SRC="${HOME}/dotfiles":
 	@bash -lc 'set -euo pipefail; ROOT="{{SRC}}"; if [[ ! -d "$ROOT" ]]; then echo "❌ dotfiles not found at $ROOT"; exit 2; fi; just -f "$ROOT/justfile" windows-chezmoi-diff || true'

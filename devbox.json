@@ -1,0 +1,68 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/main/.schema/devbox.schema.json",
+  "packages": [
+    "chezmoi@latest",
+    "just@latest",
+    "mise@latest",
+    "sops@latest",
+    "age@latest",
+    "direnv@latest",
+    "git@latest",
+    "shellcheck@latest",
+    "shfmt@latest",
+    "jq@latest",
+    "ripgrep@latest",
+    "fd@latest",
+    "gh@latest"
+  ],
+  "shell": {
+    "init_hook": [
+      "echo '🚀 Devbox environment loaded'",
+      "echo ''",
+      "echo 'Available tools:'",
+      "echo '  • chezmoi - Dotfile management'",
+      "echo '  • just - Task runner'",
+      "echo '  • mise - Tool version manager'",
+      "echo '  • sops - Secret management'",
+      "echo '  • age - Encryption'",
+      "echo '  • direnv - Environment loader'",
+      "echo ''",
+      "# Initialize direnv if available",
+      "if command -v direnv >/dev/null 2>&1; then",
+      "  eval \"$(direnv hook bash)\"",
+      "  export DIRENV_LOG_FORMAT=''",
+      "fi",
+      "# Initialize mise if available",
+      "if command -v mise >/dev/null 2>&1; then",
+      "  eval \"$(mise activate bash)\"",
+      "fi"
+    ],
+    "scripts": {
+      "bootstrap": [
+        "echo '🔧 Bootstrapping dotfiles environment...'",
+        "chezmoi init --apply || echo 'Chezmoi already initialized'",
+        "mise install || echo 'Mise tools installed'",
+        "echo '✅ Bootstrap complete'"
+      ],
+      "lint": [
+        "echo '🔍 Linting shell scripts...'",
+        "bash tools/lint.sh"
+      ],
+      "test": [
+        "echo '🧪 Running tests...'",
+        "bash scripts/run-tests.sh"
+      ],
+      "security-scan": [
+        "echo '🔒 Scanning for secrets...'",
+        "if command -v detect-secrets >/dev/null 2>&1; then",
+        "  detect-secrets scan",
+        "else",
+        "  echo '⚠️  detect-secrets not installed. Install with: pip install detect-secrets'",
+        "fi"
+      ]
+    }
+  },
+  "env": {
+    "DOTFILES_ROOT": "$PWD"
+  }
+}

@@ -1,0 +1,23 @@
+# Sops configuration for secret management
+# Uses age for encryption (modern, simple, secure)
+
+creation_rules:
+  # Default rule for all files
+  - path_regex: \.env\.encrypted$
+    age: >-
+      age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+  # MCP secrets
+  - path_regex: mcp/\.env\.encrypted$
+    age: >-
+      age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+  # Encrypted configuration files
+  - path_regex: .*\.sops\.(yaml|json|env)$
+    age: >-
+      age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Note: Replace the age public key above with your actual key
+# Generate a new age key pair with:
+#   age-keygen -o ~/.config/sops/age/keys.txt
+# Then extract the public key and update this file

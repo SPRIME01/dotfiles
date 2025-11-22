@@ -4,14 +4,19 @@
 [settings]
 experimental = true
 
-# Uncomment and adjust to install defaults globally (optional)
-# [tools]
-# node = "lts"
-# python = "3.12"
-# go = "latest"
-# rust = "stable"
+# Global tool versions (optional - uncomment to enable)
+[tools]
+node = "lts"        # Latest LTS version of Node.js
+python = "3.12"     # Python 3.12
+go = "latest"       # Latest stable Go
+rust = "stable"     # Rust stable channel
+
+# Additional tools you can add:
+# terraform = "latest"
+# kubectl = "latest"
+# helm = "latest"
 
 # Notes:
 # - Prefer per-project `.mise.toml` with direnv: use `use mise` in `.envrc`.
 # - `mise install` installs configured tool versions when invoked.
-
+# - Run `mise use -g <tool>@<version>` to add tools globally
