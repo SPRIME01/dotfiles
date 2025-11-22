@@ -11,6 +11,11 @@ creation_rules:
   - path_regex: \.env\.encrypted$
     age: >-
       age1mq5sj8gj4k5vqtgefkuvs05nghanzhgmcqkxxspk0vffq9hxm5ssnj93a5
+      
+  # New JSON secrets file
+  - path_regex: .*\.json$
+    age: >-
+      age1mq5sj8gj4k5vqtgefkuvs05nghanzhgmcqkxxspk0vffq9hxm5ssnj93a5
 
   # MCP secrets
   - path_regex: mcp/\.env(\.encrypted)?$

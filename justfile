@@ -39,24 +39,24 @@ env-list:
 secrets-edit:
 	#!/usr/bin/env bash
 	set -euo pipefail
-	if [[ ! -f ".env.encrypted" ]]; then
-		echo "❌ .env.encrypted not found"
+	if [[ ! -f ".secrets.json" ]]; then
+		echo "❌ .secrets.json not found"
 		echo "💡 Create it with: just secrets-encrypt"
 		exit 1
 	fi
-	sops .env.encrypted
+	sops .secrets.json
 
 # View decrypted secrets (prints to stdout)
 secrets-view:
 	#!/usr/bin/env bash
 	set -euo pipefail
-	if [[ ! -f ".env.encrypted" ]]; then
-		echo "❌ .env.encrypted not found"
+	if [[ ! -f ".secrets.json" ]]; then
+		echo "❌ .secrets.json not found"
 		exit 1
 	fi
-	sops -d .env.encrypted
+	sops -d --output-type dotenv .secrets.json
 
-# Add a new secret (interactive)
+# Add a new secret (interactive or arguments)
 secrets-add KEY VALUE="":
 	#!/usr/bin/env bash
 	set -euo pipefail
@@ -75,23 +75,16 @@ secrets-add KEY VALUE="":
 		echo ""
 	fi
 	
-	# Decrypt, add key, re-encrypt
-	TEMP=$(mktemp)
-	trap 'rm -f "$TEMP"' EXIT
-	
-	if [[ -f ".env.encrypted" ]]; then
-		sops -d .env.encrypted > "$TEMP"
-	fi
-	
-	# Check if key already exists
-	if grep -q "^$KEY=" "$TEMP" 2>/dev/null; then
-		echo "⚠️  Key $KEY already exists. Use 'just secrets-edit' to modify it."
+	if [[ ! -f ".secrets.json" ]]; then
+		echo "❌ .secrets.json not found. Run 'just secrets-encrypt' first."
 		exit 1
 	fi
-	
-	echo "$KEY=$VALUE" >> "$TEMP"
-	sops -e "$TEMP" > .env.encrypted
-	echo "✅ Added $KEY to .env.encrypted"
+
+	# Use sops set to add/update the key safely
+	# We use python to format the value as a JSON string to handle special chars
+	JSON_VAL=$(python3 -c "import json, sys; print(json.dumps(sys.argv[1]))" "$VALUE")
+	sops set .secrets.json "[\"$KEY\"]" "$JSON_VAL"
+	echo "✅ Set $KEY in .secrets.json"
 
 # Remove a secret
 secrets-remove KEY:
@@ -104,28 +97,15 @@ secrets-remove KEY:
 		exit 1
 	fi
 	
-	if [[ ! -f ".env.encrypted" ]]; then
-		echo "❌ .env.encrypted not found"
+	if [[ ! -f ".secrets.json" ]]; then
+		echo "❌ .secrets.json not found"
 		exit 1
 	fi
 	
-	# Decrypt, remove key, re-encrypt
-	TEMP=$(mktemp)
-	trap 'rm -f "$TEMP"' EXIT
-	
-	sops -d .env.encrypted > "$TEMP"
-	
-	if ! grep -q "^$KEY=" "$TEMP"; then
-		echo "⚠️  Key $KEY not found in .env.encrypted"
-		exit 1
-	fi
-	
-	grep -v "^$KEY=" "$TEMP" > "$TEMP.new" || true
-	sops -e "$TEMP.new" > .env.encrypted
-	rm -f "$TEMP.new"
-	echo "✅ Removed $KEY from .env.encrypted"
+	sops unset .secrets.json "[\"$KEY\"]"
+	echo "✅ Removed $KEY from .secrets.json"
 
-# Encrypt current .env file
+# Encrypt current .env file to .secrets.json
 secrets-encrypt:
 	#!/usr/bin/env bash
 	set -euo pipefail
@@ -134,27 +114,27 @@ secrets-encrypt:
 		echo "💡 Create it from template: cp .env.example .env"
 		exit 1
 	fi
-	sops -e .env > .env.encrypted
-	echo "✅ Encrypted .env → .env.encrypted"
-	echo "💡 You can now commit .env.encrypted to git"
+	sops --input-type dotenv --output-type json -e .env > .secrets.json
+	echo "✅ Encrypted .env → .secrets.json"
+	echo "💡 You can now commit .secrets.json to git"
 
-# Decrypt .env.encrypted to .env (for local use)
+# Decrypt .secrets.json to .env (for local use)
 secrets-decrypt:
 	#!/usr/bin/env bash
 	set -euo pipefail
-	if [[ ! -f ".env.encrypted" ]]; then
-		echo "❌ .env.encrypted not found"
+	if [[ ! -f ".secrets.json" ]]; then
+		echo "❌ .secrets.json not found"
 		exit 1
 	fi
-	sops -d .env.encrypted > .env
+	sops -d --output-type dotenv .secrets.json > .env
 	chmod 600 .env
-	echo "✅ Decrypted .env.encrypted → .env"
+	echo "✅ Decrypted .secrets.json → .env"
 	echo "⚠️  Remember: .env is gitignored (never commit it)"
 
 # Show secrets help
 secrets-help:
-	@echo "🔐 Secret Management Commands"
-	@echo "=============================="
+	@echo "🔐 Secret Management Commands (JSON backend)"
+	@echo "============================================"
 	@echo ""
 	@echo "Basic Operations:"
 	@echo "  just secrets-edit          # Edit encrypted secrets in your \$EDITOR"
@@ -163,8 +143,8 @@ secrets-help:
 	@echo "  just secrets-remove KEY    # Remove a secret"
 	@echo ""
 	@echo "File Operations:"
-	@echo "  just secrets-encrypt       # Encrypt .env → .env.encrypted"
-	@echo "  just secrets-decrypt       # Decrypt .env.encrypted → .env"
+	@echo "  just secrets-encrypt       # Encrypt .env → .secrets.json"
+	@echo "  just secrets-decrypt       # Decrypt .secrets.json → .env"
 	@echo ""
 	@echo "Examples:"
 	@echo "  just secrets-add GEMINI_API_KEY abc123"
