@@ -30,7 +30,15 @@ ln -sf "$DOTFILES/.shell_functions.sh" ~/.shell_functions
 if [[ "${NO_NETWORK:-0}" != "1" ]]; then
 	if ! command -v oh-my-posh &>/dev/null; then
 		echo "📦 Installing oh-my-posh..."
-		curl -s https://ohmyposh.dev/install.sh | bash -s
+		
+		# Source secure installer and constants
+		# shellcheck disable=SC1091
+		source "$DOTFILES/lib/constants.sh"
+		# shellcheck disable=SC1091
+		source "$DOTFILES/lib/secure-install.sh"
+		
+		# Use secure installer with checksum verification
+		secure_install "$OMP_INSTALLER_URL" "$OMP_INSTALLER_SHA256"
 	fi
 else
 	echo "ℹ️  NO_NETWORK=1 set; skipping oh-my-posh installation"

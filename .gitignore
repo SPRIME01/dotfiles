@@ -23,6 +23,11 @@ mcp/.env
 .env.development
 .envrc.local
 
+# MCP backup files (may contain credentials)
+mcp/backups/
+**/*.backup.json
+**/*_Settings_*.json
+
 # GPG keys
 *.gpg
 *.asc
