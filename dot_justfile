@@ -27,9 +27,9 @@ direnv-install:
 sops-init:
 	#!/usr/bin/env bash
 	set -euo pipefail
-	SOPS_AGE_KEY_FILE="${SOPS_AGE_KEY_FILE:-$HOME/.config/sops/age/keys.txt}"
+	SOPS_AGE_KEY_FILE="${SOPS_AGE_KEY_FILE:-$HOME/.config/sops/key.txt}"
 	if [[ -f "$SOPS_AGE_KEY_FILE" ]]; then
-		echo "✅ Age key already exists at $SOPS_AGE_KEY_FILE"
+		echo "✅ Age key already exists at "$SOPS_AGE_KEY_FILE""
 		echo "Public key:"
 		grep "# public key:" "$SOPS_AGE_KEY_FILE" || age-keygen -y "$SOPS_AGE_KEY_FILE"
 	else

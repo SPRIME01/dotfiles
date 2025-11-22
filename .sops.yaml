@@ -5,19 +5,19 @@ creation_rules:
   # Default rule for all files
   - path_regex: \.env\.encrypted$
     age: >-
-      age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      age1mq5sj8gj4k5vqtgefkuvs05nghanzhgmcqkxxspk0vffq9hxm5ssnj93a5
 
   # MCP secrets
   - path_regex: mcp/\.env\.encrypted$
     age: >-
-      age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      age1mq5sj8gj4k5vqtgefkuvs05nghanzhgmcqkxxspk0vffq9hxm5ssnj93a5
 
   # Encrypted configuration files
   - path_regex: .*\.sops\.(yaml|json|env)$
     age: >-
-      age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      age1mq5sj8gj4k5vqtgefkuvs05nghanzhgmcqkxxspk0vffq9hxm5ssnj93a5
 
-# Note: Replace the age public key above with your actual key
-# Generate a new age key pair with:
-#   age-keygen -o ~/.config/sops/age/keys.txt
-# Then extract the public key and update this file
+# Age key location: ~/.config/sops/key.txt
+# To encrypt: sops -e .env > .env.encrypted
+# To decrypt: sops -d .env.encrypted > .env
+# To edit: sops .env.encrypted
