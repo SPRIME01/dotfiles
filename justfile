@@ -36,6 +36,148 @@ env-remove KEY:
 env-list:
 	@bash -lc 'set -euo pipefail; scripts/envctl.sh list'
 
+# ===== Secret Management (Sops) =====
+
+# Edit encrypted secrets (opens in your $EDITOR)
+secrets-edit:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	if [[ ! -f ".env.encrypted" ]]; then
+		echo "❌ .env.encrypted not found"
+		echo "💡 Create it with: just secrets-encrypt"
+		exit 1
+	fi
+	sops .env.encrypted
+
+# View decrypted secrets (prints to stdout)
+secrets-view:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	if [[ ! -f ".env.encrypted" ]]; then
+		echo "❌ .env.encrypted not found"
+		exit 1
+	fi
+	sops -d .env.encrypted
+
+# Add a new secret (interactive)
+secrets-add KEY VALUE="":
+	#!/usr/bin/env bash
+	set -euo pipefail
+	KEY="{{KEY}}"
+	VALUE="{{VALUE}}"
+	
+	if [[ -z "$KEY" ]]; then
+		echo "Usage: just secrets-add KEY [VALUE]"
+		echo "Example: just secrets-add MY_API_KEY abc123"
+		exit 1
+	fi
+	
+	# If no value provided, prompt for it
+	if [[ -z "$VALUE" ]]; then
+		read -rsp "Enter value for $KEY: " VALUE
+		echo ""
+	fi
+	
+	# Decrypt, add key, re-encrypt
+	TEMP=$(mktemp)
+	trap 'rm -f "$TEMP"' EXIT
+	
+	if [[ -f ".env.encrypted" ]]; then
+		sops -d .env.encrypted > "$TEMP"
+	fi
+	
+	# Check if key already exists
+	if grep -q "^$KEY=" "$TEMP" 2>/dev/null; then
+		echo "⚠️  Key $KEY already exists. Use 'just secrets-edit' to modify it."
+		exit 1
+	fi
+	
+	echo "$KEY=$VALUE" >> "$TEMP"
+	sops -e "$TEMP" > .env.encrypted
+	echo "✅ Added $KEY to .env.encrypted"
+
+# Remove a secret
+secrets-remove KEY:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	KEY="{{KEY}}"
+	
+	if [[ -z "$KEY" ]]; then
+		echo "Usage: just secrets-remove KEY"
+		exit 1
+	fi
+	
+	if [[ ! -f ".env.encrypted" ]]; then
+		echo "❌ .env.encrypted not found"
+		exit 1
+	fi
+	
+	# Decrypt, remove key, re-encrypt
+	TEMP=$(mktemp)
+	trap 'rm -f "$TEMP"' EXIT
+	
+	sops -d .env.encrypted > "$TEMP"
+	
+	if ! grep -q "^$KEY=" "$TEMP"; then
+		echo "⚠️  Key $KEY not found in .env.encrypted"
+		exit 1
+	fi
+	
+	grep -v "^$KEY=" "$TEMP" > "$TEMP.new" || true
+	sops -e "$TEMP.new" > .env.encrypted
+	rm -f "$TEMP.new"
+	echo "✅ Removed $KEY from .env.encrypted"
+
+# Encrypt current .env file
+secrets-encrypt:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	if [[ ! -f ".env" ]]; then
+		echo "❌ .env file not found"
+		echo "💡 Create it from template: cp .env.example .env"
+		exit 1
+	fi
+	sops -e .env > .env.encrypted
+	echo "✅ Encrypted .env → .env.encrypted"
+	echo "💡 You can now commit .env.encrypted to git"
+
+# Decrypt .env.encrypted to .env (for local use)
+secrets-decrypt:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	if [[ ! -f ".env.encrypted" ]]; then
+		echo "❌ .env.encrypted not found"
+		exit 1
+	fi
+	sops -d .env.encrypted > .env
+	chmod 600 .env
+	echo "✅ Decrypted .env.encrypted → .env"
+	echo "⚠️  Remember: .env is gitignored (never commit it)"
+
+# Show secrets help
+secrets-help:
+	@echo "🔐 Secret Management Commands"
+	@echo "=============================="
+	@echo ""
+	@echo "Basic Operations:"
+	@echo "  just secrets-edit          # Edit encrypted secrets in your \$EDITOR"
+	@echo "  just secrets-view          # View decrypted secrets (stdout)"
+	@echo "  just secrets-add KEY VALUE # Add a new secret"
+	@echo "  just secrets-remove KEY    # Remove a secret"
+	@echo ""
+	@echo "File Operations:"
+	@echo "  just secrets-encrypt       # Encrypt .env → .env.encrypted"
+	@echo "  just secrets-decrypt       # Decrypt .env.encrypted → .env"
+	@echo ""
+	@echo "Examples:"
+	@echo "  just secrets-add GEMINI_API_KEY abc123"
+	@echo "  just secrets-add MY_SECRET    # Will prompt for value"
+	@echo "  just secrets-remove OLD_KEY"
+	@echo "  just secrets-edit             # Opens in vim/nano/etc"
+	@echo ""
+	@echo "💡 Tip: .env.encrypted is safe to commit to git"
+	@echo "💡 Tip: .env is gitignored (local only)"
+
 # OpenVINO GenAI helpers
 openvino-setup *ARGS:
 	@bash -lc 'set -euo pipefail; scripts/setup-openvino-genai.sh {{ARGS}}'

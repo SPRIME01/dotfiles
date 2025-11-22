@@ -2,13 +2,18 @@
 # Uses age for encryption (modern, simple, secure)
 
 creation_rules:
+  # Plain .env files (for initial encryption)
+  - path_regex: (^|/)\.env$
+    age: >-
+      age1mq5sj8gj4k5vqtgefkuvs05nghanzhgmcqkxxspk0vffq9hxm5ssnj93a5
+  
   # Default rule for all files
   - path_regex: \.env\.encrypted$
     age: >-
       age1mq5sj8gj4k5vqtgefkuvs05nghanzhgmcqkxxspk0vffq9hxm5ssnj93a5
 
   # MCP secrets
-  - path_regex: mcp/\.env\.encrypted$
+  - path_regex: mcp/\.env(\.encrypted)?$
     age: >-
       age1mq5sj8gj4k5vqtgefkuvs05nghanzhgmcqkxxspk0vffq9hxm5ssnj93a5
 

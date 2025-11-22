@@ -23,6 +23,10 @@ mcp/.env
 .env.development
 .envrc.local
 
+# EXCEPT: Allow encrypted .env files (safe to commit)
+!.env.encrypted
+!mcp/.env.encrypted
+
 # MCP backup files (may contain credentials)
 mcp/backups/
 **/*.backup.json
