@@ -2,19 +2,17 @@
 
 Welcome to a portable developer cockpit. This setup brings together PowerShell 7, Zsh, and Bash into a unified, DRY, Git-synchronized environment that you can deploy anywhere, with:
 
-- **Cross-shell aliases and environment variables**
-- **Machine-specific behavior**
-- **Oh My Posh** (PowerShell) + **Oh My Zsh** (Linux/WSL2) for rich terminal experiences
-- **PSReadLine** UX polish for PowerShell
-- **Powerlevel10k** theme for Zsh with beautiful prompts
-- **Lazy-loaded** PowerShell modules for faster startup
-- **Auto-generated** PowerShell aliases with intelligent naming
-- **Unified workflow** - one command to regenerate all aliases
-- **20+ developer-focused PowerShell functions** for git, file management, system monitoring
-- **Shared shell functions** for both bash and zsh
-- **Novice-friendly shortcuts** for common development tasks
-- VS Code extension control
-- Bootstrap scripts for full setup and provisioning
+- **Cross-shell aliases and environment variables** — `projects`, `dotfiles`, `cddot` work identically on Windows and WSL2
+- **Machine-specific behavior** via hostname detection
+- **Oh My Posh** (PowerShell) + **Powerlevel10k** (Zsh) for beautiful, consistent prompts
+- **PSReadLine** UX polish for PowerShell with history suggestions
+- **Lazy-loaded** PowerShell modules for fast startup (~200ms)
+- **20+ developer-focused functions** for git, files, ports, system monitoring
+- **SOPS secret management** — encrypted secrets, decrypted on-demand
+- **Tailscale SSH** for secure remote access to WSL2 instances
+- **PowerShell ↔ WSL2 synergy** — navigate WSL paths from Windows, shared environment
+- **VS Code integration** with WSL-aware `code` command
+- **`just` task runner** with 50+ recipes for common workflows
 
 ---
 
@@ -24,36 +22,34 @@ Welcome to a portable developer cockpit. This setup brings together PowerShell 7
 dotfiles/
 ├── .shell_common.sh             # Shared variables & aliases (bash + zsh)
 ├── .shell_functions.sh          # Shared shell functions (bash + zsh)
-├── .shell_theme_common.ps1      # Theme config (used in PowerShell only)
-├── .bashrc                      # Bash startup → loads .shell_common
-├── .zshrc                       # Zsh startup → loads .shell_common + Oh My Zsh
-├── .p10k.zsh                    # Powerlevel10k configuration template
-├── bootstrap.sh                 # Shell bootstrap (symlinks & installs oh-my-posh/zsh)
-├── bootstrap.ps1                # PowerShell bootstrap (symlinks, installs modules)
-├── install_zsh.sh               # Oh My Zsh installation script for Linux/WSL2
+├── .shell_theme_common.ps1      # Theme config (PowerShell)
+├── .bashrc / .zshrc             # Shell startup → loads .shell_common
+├── .sops.yaml                   # SOPS encryption config for secrets
+├── .secrets.json                # Encrypted secrets (safe to commit)
+├── bootstrap.sh                 # Shell bootstrap (Linux/WSL2/macOS)
+├── bootstrap.ps1                # PowerShell bootstrap (Windows)
+├── justfile                     # Task runner with 50+ recipes
+├── lib/
+│   ├── env-loader.sh            # Secure environment loading
+│   ├── validation.sh            # Input validation utilities
+│   └── platform-detection.sh    # OS/platform detection
+├── scripts/
+│   ├── setup-pwsh7.sh           # PowerShell 7 profile setup (from WSL)
+│   ├── setup-wsl2-remote-access.sh  # Tailscale SSH setup
+│   ├── doctor.sh                # Diagnostics and health checks
+│   └── *.sh                     # Setup wizards, utilities
 ├── PowerShell/
-│   ├── Microsoft.PowerShell_profile.ps1   # PowerShell profile
-│   ├── powershell.config.json             # Enables unrestricted script execution
-│   ├── Themes/
-│   │   ├── powerlevel10k_classic.omp.json  # Official Powerlevel10k classic theme
-│   │   ├── powerlevel10k_modern.omp.json   # Official Powerlevel10k modern theme
-│   │   ├── powerlevel10k_lean.omp.json     # Official Powerlevel10k lean theme
-│   │   ├── minimal-clean.omp.json          # Clean minimalist theme
-│   │   └── emodipt-extend.omp.json         # Original extended theme
-│   └── Modules/
-│       └── Aliases/
-│           ├── Aliases.psm1                    # Auto-generated custom PS aliases
-│           ├── Update-AliasesModule.ps1        # Unified script to regenerate module
-│           ├── Invoke-UpdateAliasesModule.ps1  # Wrapper function for updatealiases
-│           ├── Set-OhMyPoshTheme.ps1           # Theme management functions
-│           ├── Get-AliasHelp.ps1               # Individual function files...
-│           ├── Get-FileTree.ps1
-│           ├── Set-ProjectRoot.ps1
-│           └── *.ps1                           # Additional PowerShell functions
-├── .vscode/                    # (optional) VS Code settings
-│   └── settings.json
-├── vscode-extensions.txt       # (optional) list of extensions to auto-install
-└── README.md
+│   ├── Microsoft.PowerShell_profile.ps1   # Main profile
+│   ├── Themes/*.omp.json        # Oh My Posh themes
+│   └── Modules/Aliases/*.ps1    # PowerShell functions
+├── shell/
+│   ├── common/                  # Shared shell modules
+│   └── platform-specific/       # Linux/macOS/WSL configs
+├── test/
+│   ├── framework.sh             # Test harness
+│   └── test-*.sh                # Test suites (20+ tests)
+├── mcp/                         # MCP server configs
+└── docs/                        # Documentation & tutorials
 ```
 
 ---
@@ -61,13 +57,14 @@ dotfiles/
 ## 🚀 How It Works
 
 ### 🔁 Shared Shell Logic (`.shell_common.sh`)
+
 - Defines `ProjectsHome` environment variable
 - Adds helpful aliases like `projects`, `pcode`, and `dotfiles`
 - Detects and configures based on your shell (zsh vs bash)
 - Responds to the machine's hostname for workstation-specific overrides
 
-
 Customize:
+
 ```bash
 case "$(hostname)" in
   "workstation-name") export SPECIAL_VAR="true" ;;
@@ -75,9 +72,8 @@ case "$(hostname)" in
 esac
 ```
 
-
-
 ### 🎨 Shared Shell UX (`.shell_theme_common.ps1`)
+
 Used in PowerShell only — configures:
 
 - Oh My Posh
@@ -90,6 +86,7 @@ Used in PowerShell only — configures:
 The PowerShell setup now includes **official Powerlevel10k themes** that match your Zsh experience perfectly:
 
 **Available Themes:**
+
 - `powerlevel10k_classic` - Official Powerlevel10k classic theme (default)
 - `powerlevel10k_modern` - Official Powerlevel10k modern theme
 - `powerlevel10k_lean` - Official Powerlevel10k lean theme
@@ -97,6 +94,7 @@ The PowerShell setup now includes **official Powerlevel10k themes** that match y
 - `emodipt-extend` - Your original extended theme
 
 **Theme Commands:**
+
 ```powershell
 # Switch themes
 settheme powerlevel10k_classic     # Official Powerlevel10k classic
@@ -113,6 +111,7 @@ $env:OMP_THEME = "powerlevel10k_modern.omp.json"   # Set theme for session
 ```
 
 **Features of Official Powerlevel10k themes:**
+
 - **Authentic Powerlevel10k look** - Direct ports from the original Zsh theme
 - **Proper icon rendering** - Uses correct Nerd Font icons and Unicode symbols
 - **Multi-line prompts** with clean separation (classic/modern)
@@ -127,8 +126,8 @@ The theme preference is automatically saved and persists across PowerShell sessi
 
 ### 🧠 Shell Startup Files
 
-
 - PowerShell loads `Microsoft.PowerShell_profile.ps1`, which:
+
   - Sources `.shell_theme_common.ps1`
 
   - **Lazy-loads** modules in `PowerShell/Modules/` for faster startup
@@ -143,6 +142,7 @@ The PowerShell aliases are **automatically managed** with a streamlined workflow
 #### **Built-in Aliases Available:**
 
 **🗂️ Navigation & File Management:**
+
 - `aliashelp` → Lists all aliases with descriptions
 - `filetree` → Displays directory tree structure
 - `finddir` → Find directories by partial name
@@ -150,10 +150,12 @@ The PowerShell aliases are **automatically managed** with a streamlined workflow
 - `sizes` → Show file sizes in human-readable format
 
 **⚡ Git Workflow:**
+
 - `gs` → Quick git status with branch info
 - `gc` → Add all changes and commit with message
 
 **🔧 Development Tools:**
+
 - `projects` → Find and list all Node.js (package.json) and Python (pyproject.toml) projects
 - `grep` → Search for text in files with colored output
 - `json` → Pretty-print JSON files
@@ -161,17 +163,19 @@ The PowerShell aliases are **automatically managed** with a streamlined workflow
 - `testport` → Test if a port is open
 
 **📊 System Monitoring:**
+
 - `sysinfo` → Show CPU, memory, disk usage and uptime
 - `netstat` → Display active network connections
 
 **🛠️ Environment:**
+
 - `projectroot` → Navigate to project directories
 - `gensecret` → Generate secure keys
 - `updateenv` → Update environment variables
 - `updatealiases` → **Regenerate the entire aliases system**
 
-
 #### **Adding New Functions:**
+
 1. Create a new `.ps1` file in `PowerShell/Modules/Aliases/`
 2. Write your function with proper comment-based help:
    ```powershell
@@ -197,6 +201,7 @@ The PowerShell aliases are **automatically managed** with a streamlined workflow
 These aliases transform complex development tasks into simple commands:
 
 #### **Quick Problem Solving:**
+
 ```powershell
 killport 3000           # Development server won't start? Kill what's on the port
 testport 8080           # Check if your app is running
@@ -205,6 +210,7 @@ gs                      # What's the git status? Quick check
 ```
 
 #### **File & Project Management:**
+
 ```powershell
 finddir "my-project"    # Can't remember where you put that project?
 projects                # Show all Node.js and Python projects in this directory tree
@@ -213,6 +219,7 @@ sizes                   # Which files are taking up space?
 ```
 
 #### **One-Command Workflows:**
+
 ```powershell
 gc "Fixed the bug"      # Add all changes and commit in one command
 explore                 # Open current folder in Windows Explorer
@@ -220,14 +227,13 @@ json "package.json"     # Pretty-print any JSON file
 ```
 
 #### **System Monitoring Made Easy:**
+
 ```powershell
 netstat                 # See what's connected to your computer
 sysinfo                 # CPU, memory, disk usage at a glance
 ```
 
 **Perfect for beginners** - no need to remember complex command syntax or multiple steps!
-
-
 
 ---
 
@@ -236,6 +242,7 @@ sysinfo                 # CPU, memory, disk usage at a glance
 For Linux/WSL2 environments, this dotfiles setup includes a complete Oh My Zsh configuration with modern terminal enhancements:
 
 ### **What's Included:**
+
 - **Oh My Zsh**: Feature-rich Zsh framework with extensive plugin ecosystem
 - **Powerlevel10k**: Fast, beautiful, and customizable prompt theme (similar to Oh My Posh)
 - **Smart Plugins**:
@@ -247,6 +254,7 @@ For Linux/WSL2 environments, this dotfiles setup includes a complete Oh My Zsh c
 - **Shared Functions**: All the convenience functions from `.shell_functions.sh`
 
 ### **Installation:**
+
 The Zsh setup is automatically included when running `./bootstrap.sh` on Linux/WSL2:
 
 ```bash
@@ -257,6 +265,7 @@ cd ~/dotfiles
 ```
 
 ### **Manual Zsh Installation:**
+
 ```bash
 # Install just the Zsh components
 ./install_zsh.sh
@@ -268,6 +277,7 @@ p10k configure
 ### **Zsh-Specific Features:**
 
 #### **Enhanced Aliases:**
+
 ```bash
 # Quick directory listings
 ll                      # Detailed list with hidden files
@@ -286,6 +296,7 @@ glog                    # git log --oneline --graph --decorate
 ```
 
 #### **Powerful Functions:**
+
 ```bash
 # Project & Directory Management
 take myproject          # Create directory and cd into it
@@ -327,6 +338,7 @@ note                    # Open today's note file in editor
 ```
 
 #### **Smart History & Navigation:**
+
 - **Substring Search**: Use ↑/↓ arrows to search through command history
 - **Auto-suggestions**: Type the beginning of a command to see suggestions
 - **Smart Completions**: Tab completion for git branches, docker containers, etc.
@@ -335,13 +347,17 @@ note                    # Open today's note file in editor
 ### **Customization:**
 
 #### **Theme Configuration:**
+
 The Powerlevel10k theme can be reconfigured anytime:
+
 ```bash
 p10k configure          # Interactive theme configuration wizard
 ```
 
 #### **Adding Plugins:**
+
 Edit `.zshrc` and add plugins to the `plugins` array:
+
 ```bash
 plugins=(
     git
@@ -352,9 +368,11 @@ plugins=(
 ```
 
 #### **Custom Functions:**
+
 Add your own functions to `.shell_functions.sh` - they'll be available in both bash and zsh.
 
 ### **Tips & Tricks:**
+
 - **Font Setup**: Set your terminal font to "MesloLGS NF" for best visual experience
 - **Key Bindings**:
   - `Ctrl+Space`: Menu complete
@@ -416,11 +434,87 @@ git clone https://github.com/SPRIME01/dotfiles ~/dotfiles
 ./bootstrap.ps1     # PowerShell (installs oh-my-posh + modules)
 ```
 
-3. **Restart your shell** to activate Python environment management
+3. **Restart your shell** to activate the environment
 
-Done. It will link your configs, install tools (including Python version management), and load your custom environment 🎯
+Done. It will link your configs, install tools, and load your custom environment 🎯
 
 ---
+
+## 🔐 Secret Management (SOPS)
+
+Secrets are encrypted using [SOPS](https://github.com/getsops/sops) with age encryption:
+
+```bash
+# Edit encrypted secrets (opens in $EDITOR)
+just secrets-edit
+
+# Add a new secret
+just secrets-add MY_API_KEY
+
+# Decrypt to .env (gitignored)
+just secrets-decrypt
+
+# View current secrets
+just secrets-view
+```
+
+Secrets are stored in `.secrets.json` (encrypted, safe to commit). The `.env` file is gitignored and never committed.
+
+---
+
+## 🌐 Tailscale SSH (Remote Access)
+
+Secure remote access to WSL2 instances via Tailscale SSH:
+
+```bash
+# Install and configure Tailscale
+just install-tailscale
+
+# Or use the setup script directly
+bash scripts/setup-wsl2-remote-access.sh --tailscale
+
+# For regular SSH fallback
+bash scripts/setup-wsl2-remote-access.sh --ssh
+```
+
+See [docs/tutorials/tailscale-ssh-setup.md](docs/tutorials/tailscale-ssh-setup.md) for full setup guide.
+
+---
+
+## 🔗 PowerShell ↔ WSL2 Synergy
+
+The same commands work on both Windows and WSL2:
+
+| Command         | What it does                            |
+| --------------- | --------------------------------------- |
+| `projects`      | Navigate to projects directory          |
+| `dotfiles`      | Navigate to dotfiles root               |
+| `cddot`         | Same as `dotfiles`                      |
+| `dotgit <args>` | Run git in dotfiles repo                |
+| `wslcode .`     | Open current dir in VS Code (WSL-aware) |
+| `wslcd /path`   | Navigate to WSL path from Windows       |
+
+**Setup from WSL:**
+
+```bash
+just setup-pwsh7              # Link PowerShell profile
+just verify-windows-profile   # Verify it works
+```
+
+---
+
+## ⚡ Just Task Runner
+
+Common tasks via `just` (50+ recipes):
+
+```bash
+just                    # List all available tasks
+just test               # Run test suite
+just lint               # Shellcheck + shfmt
+just setup              # Interactive setup wizard
+just doctor             # Diagnostics
+just secrets-help       # Secret management help
+```
 
 ## 🧹 Customizing
 
@@ -431,6 +525,7 @@ Done. It will link your configs, install tools (including Python version managem
   Edit `.shell_theme_common.ps1` and reload shell
 
 - **Add a new PowerShell function?**
+
   1. Add a new `.ps1` file to `PowerShell/Modules/Aliases`
   2. Run `updatealiases` to automatically regenerate the module and profile
 
@@ -450,10 +545,13 @@ Done. It will link your configs, install tools (including Python version managem
 ## 📦 One-Line Install
 
 **PowerShell (Windows):**
+
 ```powershell
 irm https://raw.githubusercontent.com/SPRIME01/dotfiles/main/install.ps1 | iex
 ```
+
 **Bash/Zsh (Linux/Mac):**
+
 ```bash
 curl -sSL https://raw.githubusercontent.com/SPRIME01/dotfiles/main/install.sh | bash
 ```
@@ -469,11 +567,13 @@ Only include `bootstrap.ps1` / `bootstrap.sh` logic in those bootstraps — neve
 ## How to use remotely
 
 **From any terminal:**
+
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/SPRIME01/dotfiles/main/update.sh)
 ```
 
 **From PowerShell:**
+
 ```powershell
 irm https://raw.githubusercontent.com/SPRIME01/dotfiles/main/update.ps1 | iex
 ```
@@ -483,6 +583,7 @@ irm https://raw.githubusercontent.com/SPRIME01/dotfiles/main/update.ps1 | iex
 ## 🚀 Quick Reference
 
 ### PowerShell Aliases (Available after setup)
+
 ```powershell
 # System & Navigation
 aliashelp          # Show all available aliases
@@ -517,6 +618,7 @@ updateenv          # Update environment variables
 ```
 
 ### Adding New PowerShell Functions
+
 ```powershell
 # 1. Create YourFunction.ps1 in PowerShell/Modules/Aliases/
 # 2. Run this to regenerate everything:
