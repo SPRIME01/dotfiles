@@ -17,8 +17,8 @@ fi
 # Use simplified shell init instead of complex .shell_common.sh
 if [[ -f "$HOME/dotfiles/.shell_init.sh" ]]; then
     source "$HOME/dotfiles/.shell_init.sh"
-elif [[ -f "{{ .chezmoi.sourceDir }}/.shell_init.sh" ]]; then
-    source "{{ .chezmoi.sourceDir }}/.shell_init.sh"
+elif [[ -f "/home/sprime01/dotfiles/.shell_init.sh" ]]; then
+    source "/home/sprime01/dotfiles/.shell_init.sh"
 fi
 
 # ============================================================================
@@ -72,9 +72,6 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 # Platform-Specific Configuration
 # ============================================================================
 
-{{ if eq .chezmoi.os "linux" }}
-{{   $rel := lower .chezmoi.kernel.osrelease }}
-{{   if contains $rel "microsoft" }}
 # WSL-specific configuration
 export IS_WSL=1
 
@@ -84,17 +81,10 @@ if [[ -d "/mnt/c/Windows/System32" ]]; then
 fi
 
 # Convenience alias
-if command -v cmd.exe >/dev/null 2>&1; then
+if command -v cmd.exe > /dev/null 2>&1; then
     WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r' 2>/dev/null)
     [[ -n "$WIN_USER" ]] && alias winhome="cd /mnt/c/Users/$WIN_USER"
 fi
-{{   end }}
-{{ else if eq .chezmoi.os "darwin" }}
-# macOS-specific configuration
-if [[ -d "/opt/homebrew/bin" ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || true)"
-fi
-{{ end }}
 
 # ============================================================================
 # Zsh Enhancements (History, Completions, Aliases, Tools)
@@ -103,8 +93,8 @@ fi
 # Load enhancements from dotfiles directory
 if [[ -f "$HOME/dotfiles/.zsh_enhancements.zsh" ]]; then
     source "$HOME/dotfiles/.zsh_enhancements.zsh"
-elif [[ -f "{{ .chezmoi.sourceDir }}/.zsh_enhancements.zsh" ]]; then
-    source "{{ .chezmoi.sourceDir }}/.zsh_enhancements.zsh"
+elif [[ -f "/home/sprime01/dotfiles/.zsh_enhancements.zsh" ]]; then
+    source "/home/sprime01/dotfiles/.zsh_enhancements.zsh"
 fi
 
 # ============================================================================
