@@ -209,5 +209,9 @@ temp/
 # PowerShell profile backups
 PowerShell/*.bak*
 
-
 .temp/
+
+# Debug and probe files
+chezmoi-debug.log
+dot_probe_file
+dot_state_probe

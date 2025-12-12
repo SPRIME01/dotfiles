@@ -111,6 +111,18 @@ function projects {
     Set-Location -Path $env:PROJECTS_ROOT
 }
 
+# Navigate to dotfiles root (mirrors WSL 'cddot' alias)
+function dotfiles { Set-Location -Path $env:DOTFILES_ROOT }
+function cddot { Set-Location -Path $env:DOTFILES_ROOT }
+
+# Git operations in dotfiles repo (mirrors WSL 'dotfiles' git alias)
+function dotgit {
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]] $Args)
+    Push-Location $env:DOTFILES_ROOT
+    try { & git @Args }
+    finally { Pop-Location }
+}
+
 # WSL-aware VS Code launchers: make `code .` work from UNC paths
 try { Remove-Item Alias:code -ErrorAction SilentlyContinue } catch {}
 try { Remove-Item Alias:code-insiders -ErrorAction SilentlyContinue } catch {}

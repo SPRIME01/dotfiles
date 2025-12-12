@@ -11,13 +11,13 @@ error_trap() {
 	local line_number=$1
 	local bash_lineno=$2
 	local last_command=$3
-	local funcname=("${4:-}")
+	local funcname="${4:-}"
 
 	echo "Error: Command '$last_command' failed with exit code $exit_code on line $line_number" >&2
 
-	# Log to file if available
+	# Log to file if available (includes caller info for debugging)
 	if [[ -n "${DOTFILES_LOG_FILE:-}" ]]; then
-		echo "$(date): Error in ${BASH_SOURCE[1]:-unknown}:$line_number - $last_command" >>"$DOTFILES_LOG_FILE"
+		echo "$(date): Error in ${BASH_SOURCE[1]:-unknown}:$line_number (caller:$bash_lineno func:$funcname) - $last_command" >>"$DOTFILES_LOG_FILE"
 	fi
 
 	# Don't exit if we're in a subshell or being sourced

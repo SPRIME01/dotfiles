@@ -227,8 +227,12 @@ if [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v cmd.exe >/dev/null 2>&1; then
         # If known_hosts is missing, copy once from Windows for convenience.
         if [[ ! -e "$LOCAL_SSH_DIR/known_hosts" ]]; then
             WIN_KNOWN_HOSTS="/mnt/c/Users/$WIN_USER/.ssh/known_hosts"
-            [[ -f "$WIN_KNOWN_HOSTS" ]] && cp "$WIN_KNOWN_HOSTS" "$LOCAL_SSH_DIR/known_hosts" 2>/dev/null || true
-            [[ -f "$LOCAL_SSH_DIR/known_hosts" ]] && chmod 644 "$LOCAL_SSH_DIR/known_hosts" 2>/dev/null || true
+            if [[ -f "$WIN_KNOWN_HOSTS" ]]; then
+                cp "$WIN_KNOWN_HOSTS" "$LOCAL_SSH_DIR/known_hosts" 2>/dev/null || true
+            fi
+            if [[ -f "$LOCAL_SSH_DIR/known_hosts" ]]; then
+                chmod 644 "$LOCAL_SSH_DIR/known_hosts" 2>/dev/null || true
+            fi
         fi
 
         # --- Projects Directory Windows Symlink ---
@@ -252,9 +256,10 @@ EOF
             fi
         fi
 
-        # --- Convenience alias to Windows home ---
+        # --- Convenience function to Windows home ---
+        # Using function instead of alias to defer WIN_USER expansion
         if [[ -n "$WIN_USER" ]]; then
-            alias winhome="cd /mnt/c/Users/$WIN_USER"
+            winhome() { cd "/mnt/c/Users/$WIN_USER" || return 1; }
         fi
     fi
 fi

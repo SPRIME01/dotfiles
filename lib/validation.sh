@@ -60,9 +60,12 @@ validate_required_environment() {
 	# Check for critical environment variables
 	[[ -z "${DOTFILES_ROOT:-}" ]] && missing_vars+=("DOTFILES_ROOT")
 
-	# Check for API keys if they should be present
-	if [[ -f "${DOTFILES_ROOT:-}/.env" ]] && grep -q "GEMINI_API_KEY" "${DOTFILES_ROOT:-}/.env" 2>/dev/null; then
-		[[ -z "${GEMINI_API_KEY:-}" ]] && missing_vars+=("GEMINI_API_KEY")
+	# Check for API keys only if explicitly required (not in testing/CI)
+	# Set DOTFILES_REQUIRE_API_KEYS=1 to enforce API key validation
+	if [[ "${DOTFILES_REQUIRE_API_KEYS:-0}" == "1" ]]; then
+		if [[ -f "${DOTFILES_ROOT:-}/.env" ]] && grep -q "GEMINI_API_KEY" "${DOTFILES_ROOT:-}/.env" 2>/dev/null; then
+			[[ -z "${GEMINI_API_KEY:-}" ]] && missing_vars+=("GEMINI_API_KEY")
+		fi
 	fi
 
 	if [[ ${#missing_vars[@]} -gt 0 ]]; then

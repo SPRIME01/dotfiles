@@ -7,14 +7,16 @@
 # ============================================================================
 
 # Determine DOTFILES_ROOT safely (no eval)
+# shellcheck disable=SC2296 # zsh uses ${(%):-%x} syntax not recognized by shellcheck
 if [[ -z "${DOTFILES_ROOT:-}" ]]; then
     # Try to find it relative to this script
-    if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
+    if [[ -n "${BASH_VERSION:-}" ]] && [[ -n "${BASH_SOURCE[0]:-}" ]]; then
         # Bash
         DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    elif [[ -n "${ZSH_VERSION:-}" ]] && [[ -n "${(%):-%x}" ]]; then
-        # Zsh - use parameter expansion instead of eval
-        DOTFILES_ROOT="$(cd "$(dirname "${(%):-%x}")" && pwd)"
+    elif [[ -n "${ZSH_VERSION:-}" ]]; then
+        # Zsh - use zsh-specific parameter expansion
+        # Note: ${(%):-%x} is zsh syntax for current script path
+        DOTFILES_ROOT="$(cd "$(dirname "${(%):-%x}")" 2>/dev/null && pwd)" || DOTFILES_ROOT="${HOME}/dotfiles"
     else
         # Fallback
         DOTFILES_ROOT="${HOME}/dotfiles"

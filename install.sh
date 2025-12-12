@@ -86,8 +86,8 @@ fi
 
 echo "• Initializing chezmoi with local source"
 set -x
-chezmoi init --source="$SOURCE_DIR"
-if [[ $? -ne 0 ]]; then
+if ! chezmoi init --source="$SOURCE_DIR"; then
+  set +x
   echo "ERROR: 'chezmoi init' failed. Please check your source directory and try again."
   echo "You can run 'chezmoi init --source=\"$SOURCE_DIR\"' manually for more details."
   exit 1
