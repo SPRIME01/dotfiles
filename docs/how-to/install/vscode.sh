@@ -107,9 +107,9 @@ setup_vscode() {
 		# Resolve Windows username from WSL as robustly as possible
 		local WINDOWS_USER
 		WINDOWS_USER="$(
-			{ command -v wslvar >/dev/null 2>&1 && wslvar USERNAME; } 2>/dev/null || \
-			{ command -v cmd.exe  >/dev/null 2>&1 && cmd.exe /c echo %USERNAME% | tr -d '\r'; } 2>/dev/null || \
-			{ command -v powershell.exe >/dev/null 2>&1 && powershell.exe -NoProfile -Command '$env:USERNAME' | tr -d '\r'; } 2>/dev/null
+			{ command -v wslvar >/dev/null 2>&1 && wslvar USERNAME; } 2>/dev/null ||
+				{ command -v cmd.exe >/dev/null 2>&1 && cmd.exe /c echo %USERNAME% | tr -d '\r'; } 2>/dev/null ||
+				{ command -v powershell.exe >/dev/null 2>&1 && powershell.exe -NoProfile -Command '$env:USERNAME' | tr -d '\r'; } 2>/dev/null
 		)"
 		if [[ -z "${WINDOWS_USER:-}" ]]; then
 			log_warning "Could not determine Windows username under WSL; skipping Windows VS Code setup"

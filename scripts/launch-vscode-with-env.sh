@@ -5,8 +5,8 @@
 # Source the dotfiles environment
 DOTFILES_ROOT="${DOTFILES_ROOT:-$HOME/dotfiles}"
 if [[ -f "$DOTFILES_ROOT/lib/env-loader.sh" ]]; then
-    source "$DOTFILES_ROOT/lib/env-loader.sh"
-    load_dotfiles_environment "$DOTFILES_ROOT"
+	source "$DOTFILES_ROOT/lib/env-loader.sh"
+	load_dotfiles_environment "$DOTFILES_ROOT"
 fi
 
 # Launch VS Code with inherited environment

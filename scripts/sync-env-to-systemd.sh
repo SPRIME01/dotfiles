@@ -16,9 +16,9 @@ echo ""
 
 # Export .env file
 if [[ -f "$DOTFILES_ROOT/.env" ]]; then
-    bash "$DOTFILES_ROOT/scripts/export-to-systemd-env.sh" "$DOTFILES_ROOT/.env"
+	bash "$DOTFILES_ROOT/scripts/export-to-systemd-env.sh" "$DOTFILES_ROOT/.env"
 else
-    echo "Warning: $DOTFILES_ROOT/.env not found" >&2
+	echo "Warning: $DOTFILES_ROOT/.env not found" >&2
 fi
 
 echo ""

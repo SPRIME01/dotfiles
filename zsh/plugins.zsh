@@ -6,18 +6,18 @@
 
 # Start with safe built-ins
 plugins=(
-    git
-    docker
-    kubectl
-    npm
-    node
-    python
-    pip
-    ubuntu
-    command-not-found
-    history-substring-search
-    colored-man-pages
-    direnv
+	git
+	docker
+	kubectl
+	npm
+	node
+	python
+	pip
+	ubuntu
+	command-not-found
+	history-substring-search
+	colored-man-pages
+	direnv
 )
 # Include community plugins only if installed
 # _zsh_custom_plugins_dir="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins"

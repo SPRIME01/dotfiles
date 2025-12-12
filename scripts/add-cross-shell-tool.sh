@@ -25,30 +25,39 @@ ps_segments_raw="${PS_SEGMENTS:-}"
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
-		--name)
-			[[ $# -ge 2 ]] || { echo "--name requires a value" >&2; exit 1; }
-			tool_name="$2"
-			shift 2
-			;;
-		--posix-path)
-			[[ $# -ge 2 ]] || { echo "--posix-path requires a value" >&2; exit 1; }
-			posix_path="$2"
-			shift 2
-			;;
-		--ps-segments)
-			[[ $# -ge 2 ]] || { echo "--ps-segments requires a value" >&2; exit 1; }
-			ps_segments_raw="$2"
-			shift 2
-			;;
-		-h|--help)
-			usage
-			exit 0
-			;;
-		*)
-			echo "Unknown argument: $1" >&2
-			usage
+	--name)
+		[[ $# -ge 2 ]] || {
+			echo "--name requires a value" >&2
 			exit 1
-			;;
+		}
+		tool_name="$2"
+		shift 2
+		;;
+	--posix-path)
+		[[ $# -ge 2 ]] || {
+			echo "--posix-path requires a value" >&2
+			exit 1
+		}
+		posix_path="$2"
+		shift 2
+		;;
+	--ps-segments)
+		[[ $# -ge 2 ]] || {
+			echo "--ps-segments requires a value" >&2
+			exit 1
+		}
+		ps_segments_raw="$2"
+		shift 2
+		;;
+	-h | --help)
+		usage
+		exit 0
+		;;
+	*)
+		echo "Unknown argument: $1" >&2
+		usage
+		exit 1
+		;;
 	esac
 done
 
@@ -88,17 +97,17 @@ fi
 
 suffix=""
 case "$posix_path" in
-	\$HOME/*)
-		suffix="${posix_path#\$HOME/}"
-		;;
-	~/*)
-		suffix="${posix_path#~/}"
-		;;
-	*)
-		echo "Only paths under \$HOME are supported to avoid hardcoding absolute Windows locations." >&2
-		echo "Received: $posix_path" >&2
-		exit 1
-		;;
+\$HOME/*)
+	suffix="${posix_path#\$HOME/}"
+	;;
+~/*)
+	suffix="${posix_path#~/}"
+	;;
+*)
+	echo "Only paths under \$HOME are supported to avoid hardcoding absolute Windows locations." >&2
+	echo "Received: $posix_path" >&2
+	exit 1
+	;;
 esac
 
 IFS='/' read -r -a derived_segments <<<"$suffix"

@@ -108,35 +108,35 @@ setup_pwsh7_windows=0
 if [[ "$RETRY_FAILED_ONLY" == "true" ]]; then
 	echo "🔄 Retrying failed components only..."
 
-    # Check each component and set flags based on failure status
-    if grep -q "^bash_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-        configure_bash=1
-        echo "🔄 Will retry: Bash configuration"
-    fi
-    if grep -q "^zsh_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-        configure_zsh=1
-        echo "🔄 Will retry: Zsh configuration"
-    fi
-    if grep -q "^pwsh_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-        configure_pwsh=1
-        echo "🔄 Will retry: PowerShell configuration"
-    fi
-    if grep -q "^vscode_settings=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-        install_vscode=1
-        echo "🔄 Will retry: VS Code settings"
-    fi
-    if grep -q "^git_hook=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-        enable_hook=1
-        echo "🔄 Will retry: Git hooks"
-    fi
-    if grep -q "^projects_setup=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-        setup_projects=1
-        echo "🔄 Will retry: Projects setup"
-    fi
-    if grep -q "^pwsh7_windows=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
-        setup_pwsh7_windows=1
-        echo "🔄 Will retry: PowerShell 7 Windows integration"
-    fi
+	# Check each component and set flags based on failure status
+	if grep -q "^bash_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+		configure_bash=1
+		echo "🔄 Will retry: Bash configuration"
+	fi
+	if grep -q "^zsh_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+		configure_zsh=1
+		echo "🔄 Will retry: Zsh configuration"
+	fi
+	if grep -q "^pwsh_config=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+		configure_pwsh=1
+		echo "🔄 Will retry: PowerShell configuration"
+	fi
+	if grep -q "^vscode_settings=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+		install_vscode=1
+		echo "🔄 Will retry: VS Code settings"
+	fi
+	if grep -q "^git_hook=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+		enable_hook=1
+		echo "🔄 Will retry: Git hooks"
+	fi
+	if grep -q "^projects_setup=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+		setup_projects=1
+		echo "🔄 Will retry: Projects setup"
+	fi
+	if grep -q "^pwsh7_windows=failed" "$DOTFILES_STATE_FILE" 2>/dev/null; then
+		setup_pwsh7_windows=1
+		echo "🔄 Will retry: PowerShell 7 Windows integration"
+	fi
 else
 	# Interactive prompting with smart state checking
 	echo "🤔 Let's determine what to install..."
@@ -181,9 +181,9 @@ else
 			echo "ℹ️  PowerShell 7 (pwsh.exe) not detected on Windows; skipping Windows PowerShell 7 setup."
 			mark_component_skipped "pwsh7_windows" "PowerShell 7 not available on Windows"
 		fi
-        else
-            mark_component_skipped "pwsh7_windows" "Not in WSL2 environment"
-        fi
+	else
+		mark_component_skipped "pwsh7_windows" "Not in WSL2 environment"
+	fi
 fi
 
 echo

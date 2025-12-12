@@ -24,12 +24,13 @@ VAULT_AGENT_LOG=${VAULT_AGENT_LOG:-info}
 VAULT_NAMESPACE=${VAULT_NAMESPACE:-}
 
 if [[ -z "$VAULT_ADDR" ]]; then
-  echo "❌ VAULT_ADDR is required (e.g., https://vault.example.com)" >&2
-  exit 1
+	echo "❌ VAULT_ADDR is required (e.g., https://vault.example.com)" >&2
+	exit 1
 fi
 
 # Resolve absolute sink path and ensure directory exists with strict perms
-SINK_PATH=$(python3 - <<EOF
+SINK_PATH=$(
+	python3 - <<EOF
 import os,sys
 print(os.path.abspath(os.path.expanduser(os.environ.get('VAULT_SINK_PATH', '$HOME/.cache/vault/dotfiles.env'))))
 EOF
@@ -43,25 +44,24 @@ cleanup() { rm -f "$TMP_CONFIG"; }
 trap cleanup EXIT INT TERM
 
 {
-  echo "auto_auth {"
-  echo "  method \"$VAULT_AUTH_METHOD\" {"
-  echo "    mount_path = \"auth/$VAULT_AUTH_METHOD\""
-  echo "    config = { role = \"$VAULT_ROLE\" }"
-  echo "  }"
-  echo "  sink \"file\" {"
-  echo "    config = { path = \"$SINK_PATH\", format = \"env\" }"
-  echo "  }"
-  echo "}"
-  echo "vault { address = \"$VAULT_ADDR\" }"
-  echo "log_level = \"$VAULT_AGENT_LOG\""
-  if [[ -n "$VAULT_NAMESPACE" ]]; then
-    echo "namespace = \"$VAULT_NAMESPACE\""
-  fi
-} > "$TMP_CONFIG"
+	echo "auto_auth {"
+	echo "  method \"$VAULT_AUTH_METHOD\" {"
+	echo "    mount_path = \"auth/$VAULT_AUTH_METHOD\""
+	echo "    config = { role = \"$VAULT_ROLE\" }"
+	echo "  }"
+	echo "  sink \"file\" {"
+	echo "    config = { path = \"$SINK_PATH\", format = \"env\" }"
+	echo "  }"
+	echo "}"
+	echo "vault { address = \"$VAULT_ADDR\" }"
+	echo "log_level = \"$VAULT_AGENT_LOG\""
+	if [[ -n "$VAULT_NAMESPACE" ]]; then
+		echo "namespace = \"$VAULT_NAMESPACE\""
+	fi
+} >"$TMP_CONFIG"
 
 echo "🟢 Starting Vault Agent with sink: $SINK_PATH"
 echo "ℹ️  Config: $TMP_CONFIG"
 echo "ℹ️  Addr:   $VAULT_ADDR  Role: $VAULT_ROLE  Method: $VAULT_AUTH_METHOD"
 
 exec vault agent -config="$TMP_CONFIG"
-

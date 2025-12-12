@@ -8,33 +8,33 @@ DOTFILES_ROOT="${DOTFILES_ROOT:-$HOME/dotfiles}"
 ENV_FILE="${1:-$DOTFILES_ROOT/.env}"
 
 if [[ ! -f "$ENV_FILE" ]]; then
-    echo "Error: Environment file not found: $ENV_FILE" >&2
-    exit 1
+	echo "Error: Environment file not found: $ENV_FILE" >&2
+	exit 1
 fi
 
 echo "Exporting variables from $ENV_FILE to systemd user environment..."
 
 # Read each line from .env and export to systemd
 while IFS= read -r line; do
-    # Skip blank lines and comments
-    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+	# Skip blank lines and comments
+	[[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
 
-    # Skip lines without =
-    [[ "$line" =~ = ]] || continue
+	# Skip lines without =
+	[[ "$line" =~ = ]] || continue
 
-    # Extract key and value
-    IFS='=' read -r key value <<<"$line"
-    key="$(echo "$key" | xargs)"
-    value="$(echo "$value" | xargs)"
+	# Extract key and value
+	IFS='=' read -r key value <<<"$line"
+	key="$(echo "$key" | xargs)"
+	value="$(echo "$value" | xargs)"
 
-    # Remove quotes if present
-    if [[ "$value" =~ ^\".*\"$ || "$value" =~ ^\'.*\'$ ]]; then
-        value="${value:1:-1}"
-    fi
+	# Remove quotes if present
+	if [[ "$value" =~ ^\".*\"$ || "$value" =~ ^\'.*\'$ ]]; then
+		value="${value:1:-1}"
+	fi
 
-    # Export to systemd
-    systemctl --user set-environment "${key}=${value}"
-    echo "  ✓ ${key}=${value:0:20}..." # Show first 20 chars for security
+	# Export to systemd
+	systemctl --user set-environment "${key}=${value}"
+	echo "  ✓ ${key}=${value:0:20}..." # Show first 20 chars for security
 done < <(grep -v '^[[:space:]]*#' "$ENV_FILE" | grep -v '^$')
 
 echo ""

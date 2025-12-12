@@ -2,7 +2,8 @@
 set -euo pipefail
 
 UNC="\\\\wsl.localhost\\${WSL_DISTRO_NAME}\\home\\${USER}\\dotfiles"
-ps_code=$(cat <<PWS
+ps_code=$(
+	cat <<PWS
 if (-not \$env:DOTFILES_ROOT -or [string]::IsNullOrWhiteSpace(\$env:DOTFILES_ROOT)) {
   \$env:DOTFILES_ROOT = "$UNC"
 }

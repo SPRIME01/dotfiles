@@ -115,15 +115,15 @@ openvino_genai_info() {
 	fi
 	openvino_genai_refresh_ollama_status
 	case "${OPENVINO_GENAI_OLLAMA_STATUS:-missing}" in
-		running)
-			echo "  • ollama: running (host: ${OLLAMA_HOST:-$OPENVINO_GENAI_DEFAULT_OLLAMA_HOST})"
-			;;
-		installed)
-			echo "  • ollama: installed (service not responding)"
-			;;
-		*)
-			echo "  • ollama: not installed"
-			;;
+	running)
+		echo "  • ollama: running (host: ${OLLAMA_HOST:-$OPENVINO_GENAI_DEFAULT_OLLAMA_HOST})"
+		;;
+	installed)
+		echo "  • ollama: installed (service not responding)"
+		;;
+	*)
+		echo "  • ollama: not installed"
+		;;
 	esac
 	if command -v ovc_info >/dev/null 2>&1; then
 		echo "  • ovc_info: $(ovc_info --version)"

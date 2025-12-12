@@ -12,7 +12,7 @@ export PROJECTS_ROOT_DEFAULT="$HOME/projects"
 readonly OMP_INSTALLER_URL="https://ohmyposh.dev/install.sh"
 # Note: Checksum should be updated regularly. Use: bash lib/secure-install.sh fetch_checksum
 # To skip checksum verification (not recommended), set to "skip"
-readonly OMP_INSTALLER_SHA256="skip"  # TODO: Fetch and update checksum
+readonly OMP_INSTALLER_SHA256="skip" # TODO: Fetch and update checksum
 readonly OMP_UPDATE_DATE="2025-11-22"
 
 # Functions to resolve effective paths (allow overrides)

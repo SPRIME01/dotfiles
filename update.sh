@@ -19,7 +19,8 @@ if [ ! -d "$DOTFILES_DIR/.git" ]; then
 fi
 
 # Preserve the current branch name for safety
-CURRENT_BRANCH=$(git -C "$DOTFILES_DIR" rev-parse --abbrev-ref HEAD)
+# Preserve the current branch name for safety (unused but kept for reference)
+# CURRENT_BRANCH=$(git -C "$DOTFILES_DIR" rev-parse --abbrev-ref HEAD)
 
 # Optionally stash uncommitted changes before pulling.  This prevents merge
 # conflicts if you have local modifications.  The stash will be reapplied

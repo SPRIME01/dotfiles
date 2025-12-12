@@ -4,20 +4,20 @@
 # Always derive DOTFILES_ROOT from the location of this file to ensure accuracy.
 # Handles being sourced from either bash or zsh without relying on PWD.
 if [[ -n "${DOTFILES_ROOT:-}" && -d "${DOTFILES_ROOT}/.git" ]] || [[ -f "${DOTFILES_ROOT:-}/.shell_common.sh" ]]; then
-    : # Respect pre-set DOTFILES_ROOT if it looks valid
+	: # Respect pre-set DOTFILES_ROOT if it looks valid
 else
-    if [[ -n "${ZSH_VERSION:-}" ]]; then
-        # In zsh, ${(%):-%N} expands to the current script path even when sourced
-        # Use eval so this branch remains portable when parsed by bash
-        eval '___df_script_path="${(%):-%N}"'
-        DOTFILES_ROOT="$(cd "$(dirname "${___df_script_path:-$0}")" && pwd)"
-        unset ___df_script_path
-    elif [[ -n "${BASH_VERSION:-}" ]]; then
-        DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
-    else
-        # Fallback: guess common location
-        DOTFILES_ROOT="${HOME}/dotfiles"
-    fi
+	if [[ -n "${ZSH_VERSION:-}" ]]; then
+		# In zsh, ${(%):-%N} expands to the current script path even when sourced
+		# Use eval so this branch remains portable when parsed by bash
+		eval '___df_script_path="${(%):-%N}"'
+		DOTFILES_ROOT="$(cd "$(dirname "${___df_script_path:-$0}")" && pwd)"
+		unset ___df_script_path
+	elif [[ -n "${BASH_VERSION:-}" ]]; then
+		DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+	else
+		# Fallback: guess common location
+		DOTFILES_ROOT="${HOME}/dotfiles"
+	fi
 fi
 export DOTFILES_ROOT
 
@@ -72,10 +72,10 @@ fi
 # --- Optional Locale Sanitizer ---
 # Controlled by DOTFILES_ENABLE_LOCALE_SANITIZER (set to 1 to enable)
 if [[ "${DOTFILES_ENABLE_LOCALE_SANITIZER:-0}" == "1" ]]; then
-    if [[ -f "$DOTFILES_ROOT/scripts/locale-sanitizer.sh" ]]; then
-        # shellcheck disable=SC1091
-        . "$DOTFILES_ROOT/scripts/locale-sanitizer.sh"
-    fi
+	if [[ -f "$DOTFILES_ROOT/scripts/locale-sanitizer.sh" ]]; then
+		# shellcheck disable=SC1091
+		. "$DOTFILES_ROOT/scripts/locale-sanitizer.sh"
+	fi
 fi
 
 # --- Modular Shell Configuration ---
@@ -141,7 +141,7 @@ __dotfiles_show_shell_greeting() {
 	if [[ -n "${__DOTFILES_HOST_MESSAGE:-}" ]]; then
 		lines+=("${__DOTFILES_HOST_MESSAGE}")
 	fi
-	if (( ${#lines[@]} > 0 )); then
+	if ((${#lines[@]} > 0)); then
 		printf '%s\n' "${lines[@]}"
 	fi
 	__DOTFILES_GREETING_SHOWN=1
@@ -175,22 +175,22 @@ __dotfiles_schedule_greeting() {
 }
 
 if [[ $- == *i* ]]; then
-    if [[ "$PWD" == "/mnt/c/Users/"* ]] && [[ "$PWD" != "$HOME" ]]; then
-        cd "$HOME" 2>/dev/null || true
-    fi
+	if [[ "$PWD" == "/mnt/c/Users/"* ]] && [[ "$PWD" != "$HOME" ]]; then
+		cd "$HOME" 2>/dev/null || true
+	fi
 
-    case "${DOTFILES_FORCE_SHELL_GREETING:-}" in
-        1|true|TRUE|yes|YES)
-            __dotfiles_schedule_greeting
-            ;;
-        *)
-            if [[ "${POWERLEVEL9K_INSTANT_PROMPT:-off}" == "off" ]]; then
-                __dotfiles_schedule_greeting
-            else
-                unset __DOTFILES_HOST_MESSAGE
-            fi
-            ;;
-    esac
+	case "${DOTFILES_FORCE_SHELL_GREETING:-}" in
+	1 | true | TRUE | yes | YES)
+		__dotfiles_schedule_greeting
+		;;
+	*)
+		if [[ "${POWERLEVEL9K_INSTANT_PROMPT:-off}" == "off" ]]; then
+			__dotfiles_schedule_greeting
+		else
+			unset __DOTFILES_HOST_MESSAGE
+		fi
+		;;
+	esac
 fi
 
 unset __dotfiles_hostname
@@ -201,83 +201,83 @@ unset __dotfiles_hostname
 # and then perform the per-feature setup steps. This reduces duplication and
 # centralizes platform-specific behavior for easier maintenance.
 if [[ -n "${WSL_DISTRO_NAME:-}" ]] && command -v cmd.exe >/dev/null 2>&1; then
-    # Get Windows username safely (do this once)
-    WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r' 2>/dev/null)
+	# Get Windows username safely (do this once)
+	WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r' 2>/dev/null)
 
-        if [[ -n "$WIN_USER" ]]; then
-        # --- Kubernetes (kubectl) ---
-        WIN_KUBE_CONFIG="/mnt/c/Users/$WIN_USER/.kube/config"
-        LOCAL_KUBE_DIR="$HOME/.kube"
-        LOCAL_KUBE_CONFIG="$LOCAL_KUBE_DIR/config"
+	if [[ -n "$WIN_USER" ]]; then
+		# --- Kubernetes (kubectl) ---
+		WIN_KUBE_CONFIG="/mnt/c/Users/$WIN_USER/.kube/config"
+		LOCAL_KUBE_DIR="$HOME/.kube"
+		LOCAL_KUBE_CONFIG="$LOCAL_KUBE_DIR/config"
 
-        if [[ -f "$WIN_KUBE_CONFIG" ]]; then
-            [[ ! -d "$LOCAL_KUBE_DIR" ]] && mkdir -p "$LOCAL_KUBE_DIR" 2>/dev/null
-            if [[ ! -L "$LOCAL_KUBE_CONFIG" ]] || [[ "$(readlink "$LOCAL_KUBE_CONFIG" 2>/dev/null)" != "$WIN_KUBE_CONFIG" ]]; then
-                ln -sf "$WIN_KUBE_CONFIG" "$LOCAL_KUBE_CONFIG" 2>/dev/null
-            fi
-            [[ -f "$LOCAL_KUBE_CONFIG" ]] && chmod 600 "$LOCAL_KUBE_CONFIG" 2>/dev/null
-        fi
+		if [[ -f "$WIN_KUBE_CONFIG" ]]; then
+			[[ ! -d "$LOCAL_KUBE_DIR" ]] && mkdir -p "$LOCAL_KUBE_DIR" 2>/dev/null
+			if [[ ! -L "$LOCAL_KUBE_CONFIG" ]] || [[ "$(readlink "$LOCAL_KUBE_CONFIG" 2>/dev/null)" != "$WIN_KUBE_CONFIG" ]]; then
+				ln -sf "$WIN_KUBE_CONFIG" "$LOCAL_KUBE_CONFIG" 2>/dev/null
+			fi
+			[[ -f "$LOCAL_KUBE_CONFIG" ]] && chmod 600 "$LOCAL_KUBE_CONFIG" 2>/dev/null
+		fi
 
-        # --- SSH (best practice for WSL) ---
-        # Keep ~/.ssh as native ext4 files to satisfy OpenSSH StrictModes.
-        # Do NOT symlink private keys or config from /mnt/c.
-        LOCAL_SSH_DIR="$HOME/.ssh"
-        [[ ! -d "$LOCAL_SSH_DIR" ]] && mkdir -p "$LOCAL_SSH_DIR" 2>/dev/null
-        chmod 700 "$LOCAL_SSH_DIR" 2>/dev/null || true
-        # If known_hosts is missing, copy once from Windows for convenience.
-        if [[ ! -e "$LOCAL_SSH_DIR/known_hosts" ]]; then
-            WIN_KNOWN_HOSTS="/mnt/c/Users/$WIN_USER/.ssh/known_hosts"
-            if [[ -f "$WIN_KNOWN_HOSTS" ]]; then
-                cp "$WIN_KNOWN_HOSTS" "$LOCAL_SSH_DIR/known_hosts" 2>/dev/null || true
-            fi
-            if [[ -f "$LOCAL_SSH_DIR/known_hosts" ]]; then
-                chmod 644 "$LOCAL_SSH_DIR/known_hosts" 2>/dev/null || true
-            fi
-        fi
+		# --- SSH (best practice for WSL) ---
+		# Keep ~/.ssh as native ext4 files to satisfy OpenSSH StrictModes.
+		# Do NOT symlink private keys or config from /mnt/c.
+		LOCAL_SSH_DIR="$HOME/.ssh"
+		[[ ! -d "$LOCAL_SSH_DIR" ]] && mkdir -p "$LOCAL_SSH_DIR" 2>/dev/null
+		chmod 700 "$LOCAL_SSH_DIR" 2>/dev/null || true
+		# If known_hosts is missing, copy once from Windows for convenience.
+		if [[ ! -e "$LOCAL_SSH_DIR/known_hosts" ]]; then
+			WIN_KNOWN_HOSTS="/mnt/c/Users/$WIN_USER/.ssh/known_hosts"
+			if [[ -f "$WIN_KNOWN_HOSTS" ]]; then
+				cp "$WIN_KNOWN_HOSTS" "$LOCAL_SSH_DIR/known_hosts" 2>/dev/null || true
+			fi
+			if [[ -f "$LOCAL_SSH_DIR/known_hosts" ]]; then
+				chmod 644 "$LOCAL_SSH_DIR/known_hosts" 2>/dev/null || true
+			fi
+		fi
 
-        # --- Projects Directory Windows Symlink ---
-        [[ ! -d "$PROJECTS_ROOT" ]] && mkdir -p "$PROJECTS_ROOT" 2>/dev/null
-        WIN_USER_HOME="/mnt/c/Users/$WIN_USER"
-        WIN_PROJECTS_LINK="$WIN_USER_HOME/projects"
+		# --- Projects Directory Windows Symlink ---
+		[[ ! -d "$PROJECTS_ROOT" ]] && mkdir -p "$PROJECTS_ROOT" 2>/dev/null
+		WIN_USER_HOME="/mnt/c/Users/$WIN_USER"
+		WIN_PROJECTS_LINK="$WIN_USER_HOME/projects"
 
-        if [[ -d "$PROJECTS_ROOT" ]] && [[ ! -e "$WIN_PROJECTS_LINK" ]]; then
-            WSL_PROJECTS_WIN_PATH="\\\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\projects"
-            if cmd.exe /c "mklink /D \"C:\\Users\\$WIN_USER\\projects\" \"$WSL_PROJECTS_WIN_PATH\"" >/dev/null 2>&1; then
-                true
-            else
-                BATCH_FILE="$WIN_USER_HOME/projects.bat"
-                cat >"$BATCH_FILE" 2>/dev/null <<EOF
+		if [[ -d "$PROJECTS_ROOT" ]] && [[ ! -e "$WIN_PROJECTS_LINK" ]]; then
+			WSL_PROJECTS_WIN_PATH="\\\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\projects"
+			if cmd.exe /c "mklink /D \"C:\\Users\\$WIN_USER\\projects\" \"$WSL_PROJECTS_WIN_PATH\"" >/dev/null 2>&1; then
+				true
+			else
+				BATCH_FILE="$WIN_USER_HOME/projects.bat"
+				cat >"$BATCH_FILE" 2>/dev/null <<EOF
 @echo off
 REM Navigate to WSL2 projects directory
 cd /d "\\wsl.localhost\\$WSL_DISTRO_NAME\\home\\$USER\\projects"
 cmd /k
 EOF
-                chmod +x "$BATCH_FILE" 2>/dev/null
-            fi
-        fi
+				chmod +x "$BATCH_FILE" 2>/dev/null
+			fi
+		fi
 
-        # --- Convenience function to Windows home ---
-        # Using function instead of alias to defer WIN_USER expansion
-        if [[ -n "$WIN_USER" ]]; then
-            winhome() { cd "/mnt/c/Users/$WIN_USER" || return 1; }
-        fi
-    fi
+		# --- Convenience function to Windows home ---
+		# Using function instead of alias to defer WIN_USER expansion
+		if [[ -n "$WIN_USER" ]]; then
+			winhome() { cd "/mnt/c/Users/$WIN_USER" || return 1; }
+		fi
+	fi
 fi
 
 # Ensure a safe UTF-8 locale fallback without overriding user settings
 # Prefer existing LC_ALL > LANG > fallback to C.UTF-8 then POSIX
 if [[ -z "${LC_ALL:-}" ]]; then
-    if [[ -n "${LANG:-}" ]]; then
-        export LC_ALL="$LANG"
-    else
-        # Prefer C.UTF-8 (widely available), fallback to POSIX if needed
-        if locale -a 2>/dev/null | rg -q '^C\.UTF-8$'; then
-            export LANG='C.UTF-8'
-        else
-            export LANG='POSIX'
-        fi
-        export LC_ALL="$LANG"
-    fi
+	if [[ -n "${LANG:-}" ]]; then
+		export LC_ALL="$LANG"
+	else
+		# Prefer C.UTF-8 (widely available), fallback to POSIX if needed
+		if locale -a 2>/dev/null | rg -q '^C\.UTF-8$'; then
+			export LANG='C.UTF-8'
+		else
+			export LANG='POSIX'
+		fi
+		export LC_ALL="$LANG"
+	fi
 fi
 
 # --- End of File ---

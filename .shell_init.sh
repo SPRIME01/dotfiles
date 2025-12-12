@@ -9,18 +9,18 @@
 # Determine DOTFILES_ROOT safely (no eval)
 # shellcheck disable=SC2296 # zsh uses ${(%):-%x} syntax not recognized by shellcheck
 if [[ -z "${DOTFILES_ROOT:-}" ]]; then
-    # Try to find it relative to this script
-    if [[ -n "${BASH_VERSION:-}" ]] && [[ -n "${BASH_SOURCE[0]:-}" ]]; then
-        # Bash
-        DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    elif [[ -n "${ZSH_VERSION:-}" ]]; then
-        # Zsh - use zsh-specific parameter expansion
-        # Note: ${(%):-%x} is zsh syntax for current script path
-        DOTFILES_ROOT="$(cd "$(dirname "${(%):-%x}")" 2>/dev/null && pwd)" || DOTFILES_ROOT="${HOME}/dotfiles"
-    else
-        # Fallback
-        DOTFILES_ROOT="${HOME}/dotfiles"
-    fi
+	# Try to find it relative to this script
+	if [[ -n "${BASH_VERSION:-}" ]] && [[ -n "${BASH_SOURCE[0]:-}" ]]; then
+		# Bash
+		DOTFILES_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+	elif [[ -n "${ZSH_VERSION:-}" ]]; then
+		# Zsh - use zsh-specific parameter expansion
+		# Note: ${(%):-%x} is zsh syntax for current script path
+		eval 'DOTFILES_ROOT="$(cd "$(dirname "${(%):-%x}")" 2>/dev/null && pwd)"' || DOTFILES_ROOT="${HOME}/dotfiles"
+	else
+		# Fallback
+		DOTFILES_ROOT="${HOME}/dotfiles"
+	fi
 fi
 export DOTFILES_ROOT
 
@@ -33,10 +33,10 @@ export PROJECTS_ROOT="${PROJECTS_ROOT:-$HOME/projects}"
 
 # WSL detection
 if [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
-    export WSL_USER="${USER:-$(whoami 2>/dev/null || echo 'user')}"
-    export IS_WSL=1
+	export WSL_USER="${USER:-$(whoami 2>/dev/null || echo 'user')}"
+	export IS_WSL=1
 else
-    export IS_WSL=0
+	export IS_WSL=0
 fi
 
 # ============================================================================
@@ -45,12 +45,12 @@ fi
 
 # Helper to add to PATH only if not already present
 __add_to_path() {
-    local dir="$1"
-    [[ -d "$dir" ]] || return 0
-    case ":$PATH:" in
-        *":$dir:"*) return 0 ;;
-        *) export PATH="$dir:$PATH" ;;
-    esac
+	local dir="$1"
+	[[ -d "$dir" ]] || return 0
+	case ":$PATH:" in
+	*":$dir:"*) return 0 ;;
+	*) export PATH="$dir:$PATH" ;;
+	esac
 }
 
 # Essential PATH entries
@@ -61,7 +61,7 @@ __add_to_path "$HOME/go/bin"
 
 # Mise (if installed)
 if [[ -d "$HOME/.local/share/mise/shims" ]]; then
-    __add_to_path "$HOME/.local/share/mise/shims"
+	__add_to_path "$HOME/.local/share/mise/shims"
 fi
 
 # Clean up
@@ -72,30 +72,30 @@ unset -f __add_to_path
 # ============================================================================
 
 __safe_load_env() {
-    local env_file="$1"
-    [[ -f "$env_file" ]] || return 0
-    
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        # Skip comments and empty lines
-        [[ "$line" =~ ^[[:space:]]*# ]] && continue
-        [[ -z "$line" ]] && continue
-        
-        # Parse KEY=VALUE
-        local key="${line%%=*}"
-        local value="${line#*=}"
-        
-        # Validate key (alphanumeric + underscore only)
-        [[ "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || continue
-        
-        # Strip quotes
-        value="${value%\"}"
-        value="${value#\"}"
-        value="${value%\'}"
-        value="${value#\'}"
-        
-        # Export (no eval!)
-        export "$key=$value"
-    done < "$env_file"
+	local env_file="$1"
+	[[ -f "$env_file" ]] || return 0
+
+	while IFS= read -r line || [[ -n "$line" ]]; do
+		# Skip comments and empty lines
+		[[ "$line" =~ ^[[:space:]]*# ]] && continue
+		[[ -z "$line" ]] && continue
+
+		# Parse KEY=VALUE
+		local key="${line%%=*}"
+		local value="${line#*=}"
+
+		# Validate key (alphanumeric + underscore only)
+		[[ "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || continue
+
+		# Strip quotes
+		value="${value%\"}"
+		value="${value#\"}"
+		value="${value%\'}"
+		value="${value#\'}"
+
+		# Export (no eval!)
+		export "$key=$value"
+	done <"$env_file"
 }
 
 # Load .env files if they exist
@@ -118,13 +118,13 @@ command -v code >/dev/null 2>&1 && alias pcode='code -n "$PROJECTS_ROOT"'
 # ============================================================================
 
 if command -v direnv >/dev/null 2>&1 && [[ "${DISABLE_DIRENV:-}" != "1" ]]; then
-    # Detect shell type
-    if [[ -n "${ZSH_VERSION:-}" ]]; then
-        eval "$(direnv hook zsh 2>/dev/null || true)"
-    elif [[ -n "${BASH_VERSION:-}" ]]; then
-        eval "$(direnv hook bash 2>/dev/null || true)"
-    fi
-    export DIRENV_LOG_FORMAT=""
+	# Detect shell type
+	if [[ -n "${ZSH_VERSION:-}" ]]; then
+		eval "$(direnv hook zsh 2>/dev/null || true)"
+	elif [[ -n "${BASH_VERSION:-}" ]]; then
+		eval "$(direnv hook bash 2>/dev/null || true)"
+	fi
+	export DIRENV_LOG_FORMAT=""
 fi
 
 # ============================================================================
@@ -132,11 +132,11 @@ fi
 # ============================================================================
 
 if command -v mise >/dev/null 2>&1; then
-    if [[ -n "${ZSH_VERSION:-}" ]]; then
-        eval "$(mise activate zsh 2>/dev/null || true)"
-    elif [[ -n "${BASH_VERSION:-}" ]]; then
-        eval "$(mise activate bash 2>/dev/null || true)"
-    fi
+	if [[ -n "${ZSH_VERSION:-}" ]]; then
+		eval "$(mise activate zsh 2>/dev/null || true)"
+	elif [[ -n "${BASH_VERSION:-}" ]]; then
+		eval "$(mise activate bash 2>/dev/null || true)"
+	fi
 fi
 
 # ============================================================================
@@ -145,33 +145,33 @@ fi
 
 # WSL integration (lazy-loaded)
 __load_wsl_integration() {
-    [[ "$IS_WSL" != "1" ]] && return 0
-    [[ -n "${__WSL_LOADED:-}" ]] && return 0
-    
-    # Source WSL-specific file if it exists
-    if [[ -f "$DOTFILES_ROOT/shell/platform-specific/wsl.sh" ]]; then
-        source "$DOTFILES_ROOT/shell/platform-specific/wsl.sh" 2>/dev/null || true
-    fi
-    
-    export __WSL_LOADED=1
+	[[ "$IS_WSL" != "1" ]] && return 0
+	[[ -n "${__WSL_LOADED:-}" ]] && return 0
+
+	# Source WSL-specific file if it exists
+	if [[ -f "$DOTFILES_ROOT/shell/platform-specific/wsl.sh" ]]; then
+		source "$DOTFILES_ROOT/shell/platform-specific/wsl.sh" 2>/dev/null || true
+	fi
+
+	export __WSL_LOADED=1
 }
 
 # Platform-specific (lazy-loaded)
 __load_platform_config() {
-    [[ -n "${__PLATFORM_LOADED:-}" ]] && return 0
-    
-    local platform=""
-    case "$OSTYPE" in
-        linux*) platform="linux" ;;
-        darwin*) platform="macos" ;;
-        msys*|cygwin*|mingw*) platform="windows" ;;
-    esac
-    
-    if [[ -n "$platform" ]] && [[ -f "$DOTFILES_ROOT/shell/platform-specific/$platform.sh" ]]; then
-        source "$DOTFILES_ROOT/shell/platform-specific/$platform.sh" 2>/dev/null || true
-    fi
-    
-    export __PLATFORM_LOADED=1
+	[[ -n "${__PLATFORM_LOADED:-}" ]] && return 0
+
+	local platform=""
+	case "$OSTYPE" in
+	linux*) platform="linux" ;;
+	darwin*) platform="macos" ;;
+	msys* | cygwin* | mingw*) platform="windows" ;;
+	esac
+
+	if [[ -n "$platform" ]] && [[ -f "$DOTFILES_ROOT/shell/platform-specific/$platform.sh" ]]; then
+		source "$DOTFILES_ROOT/shell/platform-specific/$platform.sh" 2>/dev/null || true
+	fi
+
+	export __PLATFORM_LOADED=1
 }
 
 # Auto-load WSL integration if in WSL
@@ -182,11 +182,11 @@ __load_platform_config() {
 # ============================================================================
 
 if [[ $- == *i* ]] && [[ "${TERM_PROGRAM:-}" != "vscode" ]]; then
-    if [[ -n "${ZSH_VERSION:-}" ]]; then
-        echo "✨ Zsh ready"
-    elif [[ -n "${BASH_VERSION:-}" ]]; then
-        echo "👋 Bash ready"
-    fi
+	if [[ -n "${ZSH_VERSION:-}" ]]; then
+		echo "✨ Zsh ready"
+	elif [[ -n "${BASH_VERSION:-}" ]]; then
+		echo "👋 Bash ready"
+	fi
 fi
 
 # ============================================================================
@@ -194,7 +194,7 @@ fi
 # ============================================================================
 
 if [[ "${DOTFILES_PROFILE:-}" == "1" ]]; then
-    echo "Shell init completed in ${SECONDS}s" >&2
+	echo "Shell init completed in ${SECONDS}s" >&2
 fi
 
 # Clean up temporary functions

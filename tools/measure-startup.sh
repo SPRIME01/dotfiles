@@ -35,7 +35,7 @@ measure_shell() {
 	# Ensure cleanup even on early exit
 	trap 'rm -f "$tmpfile"' RETURN
 
-	for i in $(seq 1 "$iters"); do
+	for _ in $(seq 1 "$iters"); do
 		# Use /usr/bin/time for consistent formatting where available
 		local secs ms
 		secs=$({ command time -p "$sh" -lic 'exit'; } 2>&1 >/dev/null | awk '/^real /{print $2}') || secs=0

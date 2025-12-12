@@ -27,7 +27,7 @@ write_state_key() {
 	# Portable in-place update using awk + temp file (works on GNU/BSD)
 	local tmp
 	tmp="$(mktemp "${DOTFILES_STATE_FILE}.XXXX")"
-		awk -v k="$key" -v v="$value" '
+	awk -v k="$key" -v v="$value" '
 			BEGIN { updated = 0 }
 			$0 ~ "^" k "=" {
 				if (updated == 0) {

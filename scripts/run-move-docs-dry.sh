@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ps_code=$(cat <<'PWS'
+ps_code=$(
+	cat <<'PWS'
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force | Out-Null
 $script = "\\wsl.localhost\Ubuntu-24.04\home\sprime01\dotfiles\scripts\move-documents-off-onedrive.ps1"
 try { wsl -l -q *> $null } catch {}

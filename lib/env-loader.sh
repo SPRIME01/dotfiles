@@ -129,10 +129,9 @@ export_computed_variables() {
 	export PATH
 }
 
-
 # Main environment loading function
 load_dotfiles_environment() {
-    local dotfiles_root="${1:-}"
+	local dotfiles_root="${1:-}"
 
 	# Set up error handling
 	setup_error_handling
@@ -148,19 +147,19 @@ load_dotfiles_environment() {
 	# Ensure DOTFILES_ROOT is set and exported
 	export DOTFILES_ROOT="$dotfiles_root"
 
-    # Load environment files in order of precedence
-    # Defaults always safe to load if present
-    load_env_file_secure "$dotfiles_root/.env.defaults" false
+	# Load environment files in order of precedence
+	# Defaults always safe to load if present
+	load_env_file_secure "$dotfiles_root/.env.defaults" false
 
-    # Allow opting out of globally loading secret-bearing files to prefer direnv scoping
-    if [[ "${DOTFILES_SKIP_SECRET_FILES:-}" != 1 ]]; then
-        if [[ "${DOTFILES_SKIP_ENV_FILE:-}" != 1 ]]; then
-            load_env_file_secure "$dotfiles_root/.env" false
-        fi
-        if [[ "${DOTFILES_SKIP_MCP_ENV:-}" != 1 ]]; then
-            load_env_file_secure "$dotfiles_root/mcp/.env" false
-        fi
-    fi
+	# Allow opting out of globally loading secret-bearing files to prefer direnv scoping
+	if [[ "${DOTFILES_SKIP_SECRET_FILES:-}" != 1 ]]; then
+		if [[ "${DOTFILES_SKIP_ENV_FILE:-}" != 1 ]]; then
+			load_env_file_secure "$dotfiles_root/.env" false
+		fi
+		if [[ "${DOTFILES_SKIP_MCP_ENV:-}" != 1 ]]; then
+			load_env_file_secure "$dotfiles_root/mcp/.env" false
+		fi
+	fi
 
 	# Export computed variables
 	export_computed_variables "$dotfiles_root"
@@ -174,5 +173,5 @@ load_dotfiles_environment() {
 		return 1
 	fi
 
-    return 0
+	return 0
 }

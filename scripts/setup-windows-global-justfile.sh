@@ -2,19 +2,19 @@
 set -euo pipefail
 
 if [[ -z "${WSL_DISTRO_NAME:-}" ]]; then
-  echo "ℹ️  Run this from WSL. It writes files under your Windows profile."
-  exit 0
+	echo "ℹ️  Run this from WSL. It writes files under your Windows profile."
+	exit 0
 fi
 
 if ! command -v cmd.exe >/dev/null 2>&1; then
-  echo "❌ cmd.exe not available; cannot resolve Windows user profile"
-  exit 1
+	echo "❌ cmd.exe not available; cannot resolve Windows user profile"
+	exit 1
 fi
 
 WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r' || true)
 if [[ -z "$WIN_USER" ]]; then
-  echo "❌ Could not determine Windows username"
-  exit 1
+	echo "❌ Could not determine Windows username"
+	exit 1
 fi
 
 APPDATA_DIR="/mnt/c/Users/${WIN_USER}/AppData/Roaming/just"

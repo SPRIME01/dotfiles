@@ -8,41 +8,41 @@ declare -i TESTS_FAILED=0
 declare -a FAILED_TESTS=()
 declare -i TESTS_SKIPPED=0
 
-	test_assert() {
-		local description="$1"
-		local command="$2"
-		local expected="$3"
+test_assert() {
+	local description="$1"
+	local command="$2"
+	local expected="$3"
 
-		((++TESTS_RUN))
-		if [[ -n "${TEST_DEBUG:-}" ]]; then echo "[test_assert] BEGIN: $description"; fi
+	((++TESTS_RUN))
+	if [[ -n "${TEST_DEBUG:-}" ]]; then echo "[test_assert] BEGIN: $description"; fi
 
-		local raw_actual exit_code
-		# Preserve current shell flags and neutralize them during command eval
-		local had_e=0 had_u=0 had_x=0
-		case $- in
-			*e*) had_e=1;;
-		esac
-		case $- in
-			*u*) had_u=1;;
-		esac
-		case $- in
-			*x*) had_x=1;;
-		esac
+	local raw_actual exit_code
+	# Preserve current shell flags and neutralize them during command eval
+	local had_e=0 had_u=0 had_x=0
+	case $- in
+	*e*) had_e=1 ;;
+	esac
+	case $- in
+	*u*) had_u=1 ;;
+	esac
+	case $- in
+	*x*) had_x=1 ;;
+	esac
 
-		if [[ -n "${TEST_DEBUG:-}" ]]; then echo "[test_assert] flags: e=$had_e u=$had_u x=$had_x"; fi
-		# Disable errexit, nounset, and xtrace so evaluated commands can't abort the test runner
-		set +e
-		set +u
-		set +x
-		if [[ -n "${TEST_DEBUG:-}" ]]; then echo "[test_assert] eval: $command"; fi
-		raw_actual="$(eval "$command" 2>&1)"
-		exit_code=$?
-		if [[ -n "${TEST_DEBUG:-}" ]]; then echo "[test_assert] exit_code=$exit_code raw_actual=[$raw_actual]"; fi
-		# Restore previous flags
-		(( had_e )) && set -e || set +e
-		(( had_u )) && set -u || set +u
-		(( had_x )) && set -x || set +x
-		if [[ -n "${TEST_DEBUG:-}" ]]; then echo "[test_assert] flags restored"; fi
+	if [[ -n "${TEST_DEBUG:-}" ]]; then echo "[test_assert] flags: e=$had_e u=$had_u x=$had_x"; fi
+	# Disable errexit, nounset, and xtrace so evaluated commands can't abort the test runner
+	set +e
+	set +u
+	set +x
+	if [[ -n "${TEST_DEBUG:-}" ]]; then echo "[test_assert] eval: $command"; fi
+	raw_actual="$(eval "$command" 2>&1)"
+	exit_code=$?
+	if [[ -n "${TEST_DEBUG:-}" ]]; then echo "[test_assert] exit_code=$exit_code raw_actual=[$raw_actual]"; fi
+	# Restore previous flags
+	((had_e)) && set -e || set +e
+	((had_u)) && set -u || set +u
+	((had_x)) && set -x || set +x
+	if [[ -n "${TEST_DEBUG:-}" ]]; then echo "[test_assert] flags restored"; fi
 
 	# Sanitize output: remove bash xtrace/trace prefixes (lines that start with '+')
 	# and take the last non-empty line. This keeps assertions robust when sourced

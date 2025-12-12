@@ -138,10 +138,10 @@ gclean() {
 	echo "Cleaning up Git repository..."
 	git fetch --prune
 	# Remove fully merged local branches, excluding primary branches
-	git branch --merged \
-		| grep -Ev '^\*| (main|master|develop)$' \
-		| sed 's/^[[:space:]]*//' \
-		| while read -r b; do git branch -d "$b"; done
+	git branch --merged |
+		grep -Ev '^\*| (main|master|develop)$' |
+		sed 's/^[[:space:]]*//' |
+		while read -r b; do git branch -d "$b"; done
 	git gc --aggressive --prune=now
 }
 
@@ -198,4 +198,3 @@ mcpenv() {
 codehere() {
 	code "${1:-.}"
 }
-

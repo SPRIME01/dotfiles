@@ -20,9 +20,9 @@ last_sync=$(cat "$SYNC_MARKER" 2>/dev/null || echo "0")
 
 # If .env is newer than last sync, sync it
 if [[ "$current_mtime" -gt "$last_sync" ]]; then
-    echo "📝 Detected changes in .env, syncing to systemd..."
-    if bash "$DOTFILES_ROOT/scripts/export-to-systemd-env.sh" "$ENV_FILE" 2>/dev/null; then
-        echo "$current_mtime" > "$SYNC_MARKER"
-        echo "✓ Environment synced. Restart VS Code to pick up changes."
-    fi
+	echo "📝 Detected changes in .env, syncing to systemd..."
+	if bash "$DOTFILES_ROOT/scripts/export-to-systemd-env.sh" "$ENV_FILE" 2>/dev/null; then
+		echo "$current_mtime" >"$SYNC_MARKER"
+		echo "✓ Environment synced. Restart VS Code to pick up changes."
+	fi
 fi

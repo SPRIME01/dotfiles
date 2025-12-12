@@ -6,11 +6,11 @@ set -euo pipefail
 # Privilege helper: use sudo if present and needed
 SUDO=()
 if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
-  if command -v sudo >/dev/null 2>&1; then
-    SUDO=(sudo)
-  else
-    echo "⚠️ Running as non-root and sudo not found; attempting installs without elevation." >&2
-  fi
+	if command -v sudo >/dev/null 2>&1; then
+		SUDO=(sudo)
+	else
+		echo "⚠️ Running as non-root and sudo not found; attempting installs without elevation." >&2
+	fi
 fi
 
 # …rest of install-direnv.sh…
@@ -32,8 +32,8 @@ USED_PM="unknown"
 if command -v apt-get >/dev/null 2>&1 || command -v apt >/dev/null 2>&1; then
 	echo "📦 Using apt"
 	USED_PM="apt"
-	${SUDO[@]} apt-get update -qq
-	DEBIAN_FRONTEND=noninteractive ${SUDO[@]} apt-get install -yq direnv
+	"${SUDO[@]}" apt-get update -qq
+	DEBIAN_FRONTEND=noninteractive "${SUDO[@]}" apt-get install -yq direnv
 elif command -v brew >/dev/null 2>&1; then
 	echo "🍺 Using Homebrew"
 	USED_PM="brew"
@@ -41,15 +41,15 @@ elif command -v brew >/dev/null 2>&1; then
 elif command -v dnf >/dev/null 2>&1; then
 	echo "📦 Using dnf"
 	USED_PM="dnf"
-	${SUDO[@]} dnf install -y direnv
+	"${SUDO[@]}" dnf install -y direnv
 elif command -v pacman >/dev/null 2>&1; then
 	echo "📦 Using pacman"
 	USED_PM="pacman"
-	${SUDO[@]} pacman -S --noconfirm --needed direnv
+	"${SUDO[@]}" pacman -S --noconfirm --needed direnv
 elif command -v zypper >/dev/null 2>&1; then
 	echo "📦 Using zypper"
 	USED_PM="zypper"
-	${SUDO[@]} zypper -n install -y direnv
+	"${SUDO[@]}" zypper -n install -y direnv
 elif command -v scoop >/dev/null 2>&1; then
 	echo "🪟 Using scoop (Windows)"
 	USED_PM="scoop"
