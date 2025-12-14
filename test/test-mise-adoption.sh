@@ -7,69 +7,62 @@ set -uo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 source "$SCRIPT_DIR/framework.sh"
 
-test_volta_path_managed_centrally() {
-	echo "🧪 Testing Volta PATH management is centralized"
+test_no_volta_references() {
+	echo "🧪 Testing no Volta references in shell configs"
 	((TESTS_RUN++))
 
-	local required_files=(
-		"shell/common/environment.sh"
-		"shell/common/environment.ps1"
-		"lib/env-loader.sh"
-		"PowerShell/Utils/Load-Env.ps1"
-	)
-
-	local ok=true
-
-	for file in "${required_files[@]}"; do
-		if [[ ! -f "$file" ]]; then
-			echo "❌ Required Volta integration file missing: $file"
-			FAILED_TESTS+=("Missing Volta integration file: $file")
-			((TESTS_FAILED++))
-			ok=false
-		fi
-	done
-
-	if [[ "$ok" == true ]]; then
-		local shell_file="shell/common/environment.sh"
-		if ! grep -q "VOLTA_HOME" "$shell_file" || ! grep -q "VOLTA_HOME/bin" "$shell_file"; then
-			echo "❌ $shell_file missing Volta PATH logic"
-			FAILED_TESTS+=("Volta PATH missing in $shell_file")
-			((TESTS_FAILED++))
-			ok=false
-		fi
-
-		local ps_file="shell/common/environment.ps1"
-		if ! grep -q "VOLTA_HOME" "$ps_file" || { ! grep -q "voltaBin;\$env:PATH" "$ps_file" && ! grep -q "Add-PathIfMissing.*voltaBin" "$ps_file"; }; then
-			echo "❌ $ps_file missing Volta PATH logic"
-			FAILED_TESTS+=("Volta PATH missing in $ps_file")
-			((TESTS_FAILED++))
-			ok=false
-		fi
-	fi
-
-	# Ensure legacy files no longer inject Volta directly into PATH
-	local disallowed_files=(
+	# Files that should NOT contain Volta PATH injection
+	local checked_files=(
+		".zshrc"
 		".shell_common.sh"
+		".shell_init.sh"
+		"shell/common/environment.sh"
+		"lib/env-loader.sh"
 		"zsh/path.zsh"
 		".envrc"
 	)
 
-	for file in "${disallowed_files[@]}"; do
-		if [[ -f "$file" ]] && grep -Eq "VOLTA_HOME.*PATH|PATH.*VOLTA_HOME" "$file"; then
-			echo "❌ Legacy Volta PATH injection still present in $file"
-			FAILED_TESTS+=("Legacy Volta PATH injection in $file")
+	local ok=true
+
+	for file in "${checked_files[@]}"; do
+		if [[ -f "$file" ]] && grep -Eq "VOLTA_HOME.*PATH|PATH.*VOLTA_HOME|VOLTA_HOME.*bin" "$file"; then
+			echo "❌ Volta PATH injection found in $file (should be removed)"
+			FAILED_TESTS+=("Volta reference in $file")
 			((TESTS_FAILED++))
 			ok=false
 		fi
 	done
 
 	if [[ "$ok" == true ]]; then
-		echo "✅ Volta PATH is managed centrally"
+		echo "✅ No Volta references found in shell configs"
 		((TESTS_PASSED++))
 		return 0
 	fi
 
 	return 1
+}
+
+test_pnpm_in_mise_config() {
+	echo "🧪 Testing pnpm is configured in mise"
+	((TESTS_RUN++))
+
+	if [[ ! -f "dot_mise.toml" ]]; then
+		echo "❌ dot_mise.toml not found"
+		FAILED_TESTS+=("dot_mise.toml missing")
+		((TESTS_FAILED++))
+		return 1
+	fi
+
+	if grep -q 'pnpm' "dot_mise.toml"; then
+		echo "✅ pnpm is configured in mise"
+		((TESTS_PASSED++))
+		return 0
+	else
+		echo "❌ pnpm not found in dot_mise.toml"
+		FAILED_TESTS+=("pnpm not in mise config")
+		((TESTS_FAILED++))
+		return 1
+	fi
 }
 
 test_mise_config_present() {
@@ -232,11 +225,12 @@ test_mise_idempotence() {
 }
 
 main() {
-	echo "🔬 Testing Mise Adoption and Volta Deprecation"
-	echo "=============================================="
+	echo "🔬 Testing Mise Standardization (Volta Removed)"
+	echo "================================================"
 
 	# Run all tests
-	test_volta_path_managed_centrally
+	test_no_volta_references
+	test_pnpm_in_mise_config
 	test_mise_config_present
 	test_mise_dry_run
 	test_mise_idempotence

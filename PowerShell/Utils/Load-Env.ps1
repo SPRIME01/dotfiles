@@ -73,12 +73,7 @@ foreach ($pathEntry in $sharedPaths) {
     Add-PathIfMissing -Path $pathEntry
 }
 
-$voltaHome = if ($env:VOLTA_HOME) { $env:VOLTA_HOME } else { Get-UserProfilePath -Segments @('.volta') }
-$voltaBin = [System.IO.Path]::Combine($voltaHome, 'bin')
-if (Test-Path -LiteralPath $voltaBin) {
-    $env:VOLTA_HOME = $voltaHome
-    Add-PathIfMissing -Path $voltaBin
-}
+
 
 # Load shared cross-shell tooling modules
 $toolDir = Join-Path $repoRoot 'shell/common/tools.d/ps1'

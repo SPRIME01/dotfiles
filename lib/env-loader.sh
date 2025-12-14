@@ -121,11 +121,6 @@ export_computed_variables() {
 	add_path_once "$HOME/.npm-global/bin"
 	export PATH
 
-	# Set Volta path if directory exists
-	if [[ -d "$HOME/.volta/bin" ]]; then
-		export VOLTA_HOME="${VOLTA_HOME:-$HOME/.volta}"
-		add_path_once "$VOLTA_HOME/bin"
-	fi
 	export PATH
 }
 

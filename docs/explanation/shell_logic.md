@@ -39,12 +39,13 @@ When you need custom behaviour beyond the generator, keep the layers aligned:
 3. **Headless loaders** – ensure `lib/env-loader.sh` and `PowerShell/Utils/Load-Env.ps1` include the logic so scripts that invoke them inherit the same environment without requiring an interactive shell.
 4. **Shell-specific files** – only touch `shell/zsh/*.sh` or similar when a tool truly needs per-shell behaviour. Shared tools should live in the common modules above.
 
-## Example: Volta
+## Example: mise (Node.js and Tool Management)
 
-Volta now lives in the shared layers:
+Node.js version management is handled by **mise** (not Volta):
 
-- `shell/common/environment.sh` checks for `$HOME/.volta/bin`, exports `VOLTA_HOME`, and prepends `"$VOLTA_HOME/bin"` to `PATH` with deduping.
-- `shell/common/environment.ps1` performs the same check and updates `$env:PATH` when the directory exists.
-- `lib/env-loader.sh` and `PowerShell/Utils/Load-Env.ps1` include matching logic so CI scripts or `just` targets that source them also see Volta.
+- `dot_mise.toml` defines global tool versions (node, pnpm, python, go, rust).
+- `.shell_init.sh` activates mise via `mise activate zsh/bash`.
+- Mise shims are added to PATH at `$HOME/.local/share/mise/shims`.
+- Per-project versions can be set with `mise use node@18` which creates a local `.mise.toml`.
 
-With Volta centralized, `.shell_common.sh` and `zsh/path.zsh` no longer contain their own Volta snippets. Use this pattern for future tooling: update the shared environment first, then prune shell-specific leftovers.
+The shared environment files (`shell/common/environment.sh`, `lib/env-loader.sh`) no longer contain Volta-specific logic. Use this pattern for future tooling: configure in mise first, then verify shims are on PATH.

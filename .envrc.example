@@ -52,16 +52,14 @@ PATH_add "$PWD/tools"
 #   layout python
 # fi
 #
-# 3) Node.js: prefer Volta if available
-# if [ -d "$HOME/.volta" ]; then
-#   export VOLTA_HOME="$HOME/.volta"
-#   PATH_add "$VOLTA_HOME/bin"
-# fi
+# 3) Node.js: use mise (preferred, configured in .mise.toml)
+# if command -v mise >/dev/null 2>&1; then use mise; fi
 
 # Example: constrain what you export (uncomment to whitelist)
 # export -n  # stop exporting by default; then opt-in below
 # export PROJECTS_ROOT
 # export GEMINI_API_KEY
+# export MCP_BRIDGE_SCRIPT_PATH="$HOME/projects/MCPContextForge/scripts/mcp_stdio_bridge.js"
 
 # Tip: `direnv allow` is required only once per repo unless .envrc changes
 

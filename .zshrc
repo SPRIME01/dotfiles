@@ -17,8 +17,8 @@ fi
 # Use simplified shell init instead of complex .shell_common.sh
 if [[ -f "$HOME/dotfiles/.shell_init.sh" ]]; then
     source "$HOME/dotfiles/.shell_init.sh"
-elif [[ -f "/home/sprime01/dotfiles/.shell_init.sh" ]]; then
-    source "/home/sprime01/dotfiles/.shell_init.sh"
+elif [[ -f "$HOME/dotfiles/.shell_init.sh" ]]; then
+    source "$HOME/dotfiles/.shell_init.sh"
 fi
 
 # ============================================================================
@@ -93,8 +93,8 @@ fi
 # Load enhancements from dotfiles directory
 if [[ -f "$HOME/dotfiles/.zsh_enhancements.zsh" ]]; then
     source "$HOME/dotfiles/.zsh_enhancements.zsh"
-elif [[ -f "/home/sprime01/dotfiles/.zsh_enhancements.zsh" ]]; then
-    source "/home/sprime01/dotfiles/.zsh_enhancements.zsh"
+elif [[ -f "$HOME/dotfiles/.zsh_enhancements.zsh" ]]; then
+    source "$HOME/dotfiles/.zsh_enhancements.zsh"
 fi
 
 # ============================================================================
@@ -112,3 +112,4 @@ if [[ "${DOTFILES_PROFILE:-}" == "1" ]]; then
     zmodload zsh/zprof
     zprof
 fi
+

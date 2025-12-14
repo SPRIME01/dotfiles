@@ -7,6 +7,7 @@ experimental = true
 # Global tool versions (optional - uncomment to enable)
 [tools]
 node = "lts"        # Latest LTS version of Node.js
+pnpm = "latest"     # pnpm package manager (managed by mise)
 python = "3.12"     # Python 3.12
 go = "latest"       # Latest stable Go
 rust = "stable"     # Rust stable channel

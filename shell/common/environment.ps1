@@ -57,13 +57,7 @@ foreach ($candidate in $localBinCandidates) {
     Add-PathIfMissing -Path $candidate
 }
 
-# Volta (Node.js toolchain manager)
-$voltaHome = if ($env:VOLTA_HOME) { $env:VOLTA_HOME } else { Get-UserProfilePath -Segments @('.volta') }
-$voltaBin = [System.IO.Path]::Combine($voltaHome, 'bin')
-if (Test-Path -LiteralPath $voltaBin) {
-    $env:VOLTA_HOME = $voltaHome
-    Add-PathIfMissing -Path $voltaBin
-}
+
 
 # Go development
 if (Test-Path (Get-UserProfilePath -Segments @('go'))) {

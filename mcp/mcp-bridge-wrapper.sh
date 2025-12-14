@@ -11,4 +11,10 @@ if [ -f "$HOME/dotfiles/mcp/.env" ]; then
 fi
 
 # Run the MCP bridge script
-exec node "/home/sprime01/Projects/MCPContextForge/scripts/mcp_stdio_bridge.js"
+BRIDGE_SCRIPT="${MCP_BRIDGE_SCRIPT_PATH:-$HOME/projects/MCPContextForge/scripts/mcp_stdio_bridge.js}"
+if [[ ! -f "$BRIDGE_SCRIPT" ]]; then
+    echo "Error: MCP bridge script not found at $BRIDGE_SCRIPT" >&2
+    echo "Please set MCP_BRIDGE_SCRIPT_PATH in mcp/.env" >&2
+    exit 1
+fi
+exec node "$BRIDGE_SCRIPT"

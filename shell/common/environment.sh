@@ -73,12 +73,6 @@ if [[ -d "$HOME/go/bin" ]]; then
 	export GOPATH="$HOME/go"
 fi
 
-# Volta (Node.js toolchain manager)
-if [[ -d "$HOME/.volta/bin" ]]; then
-	export VOLTA_HOME="${VOLTA_HOME:-$HOME/.volta}"
-	add_path_once "$VOLTA_HOME/bin"
-fi
-
 # Color settings for various tools
 export GREP_OPTIONS="--color=auto"
 export CLICOLOR=1
