@@ -5,6 +5,9 @@
 # Powerlevel10k Instant Prompt (Must be first)
 # ============================================================================
 
+# Suppress P10k instant prompt console output warnings
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
@@ -113,3 +116,7 @@ if [[ "${DOTFILES_PROFILE:-}" == "1" ]]; then
     zprof
 fi
 
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
