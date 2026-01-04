@@ -43,6 +43,7 @@ fi
 
 # Execute
 echo "🚀 Running: $CMD"
+# shellcheck disable=SC2086  # Intentional word splitting for command arguments
 sudo $CMD
 
 echo "✅ Tailscale setup complete!"

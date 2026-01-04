@@ -13,6 +13,7 @@ if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
 	set -euo pipefail
 fi
 
+# shellcheck disable=SC2120  # Optional --force arg
 detect_platform() {
 	# Only compute once per shell session unless forced
 	if [[ -n "${DOTFILES_PLATFORM:-}" && "${1:-}" != "--force" ]]; then
@@ -48,6 +49,7 @@ detect_platform() {
 }
 
 # Predicate helpers (use detect_platform lazily)
+# shellcheck disable=SC2119  # detect_platform has optional --force arg
 is_linux() {
 	detect_platform
 	[[ "${DOTFILES_PLATFORM}" == "linux" ]]

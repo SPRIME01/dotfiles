@@ -1,0 +1,162 @@
+# =============================================================================
+# Docker Build Context Ignore
+# =============================================================================
+# Prevents Docker from trying to read broken symlinks, secrets, and other
+# problematic files during `docker build .`
+#
+# Key insight: Docker's build context walker traverses ALL files in the
+# directory tree. Broken symlinks cause `readlink` I/O errors that abort
+# the entire build.
+
+# --- CRITICAL: Symlink Protection ---
+# These patterns catch common broken symlink targets in WSL/cross-platform envs
+projects
+Projects
+external
+links
+mounts
+
+# --- Security & Secrets (NEVER in Docker context) ---
+.ssh/
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+id_ecdsa*
+id_dsa*
+.env
+.env.*
+!.env.example
+!.env.template
+.envrc
+.envrc.*
+!.envrc.example
+.secrets.json
+*.gpg
+*.asc
+secring.*
+pubring.*
+mcp/.env
+mcp/backups/
+**/*.backup.json
+**/*_Settings_*.json
+
+# --- Version Control ---
+.git
+.gitignore
+.gitattributes
+
+# --- Development & IDE ---
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+.netrwhist
+
+# --- Node.js ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+.env/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Build Artifacts ---
+build/
+dist/
+*.log
+logs/
+*.cache
+.cache/
+
+# --- OS Files ---
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+.directory
+
+# --- Backup/Temp Files ---
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+*.tmp
+tmp/
+temp/
+.temp/
+
+# --- Test Artifacts ---
+coverage/
+.nyc_output
+test/
+tests/
+
+# --- Documentation ---
+docs/
+*.md
+!README.md
+
+# --- Archives ---
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# --- WSL/Windows Integration ---
+/mnt/
+wsl-ssh-agent-relay*
+npiperelay*
+Users/
+OneDrive/
+Documents/
+AppData/
+
+# --- Devbox/Nix ---
+.devbox/
+devbox.json
+devbox.lock
+
+# --- Chezmoi ---
+.chezmoiignore
+chezmoi-debug.log
+dot_probe_file
+dot_state_probe
+
+# --- Roo/AI Tools ---
+.roo/
+.gemini/

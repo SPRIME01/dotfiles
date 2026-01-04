@@ -29,12 +29,12 @@ components:
     depends_on: []
     idempotent: true
     tests: []
-  - id: ssh_bridge
-    description: WSL to Windows SSH agent bridge initialization
-    script: scripts/enable-ssh-agent.sh
+  - id: tailscale_ssh
+    description: WSL2 remote access via Tailscale SSH (preferred)
+    script: scripts/setup-wsl2-remote-access.sh
     depends_on: []
     idempotent: true
-    tests: []
+    tests: [test/test-wsl2-remote-access.sh]
   - id: projects_setup
     description: Create projects dir + optional Windows link
     script: scripts/setup-projects-idempotent.sh
@@ -45,11 +45,5 @@ components:
     description: Windows PowerShell 7 profile integration from WSL
     script: scripts/setup-pwsh7.sh
     depends_on: [pwsh_config]
-    idempotent: true
-    tests: []
-  - id: ssh_agent_windows
-    description: Configure Windows SSH Agent auto-start
-    script: scripts/setup-ssh-agent-windows-simple.ps1
-    depends_on: []
     idempotent: true
     tests: []

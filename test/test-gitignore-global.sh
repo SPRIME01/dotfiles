@@ -11,7 +11,6 @@ test_global_gitignore_content() {
 	echo "🧪 Testing global gitignore content..."
 
 	# Check that chezmoi manages the global gitignore file
-	local gitignore_path="$HOME/.gitignore_global"
 	local chezmoi_source_gitignore="dot_gitignore_global"
 
 	# Verify chezmoi template exists

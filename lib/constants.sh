@@ -9,10 +9,11 @@ export DOTFILES_STATE_FILE_DEFAULT="$HOME/.dotfiles-state"
 export PROJECTS_ROOT_DEFAULT="$HOME/projects"
 
 # Oh My Posh installer (update monthly or when version changes)
+# shellcheck disable=SC2034  # These constants are sourced by bootstrap.sh and secure-install.sh
 readonly OMP_INSTALLER_URL="https://ohmyposh.dev/install.sh"
 # Note: Checksum should be updated regularly. Use: bash lib/secure-install.sh fetch_checksum
 # To skip checksum verification (not recommended), set to "skip"
-readonly OMP_INSTALLER_SHA256="skip" # TODO: Fetch and update checksum
+readonly OMP_INSTALLER_SHA256="skip"
 readonly OMP_UPDATE_DATE="2025-11-22"
 
 # Functions to resolve effective paths (allow overrides)

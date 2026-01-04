@@ -71,6 +71,9 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 # Load P10k config if it exists
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
+# Load P10k virtualenv customizations (Python venv indicator)
+[[ -f ~/dotfiles/.p10k_virtualenv.zsh ]] && source ~/dotfiles/.p10k_virtualenv.zsh
+
 # ============================================================================
 # Platform-Specific Configuration
 # ============================================================================
@@ -120,3 +123,10 @@ fi
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+# ============================================================================
+# VibesPro mise/devbox Integration (auto-generated)
+# This ensures mise-managed tools are available to all processes including
+# VS Code extensions like Nx Console
+# ============================================================================
+export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$HOME/.cargo/bin:$PATH"

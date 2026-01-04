@@ -38,16 +38,11 @@ test_assert "Script uses set -euo pipefail" \
 # Test 4: Help option works (doesn't require WSL)
 help_output=$(bash "$SCRIPT_UNDER_TEST" --help 2>&1 || true)
 test_assert_contains "Help shows usage info" "$help_output" "bash scripts/setup-wsl2-remote-access.sh"
-test_assert_contains "Help mentions tailscale option" "$help_output" "tailscale"
-test_assert_contains "Help mentions ssh option" "$help_output" "ssh"
+test_assert_contains "Help mentions Tailscale SSH" "$help_output" "Tailscale SSH"
 
-# Test 5: Script has both setup functions
+# Test 5: Script has Tailscale setup function
 test_assert "Has Tailscale SSH function" \
 	"grep -q 'setup_tailscale_ssh()' '$SCRIPT_UNDER_TEST' && echo 'ok'" \
-	"ok"
-
-test_assert "Has regular SSH function" \
-	"grep -q 'setup_regular_ssh()' '$SCRIPT_UNDER_TEST' && echo 'ok'" \
 	"ok"
 
 # Test 6: Script checks for WSL environment
@@ -60,25 +55,18 @@ test_assert "Supports TAILSCALE_AUTH_KEY environment variable" \
 	"grep -q 'TAILSCALE_AUTH_KEY' '$SCRIPT_UNDER_TEST' && echo 'ok'" \
 	"ok"
 
-# Test 8: Invalid option handling
-if [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
-	# In WSL, we can test actual option parsing
-	invalid_output=$(bash "$SCRIPT_UNDER_TEST" --invalid 2>&1 || true)
-	test_assert_contains "Invalid option shows error" "$invalid_output" "Unknown option"
-else
-	# Outside WSL, script will exit early with WSL check error
-	((++TESTS_SKIPPED))
-	echo "⏭️  Skipping: Invalid option test (requires WSL)"
-fi
+# Test 8: Invalid option handling - test outside WSL
+invalid_output=$(bash "$SCRIPT_UNDER_TEST" --invalid 2>&1 || true)
+test_assert_contains "Invalid option shows error" "$invalid_output" "Unknown option"
 
 # Test 9: Script integrates with dotfiles structure
 test_assert "References install-tailscale.sh" \
 	"grep -q 'install-tailscale.sh' '$SCRIPT_UNDER_TEST' && echo 'ok'" \
 	"ok"
 
-# Test 10: Security - disables password auth for regular SSH
-test_assert "Disables password authentication" \
-	"grep -q 'PasswordAuthentication no' '$SCRIPT_UNDER_TEST' && echo 'ok'" \
+# Test 10: Script mentions VS Code Remote SSH setup
+test_assert "Mentions VS Code Remote SSH" \
+	"grep -q 'VS Code' '$SCRIPT_UNDER_TEST' && echo 'ok'" \
 	"ok"
 
 echo ""

@@ -92,7 +92,8 @@ test_path_idempotence() {
 	# Create a test environment to simulate shell sourcing
 	local temp_dir
 	temp_dir=$(mktemp -d)
-	trap 'tdir=${temp_dir:-}; [[ -n "$tdir" ]] && rm -rf "$tdir"' EXIT
+	# shellcheck disable=SC2154  # temp_dir is set above; trap runs in same scope
+	trap 'local _tdir="${temp_dir:-}"; [[ -n "$_tdir" ]] && rm -rf "$_tdir"' EXIT
 
 	# Produce a sanitized, sourceable copy of the projects path template
 	local REPO_ROOT

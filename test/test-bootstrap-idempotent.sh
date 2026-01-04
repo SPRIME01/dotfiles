@@ -6,6 +6,7 @@ TMP_HOME=$(mktemp -d)
 export HOME="$TMP_HOME"
 
 trap 'rm -rf "$TMP_HOME"' EXIT
+# shellcheck disable=SC1007  # ZSH= intentionally sets empty string
 run_bootstrap() { ZSH= NO_NETWORK=1 OMP_VERSION=skip bash "$ROOT/bootstrap.sh" >/dev/null 2>&1; }
 
 HELPER="$ROOT/test/helpers/state_snapshot.sh"

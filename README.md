@@ -14,6 +14,8 @@ Welcome to a portable developer cockpit. This setup brings together PowerShell 7
 - **VS Code integration** with WSL-aware `code` command
 - **`just` task runner** with 50+ recipes for common workflows
 
+> 📚 **New to this setup?** Check out [Getting Started Guide](docs/getting-started.md) | **Remote Access:** [WSL2 Remote Access Guide](docs/wsl2-remote-access.md)
+
 ---
 
 ## 📁 File & Folder Overview
@@ -437,6 +439,40 @@ git clone https://github.com/SPRIME01/dotfiles ~/dotfiles
 3. **Restart your shell** to activate the environment
 
 Done. It will link your configs, install tools, and load your custom environment 🎯
+
+---
+
+## 🌐 WSL2 Remote Access (Tailscale SSH)
+
+Access your WSL2 environment securely from anywhere using Tailscale SSH:
+
+```bash
+# One-command setup (auto-audits and configures everything)
+bash scripts/setup-wsl2-remote-access.sh
+
+# Check configuration status
+bash scripts/setup-wsl2-remote-access.sh --audit
+```
+
+**What it does:**
+- 🔧 Installs Tailscale in WSL2 (if needed)
+- 🔐 Enables Tailscale SSH (no keys needed!)
+- 🖥️ Configures VS Code Remote-SSH automatically
+- ✅ Validates everything is working
+
+**Connect from VS Code:**
+1. Install "Remote - SSH" extension
+2. Press F1 → "Remote-SSH: Connect to Host"
+3. Select `wsl-<hostname>` (e.g., `wsl-Yoga7i`)
+4. Done! Tailscale handles authentication automatically
+
+**Benefits:**
+- Works from any device on your tailnet
+- No password/SSH key management
+- Survives WSL2 IP changes
+- End-to-end encrypted via WireGuard®
+
+📖 **Full guide:** [WSL2 Remote Access Documentation](docs/wsl2-remote-access.md)
 
 ---
 

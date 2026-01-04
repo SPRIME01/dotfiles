@@ -176,7 +176,8 @@ test_mise_idempotence() {
 		((TESTS_FAILED++))
 		return 1
 	fi
-	trap 'tmp=${tmpdest:-}; [[ -n "$tmp" ]] && rm -rf -- "$tmp"; trap - RETURN' RETURN
+	# shellcheck disable=SC2154  # tmpdest is set above; trap runs in same scope
+	trap 'local _tmp="${tmpdest:-}"; [[ -n "$_tmp" ]] && rm -rf -- "$_tmp"; trap - RETURN' RETURN
 	if ! chezmoi apply --source "$PWD" --destination "$tmpdest" --force >/dev/null 2>&1; then
 		echo "❌ failed to render .mise.toml to temp destination"
 		FAILED_TESTS+=("mise idempotence - render failed")
