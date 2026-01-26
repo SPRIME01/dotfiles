@@ -181,7 +181,7 @@ __load_platform_config() {
 # Shell Greeting (Simple, non-crashing)
 # ============================================================================
 
-if [[ $- == *i* ]] && [[ "${TERM_PROGRAM:-}" != "vscode" ]]; then
+if [[ $- == *i* ]] && [[ "${TERM_PROGRAM:-}" != "vscode" ]] && [[ "${DOTFILES_GREETING:-}" == "1" ]]; then
 	if [[ -n "${ZSH_VERSION:-}" ]]; then
 		echo "✨ Zsh ready"
 	elif [[ -n "${BASH_VERSION:-}" ]]; then
