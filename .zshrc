@@ -130,3 +130,8 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # VS Code extensions like Nx Console
 # ============================================================================
 export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+
+# opencode
+export PATH=/home/sprime01/.opencode/bin:$PATH
+
+export ANTHROPIC_AUTH_TOKEN="test"
