@@ -64,6 +64,7 @@ add_path_once "$HOME/.cargo/bin"
 add_path_once "$HOME/go/bin"
 add_path_once "$HOME/.poetry/bin"
 add_path_once "$HOME/.npm-global/bin"
+add_path_once "$HOME/.local/share/mise/shims"
 
 # Ensure PATH is exported after mutations
 export PATH
