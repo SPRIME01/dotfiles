@@ -42,9 +42,11 @@ bash_reload() {
 	fi
 }
 
-# Bash prompt customization (basic)
-# Note: More advanced prompts should be configured in the main bash configuration
-if [[ -z "${PS1:-}" ]]; then
+# Bash prompt customization
+# Prefer Starship if installed; fallback to basic colored prompt
+if command -v starship >/dev/null 2>&1; then
+	eval "$(starship init bash)"
+elif [[ -z "${PS1:-}" ]]; then
 	# We're in a non-interactive shell, don't set prompt
 	:
 elif [[ "$TERM" == "dumb" ]]; then
