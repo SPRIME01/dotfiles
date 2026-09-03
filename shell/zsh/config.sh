@@ -126,3 +126,19 @@ if [[ -f "$ZSH_PLUGINS_DIR/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
 	source "$ZSH_PLUGINS_DIR/zsh-autosuggestions/zsh-autosuggestions.zsh"
 	ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
 fi
+
+# VS Code shell integration (manual install style)
+# https://code.visualstudio.com/docs/terminal/shell-integration
+if [[ "${TERM_PROGRAM:-}" == "vscode" && -z "${DOTFILES_VSCODE_SHELL_INTEGRATION_LOADED:-}" ]]; then
+	if command -v code >/dev/null 2>&1; then
+		_vscode_shell_integration_path="$(code --locate-shell-integration-path zsh 2>/dev/null || true)"
+		if [[ -n "${_vscode_shell_integration_path}" && -r "${_vscode_shell_integration_path}" ]]; then
+			# Avoid network/UNC-like paths from WSL bridges to prevent cross-host contamination.
+			if [[ "${_vscode_shell_integration_path}" != \\\\wsl.localhost\\* && "${_vscode_shell_integration_path}" != \\\\wsl\\$\\* ]]; then
+				source "${_vscode_shell_integration_path}"
+				export DOTFILES_VSCODE_SHELL_INTEGRATION_LOADED=1
+			fi
+		fi
+		unset _vscode_shell_integration_path
+	fi
+fi

@@ -1,6 +1,11 @@
 # PowerShell modular integration bridge
 # This script integrates the new modular system with the existing PowerShell profile
 
+if ($env:DOTFILES_MODULAR_PWSH_LOADING -eq '1') {
+    return
+}
+$env:DOTFILES_MODULAR_PWSH_LOADING = '1'
+
 # Get the location of the dotfiles root
 $DotfilesRoot = $env:DOTFILES_ROOT
 if (-not $DotfilesRoot) {
@@ -46,3 +51,4 @@ if (Test-Path $ModularLoaderPath) {
 
 # Export the integration status for other scripts to check
 $env:MODULAR_POWERSHELL_LOADED = if (Test-Path $ModularLoaderPath) { "true" } else { "false" }
+$env:DOTFILES_MODULAR_PWSH_LOADING = '0'

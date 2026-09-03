@@ -22,7 +22,7 @@ if (-not $env:HUGGINGFACE_HUB_CACHE) {
 $env:OPENVINO_GENAI_DEFAULT_OLLAMA_HOST = $env:OPENVINO_GENAI_DEFAULT_OLLAMA_HOST ?? 'http://127.0.0.1:11434'
 
 function Get-OpenvinoGenaiOllamaStatus {
-    if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
+    if (-not (Get-Command -Name ollama -CommandType Application -ErrorAction Ignore)) {
         return 'missing'
     }
     try {
@@ -110,6 +110,6 @@ function Invoke-OpenvinoGenaiPython {
     & python @Args
 }
 
-if (-not (Get-Command ovg -ErrorAction SilentlyContinue)) {
+if (-not (Get-Command -Name ovg -ErrorAction Ignore)) {
     Set-Alias -Name ovg -Value Enter-OpenvinoGenai
 }

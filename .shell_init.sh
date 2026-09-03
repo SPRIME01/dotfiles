@@ -140,6 +140,23 @@ if command -v mise >/dev/null 2>&1; then
 fi
 
 # ============================================================================
+# VS Code Shell Integration (zsh)
+# ============================================================================
+
+if [[ -n "${ZSH_VERSION:-}" ]] && [[ "${TERM_PROGRAM:-}" == "vscode" ]] && [[ -z "${DOTFILES_VSCODE_SHELL_INTEGRATION_LOADED:-}" ]]; then
+	if command -v code >/dev/null 2>&1; then
+		__vscode_shell_integration_path="$(code --locate-shell-integration-path zsh 2>/dev/null || true)"
+		if [[ -n "$__vscode_shell_integration_path" ]] && [[ -r "$__vscode_shell_integration_path" ]]; then
+			if [[ "$__vscode_shell_integration_path" != \\\\wsl.localhost\\* ]] && [[ "$__vscode_shell_integration_path" != \\\\wsl\\$\\* ]]; then
+				source "$__vscode_shell_integration_path"
+				export DOTFILES_VSCODE_SHELL_INTEGRATION_LOADED=1
+			fi
+		fi
+		unset __vscode_shell_integration_path
+	fi
+fi
+
+# ============================================================================
 # Lazy Loaders (Load on demand, not at startup)
 # ============================================================================
 

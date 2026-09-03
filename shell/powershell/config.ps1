@@ -133,7 +133,7 @@ Set-Alias -Name isadmin -Value Test-Administrator
 # Optional direnv integration (if installed) - parity with bash/zsh
 if (-not $env:DISABLE_DIRENV -and -not $env:DOTFILES_DIRENV_PWSH_INITIALIZED) {
     $env:DOTFILES_DIRENV_PWSH_INITIALIZED = 1
-    if (Get-Command direnv -ErrorAction SilentlyContinue) {
+    if (Get-Command -Name direnv -CommandType Application -ErrorAction Ignore) {
         try {
             # Prefer 'pwsh' target (newer direnv), fall back to 'powershell' (older direnv)
             $hook = (direnv hook pwsh) 2>$null

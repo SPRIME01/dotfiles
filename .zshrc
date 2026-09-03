@@ -129,9 +129,31 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # This ensures mise-managed tools are available to all processes including
 # VS Code extensions like Nx Console
 # ============================================================================
-export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 
 # opencode
 export PATH=/home/sprime01/.opencode/bin:$PATH
 
 export ANTHROPIC_AUTH_TOKEN="test"
+
+# Auto-activate Claude Code Router
+if command -v ccr >/dev/null 2>&1; then
+  eval "$(ccr activate)" 2>/dev/null
+fi
+
+
+ccrun() {
+  if ! pgrep -f "claude-code-router" >/dev/null; then
+    echo "Starting CCR..."
+    ccr start >/dev/null 2>&1
+  fi
+
+  if ! pgrep -f "antigravity-claude-proxy" >/dev/null; then
+    echo "Starting Antigravity..."
+    antigravity-claude-proxy start >/dev/null 2>&1 &
+  fi
+
+  eval "$(ccr activate)"
+  claude
+}
+

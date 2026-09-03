@@ -140,6 +140,12 @@ if [[ $CREATE_SYMLINK -eq 0 ]]; then
 # Created: $(date -Iseconds)
 # This profile loads the main dotfiles PowerShell configuration from WSL2.
 
+# Re-entry guard to prevent recursive bootstrap loops
+if (\$env:DOTFILES_WINDOWS_BOOTSTRAP_LOADING -eq '1') {
+	return
+}
+\$env:DOTFILES_WINDOWS_BOOTSTRAP_LOADING = '1'
+
 # Prefer \wsl.localhost, then legacy \\wsl$ fallback
 \$roots = @(
   "$DOTFILES_WIN_PATH",
@@ -157,14 +163,28 @@ foreach (\$r in \$roots) {
 if (-not \$env:DOTFILES_ROOT) { \$env:DOTFILES_ROOT = "$DOTFILES_WIN_PATH" }
 if (-not \$env:PROJECTS_ROOT) { \$env:PROJECTS_ROOT = "$PROJECTS_WIN_PATH" }
 
+# Import Terminal-Icons on Windows only (not in WSL)
+if (\$IsWindows -and \$PSVersionTable.PSEdition -eq 'Core') {
+	try {
+		if (Get-Module -ListAvailable -Name Terminal-Icons -ErrorAction SilentlyContinue) {
+			Import-Module Terminal-Icons -ErrorAction Stop
+		}
+	} catch {
+		# Keep profile startup resilient if module or user theme cache is broken
+	}
+}
+
 \$mainProfile = Join-Path \$env:DOTFILES_ROOT 'PowerShell\\Microsoft.PowerShell_profile.ps1'
 if (Test-Path \$mainProfile) {
   try {
     . \$mainProfile
+		\$env:DOTFILES_WINDOWS_BOOTSTRAP_LOADED = '1'
     Write-Host '✅ Loaded dotfiles PowerShell profile' -ForegroundColor Green
   } catch {
-    Write-Warning '❌ Error loading dotfiles PowerShell profile:'
-    Write-Warning \$_.Exception.Message
+		if (\$Host.UI -and \$Host.UI.RawUI) {
+			Write-Warning '❌ Error loading dotfiles PowerShell profile:'
+			Write-Warning \$_.Exception.Message
+		}
     Write-Host '💡 Falling back to basic configuration' -ForegroundColor Yellow
     function projects { Set-Location \$env:PROJECTS_ROOT }
   }
@@ -173,6 +193,8 @@ if (Test-Path \$mainProfile) {
   Write-Host '📦 Setting up basic configuration...' -ForegroundColor Yellow
   function projects { Set-Location \$env:PROJECTS_ROOT }
 }
+
+\$env:DOTFILES_WINDOWS_BOOTSTRAP_LOADING = '0'
 EOF
 		)
 

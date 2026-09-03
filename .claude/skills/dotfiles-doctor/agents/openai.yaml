@@ -1,0 +1,3 @@
+display_name: Dotfiles Doctor
+short_description: Audit, fix, document, and test Windows+WSL2 dotfiles loading architecture
+default_prompt: Run Invoke-DotfilesDoctor to audit, fix, document, and test host-aware PowerShell dotfiles behavior and module-loading safety.

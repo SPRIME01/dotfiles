@@ -9,59 +9,6 @@ $shellConfigDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 # --- Module Imports (PowerShell Specific) ---
 Write-Verbose "Importing PowerShell modules..."
 try {
-    # --- Lazy Loading for Terminal-Icons ---
-    # Intercept Get-ChildItem and its aliases (ls, dir) to lazy-load Terminal-Icons
-    function Get-ChildItem {
-        [CmdletBinding(DefaultParameterSetName = 'Items')]
-        param(
-            # Subset of Get-ChildItem parameters (common parameters are implicit; do not redeclare)
-            [Parameter(Position = 0)]
-            [string[]]$Path,
-            [string]$Filter,
-            [string[]]$Include,
-            [string[]]$Exclude,
-            [string[]]$LiteralPath,
-            [switch]$Force,
-            [switch]$Recurse,
-            [int]$Depth,
-            [Parameter(ParameterSetName = 'Items')]
-            [switch]$File,
-            [Parameter(ParameterSetName = 'Items')]
-            [switch]$Directory,
-            [Parameter(ParameterSetName = 'Items')]
-            [switch]$Hidden,
-            [Parameter(ParameterSetName = 'Items')]
-            [switch]$ReadOnly,
-            [Parameter(ParameterSetName = 'Items')]
-            [switch]$System,
-            [Parameter(ParameterSetName = 'Items')]
-            [string[]]$Name,
-            [Parameter(ParameterSetName = 'Items')]
-            [System.Collections.Hashtable]$Attributes,
-            [Parameter(ParameterSetName = 'Directory')]
-            [switch]$Container, # For Get-ChildItem -Container
-            [Parameter(ParameterSetName = 'File')]
-            [switch]$Leaf # For Get-ChildItem -Leaf
-        )
-
-        # Check if Terminal-Icons is already loaded
-        if (-not (Get-Module -Name Terminal-Icons -ErrorAction SilentlyContinue)) {
-            Write-Verbose "Lazy loading Terminal-Icons..."
-            try {
-                Import-Module -Name Terminal-Icons -ErrorAction Stop
-            }
-            catch {
-                Write-Warning "Failed to lazy-load Terminal-Icons: $_"
-            }
-        }
-
-        # Call the original Get-ChildItem cmdlet
-        & (Get-Command -Name Get-ChildItem -CommandType Cmdlet) @PSBoundParameters
-    }
-
-    # Avoid re-defining built-in aliases like 'ls' and 'dir' which may be AllScope/ReadOnly
-    # Built-in aliases already point to Get-ChildItem, and will route to our function
-
     # PSReadLine: Check if already loaded by VS Code or other means
     if (-not (Get-Module -Name PSReadLine -ErrorAction SilentlyContinue)) {
         Import-Module -Name PSReadLine -ErrorAction SilentlyContinue
@@ -76,28 +23,53 @@ catch {
 # Enhance command-line editing, history, and prediction
 try {
     Write-Verbose "Configuring PSReadLine..."
-    Set-PSReadLineOption -EditMode Emacs # Your preference
-    Set-PSReadLineOption -PredictionSource History
-    Set-PSReadLineOption -PredictionViewStyle ListView # Add if you like list view
-    Set-PSReadLineOption -HistorySaveStyle SaveIncrementally
-    Set-PSReadLineOption -MaximumHistoryCount 10000
+    $canTuneReadLine = $false
+    try {
+        $canTuneReadLine = -not [Console]::IsOutputRedirected
+    } catch {
+        $canTuneReadLine = $false
+    }
 
-    # Example: Key bindings (customize as needed)
-    Set-PSReadLineKeyHandler -Key Ctrl+Spacebar -Function MenuComplete
+    if ($canTuneReadLine) {
+        Set-PSReadLineOption -EditMode Emacs # Your preference
+        Set-PSReadLineOption -PredictionSource History
+        Set-PSReadLineOption -PredictionViewStyle ListView # Add if you like list view
+        Set-PSReadLineOption -HistorySaveStyle SaveIncrementally
+        Set-PSReadLineOption -MaximumHistoryCount 10000
+
+        # Example: Key bindings (customize as needed)
+        Set-PSReadLineKeyHandler -Key Ctrl+Spacebar -Function MenuComplete
+    }
 
 }
 catch {
     Write-Warning "Failed to configure PSReadLine: $_"
 }
 
-# --- VS Code Specific Integration (Optional - usually done by VS Code itself) ---
-# Ensures terminal features work correctly within VS Code's integrated terminal
-# This line is often automatically injected by VS Code. Only keep if you find it's needed.
-if ($env:TERM_PROGRAM -eq "vscode") {
+# --- VS Code Specific Integration (Manual, guarded, idempotent) ---
+# Apply only inside VS Code terminals, only once per process, and avoid non-local paths.
+if ($env:TERM_PROGRAM -eq 'vscode' -and -not $env:DOTFILES_VSCODE_SHELL_INTEGRATION_LOADED) {
     try {
         Write-Verbose "Applying VS Code shell integration..."
-        # Use -ErrorAction SilentlyContinue to avoid breaking if path isn't found
-        . "$(code-insiders --locate-shell-integration-path pwsh -ErrorAction SilentlyContinue)"
+
+        # Avoid wrappers/functions/aliases (which can recurse); use application commands only.
+        $vscodeCli = Get-Command code-insiders, code -CommandType Application -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+
+        if ($vscodeCli) {
+            $integrationPath = & $vscodeCli.Source --locate-shell-integration-path pwsh 2>$null
+
+            if ($integrationPath -and (Test-Path -LiteralPath $integrationPath)) {
+                $isUnc = $integrationPath -like '\\*'
+                $isWslNetwork = $integrationPath -match '^(?i)\\\\wsl(?:\.localhost)?\\|^\\\\wsl\\$\\'
+                if (-not ($isUnc -or $isWslNetwork)) {
+                    . $integrationPath
+                    $env:DOTFILES_VSCODE_SHELL_INTEGRATION_LOADED = '1'
+                } else {
+                    Write-Verbose "Skipping VS Code shell integration from UNC/WSL network path: $integrationPath"
+                }
+            }
+        }
     }
     catch {
         Write-Warning "Failed to apply VS Code shell integration: $_"

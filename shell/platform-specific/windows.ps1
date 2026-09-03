@@ -9,20 +9,20 @@ function explorer. { explorer . }
 function notepad { notepad.exe @args }
 
 # Package manager aliases
-if (Get-Command winget -ErrorAction SilentlyContinue) {
+if (Get-Command -Name winget -CommandType Application -ErrorAction Ignore) {
     function install { winget install @args }
     function search { winget search @args }
     function uninstall { winget uninstall @args }
     function upgrade { winget upgrade @args }
 }
 
-if (Get-Command choco -ErrorAction SilentlyContinue) {
+if (Get-Command -Name choco -CommandType Application -ErrorAction Ignore) {
     function choco-install { choco install @args }
     function choco-upgrade { choco upgrade all }
     function choco-search { choco search @args }
 }
 
-if (Get-Command scoop -ErrorAction SilentlyContinue) {
+if (Get-Command -Name scoop -CommandType Application -ErrorAction Ignore) {
     function scoop-install { scoop install @args }
     function scoop-update { scoop update * }
     function scoop-search { scoop search @args }
@@ -100,7 +100,7 @@ foreach ($WinPath in $WindowsPaths) {
 }
 
 # WSL integration functions
-if (Get-Command wsl -ErrorAction SilentlyContinue) {
+if (Get-Command -Name wsl.exe -CommandType Application -ErrorAction Ignore) {
     function Enter-WSL {
         param([string]$Distribution = $null)
 

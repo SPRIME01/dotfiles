@@ -87,7 +87,7 @@ if (Test-Path -LiteralPath $toolDir) {
 function Activate-Mise {
     [CmdletBinding()]
     param()
-    if (Get-Command mise -ErrorAction SilentlyContinue) {
+    if (Get-Command -Name mise -CommandType Application -ErrorAction Ignore) {
         try {
             (& mise activate pwsh --shims) | Invoke-Expression
         } catch {

@@ -11,8 +11,10 @@
 if [[ -n "$BASH_VERSION" ]]; then
 	SHELL_CONFIG_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 elif [[ -n "$ZSH_VERSION" ]]; then
-	# In zsh, ${(%):-%N} expands to the script name; use $0 as a portable fallback
-	SHELL_CONFIG_ROOT="$(cd "$(dirname "$0")" && pwd)"
+	# In zsh, ${(%):-%x} expands to the currently sourced script path.
+	eval '__dotfiles_loader_path="${(%):-%x}"'
+	SHELL_CONFIG_ROOT="$(cd "$(dirname "${__dotfiles_loader_path:-$0}")" && pwd)"
+	unset __dotfiles_loader_path
 else
 	# Fallback for other shells
 	SHELL_CONFIG_ROOT="$(cd "$(dirname "$0")" && pwd)"

@@ -1,3 +1,9 @@
+# Guard against recursive/re-entrant profile loading
+if ($env:DOTFILES_PWSH_PROFILE_LOADING -eq '1') {
+    return
+}
+$env:DOTFILES_PWSH_PROFILE_LOADING = '1'
+
 # Determine DOTFILES_ROOT and PROJECTS_ROOT for this shell
 if (-not $env:DOTFILES_ROOT) {
     # Use the location of this profile to locate the repository root.  The profile resides in
@@ -46,16 +52,27 @@ if (-not (Test-Path $themePath)) {
     $themePath = Join-Path $env:DOTFILES_ROOT 'PowerShell/Themes/emodipt-extend.omp.json'
 }
 
-if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
-    oh-my-posh init pwsh --config "$themePath" | Invoke-Expression
+$ompCmd = Get-Command -Name oh-my-posh -CommandType Application -ErrorAction Ignore
+if ($ompCmd) {
+    & $ompCmd.Source init pwsh --config "$themePath" | Invoke-Expression
 } else {
     Write-Verbose "oh-my-posh not found; skipping prompt init" -Verbose:$false
 }
-Import-Module -Name Terminal-Icons -ErrorAction SilentlyContinue
-Import-Module PSReadLine -ErrorAction SilentlyContinue
-Set-PSReadLineOption -PredictionSource History
-Set-PSReadLineOption -PredictionViewStyle ListView
-Set-PSReadLineOption -EditMode Windows
+# Terminal-Icons is imported in Windows-side bootstrap profile only (not in WSL)
+if (Get-Module -ListAvailable -Name PSReadLine -ErrorAction Ignore) {
+    Import-Module PSReadLine -ErrorAction SilentlyContinue
+    $canTuneReadLine = $false
+    try {
+        $canTuneReadLine = -not [Console]::IsOutputRedirected
+    } catch {
+        $canTuneReadLine = $false
+    }
+    if ($canTuneReadLine -and (Get-Command -Name Set-PSReadLineOption -ErrorAction Ignore)) {
+        Set-PSReadLineOption -PredictionSource History
+        Set-PSReadLineOption -PredictionViewStyle ListView
+        Set-PSReadLineOption -EditMode Windows
+    }
+}
 
 # Changed: source the shared theme config from the repo root ('.shell_theme_common.ps1')
 $sharedShellConfig = Join-Path $env:DOTFILES_ROOT '.shell_theme_common.ps1'
@@ -124,8 +141,12 @@ function dotgit {
 }
 
 # WSL-aware VS Code launchers: make `code .` work from UNC paths
-try { Remove-Item Alias:code -ErrorAction SilentlyContinue } catch {}
-try { Remove-Item Alias:code-insiders -ErrorAction SilentlyContinue } catch {}
+if (Test-Path Alias:code) {
+    try { Remove-Item Alias:code -ErrorAction SilentlyContinue } catch {}
+}
+if (Test-Path Alias:code-insiders) {
+    try { Remove-Item Alias:code-insiders -ErrorAction SilentlyContinue } catch {}
+}
 
 function code {
     param([Parameter(ValueFromRemainingArguments = $true)][string[]] $args)
@@ -300,6 +321,10 @@ function Link-WSLProjects {
 # --- WSL Interop Convenience (Windows only) ---
 if ($IsWindows) {
     function Initialize-WSLInterop {
+        $wslExe = Get-Command -Name wsl.exe -CommandType Application -ErrorAction Ignore
+        if (-not $wslExe) {
+            return
+        }
         # Gently wake WSL to ensure UNC is available
         try { wsl.exe -l -q *> $null } catch {}
         try {
@@ -329,17 +354,24 @@ if ($IsWindows) {
         $global:WSLRoot = $chosen
         try { $global:WSLUser = (wsl.exe -d $d -e sh -lc 'echo -n $USER' 2>$null) } catch { $global:WSLUser = $env:USERNAME.ToLower() }
         $global:wsl = $global:WSLRoot
-        if (-not (Get-PSDrive -Name 'WSL' -ErrorAction SilentlyContinue)) {
+        $hasWslDrive = Get-PSDrive -PSProvider FileSystem -ErrorAction Ignore | Where-Object { $_.Name -eq 'WSL' }
+        if (-not $hasWslDrive) {
             try { New-PSDrive -Name 'WSL' -PSProvider FileSystem -Root $global:WSLRoot -Scope Global -ErrorAction SilentlyContinue | Out-Null } catch {}
         }
     }
     Initialize-WSLInterop
 
     # Aliases + helpers
-    Set-Alias ubuntu wsl -ErrorAction SilentlyContinue
+    if (Get-Command -Name wsl.exe -CommandType Application -ErrorAction Ignore) {
+        Set-Alias ubuntu wsl -ErrorAction SilentlyContinue
+    }
     function Run-LinuxCommand {
         param([Parameter(ValueFromRemainingArguments = $true)][string[]] $Args)
         if (-not $Args -or $Args.Count -eq 0) { Write-Host 'Usage: Run-LinuxCommand <command...>'; return }
+        if (-not (Get-Command -Name wsl.exe -CommandType Application -ErrorAction Ignore)) {
+            Write-Warning 'wsl.exe is not available on PATH.'
+            return
+        }
         $cmd = ($Args -join ' ')
         wsl.exe bash -lc $cmd
     }
@@ -353,7 +385,11 @@ if ($IsWindows) {
         if ($p.StartsWith('/')) { $p = $p.TrimStart('/') }
         $p = ($p -replace '/', '\\')
         $dest = Join-Path $global:WSLRoot $p
-        Set-Location -LiteralPath $dest
+        if (Test-Path -LiteralPath $dest) {
+            Set-Location -LiteralPath $dest
+        } else {
+            Write-Warning "WSL path not found: $dest"
+        }
     }
 
     function Mount-WSLDrive {
@@ -364,6 +400,9 @@ if ($IsWindows) {
         try { New-PSDrive @args | Out-Null; Write-Host ("✅ Mounted ${Name}: -> " + $global:WSLRoot) -ForegroundColor Green } catch { Write-Warning $_.Exception.Message }
     }
 }
+
+$env:DOTFILES_PWSH_PROFILE_LOADING = '0'
+$env:DOTFILES_PWSH_PROFILE_LOADED = '1'
 
 # Make `just` work globally in Windows by falling back to a global justfile
 # Only apply on Windows so WSL/Linux pwsh aren't affected
