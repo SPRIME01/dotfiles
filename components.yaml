@@ -1,10 +1,4 @@
 components:
-  - id: zsh_config
-    description: Install and configure Zsh + plugins + Powerlevel10k
-    script: install_zsh.sh
-    depends_on: [bash_config]
-    idempotent: true
-    tests: []
   - id: bash_config
     description: Bootstrap Bash/Zsh shared symlinks and environment
     script: bootstrap.sh

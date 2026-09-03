@@ -21,7 +21,7 @@ fi
 
 # Create symlinks for shell configuration files
 ln -sf "$DOTFILES/.bashrc" ~/.bashrc
-ln -sf "$DOTFILES/.zshrc" ~/.zshrc
+ln -sf "$DOTFILES/.inputrc" ~/.inputrc
 ln -sf "$DOTFILES/.shell_common.sh" ~/.shell_common
 ln -sf "$DOTFILES/.shell_theme_common.ps1" ~/.shell_theme_common
 ln -sf "$DOTFILES/.shell_functions.sh" ~/.shell_functions
@@ -44,23 +44,6 @@ else
 	echo "ℹ️  NO_NETWORK=1 set; skipping oh-my-posh installation"
 fi
 
-# Install Oh My Zsh for Linux/WSL2 environments
-if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ -n "$WSL_DISTRO_NAME" ]]; then
-	echo "🐧 Detected Linux/WSL2 environment"
-
-	# Make install_zsh.sh executable and run it (skip entirely when NO_NETWORK=1 for test idempotency)
-	if [[ "${NO_NETWORK:-0}" == "1" ]]; then
-		echo "ℹ️  NO_NETWORK=1 set; skipping Zsh/Oh My Zsh installation"
-	else
-		if [ -f "$DOTFILES/install_zsh.sh" ]; then
-			chmod +x "$DOTFILES/install_zsh.sh"
-			echo "🐚 Installing Oh My Zsh..."
-			"$DOTFILES/install_zsh.sh"
-		else
-			echo "⚠️  install_zsh.sh not found, skipping Zsh setup"
-		fi
-	fi
-fi
 
 # Setup MCP configuration
 echo "🔧 Setting up MCP (Model Context Protocol) configuration..."

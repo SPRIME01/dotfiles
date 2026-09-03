@@ -1,0 +1,33 @@
+# ============================================================================
+# GNU Readline Configuration (~/.inputrc)
+# High-Performance, Agent-Safe Autocomplete & History Search for Bash
+# ============================================================================
+
+# Immediate 1-Tab completion (no double-tab needed)
+set show-all-if-ambiguous on
+
+# Case-insensitive tab completion
+set completion-ignore-case on
+
+# Colorize completion lists according to LS_COLORS
+set colored-stats on
+
+# Add a trailing slash when completing symlinked directories
+set mark-symlinked-directories on
+
+# Don't auto-complete hidden files unless the user explicitly types a leading dot
+set match-hidden-files off
+
+# When completing, show common prefix before cycling
+set menu-complete-display-prefix on
+
+# Prefix history search: type a prefix (e.g. "git ") and press Up/Down
+# to cycle only through commands starting with that prefix
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+"\eOA": history-search-backward
+"\eOB": history-search-forward
+
+# Tab cycles forward through completion matches; Shift+Tab cycles backward
+"\t": menu-complete
+"\e[Z": menu-complete-backward
