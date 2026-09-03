@@ -59,9 +59,9 @@ to suit your needs.
 
 ### Linux (Bash/Zsh)
 
-* The shared configuration file [`.shell_common.sh`](../.shell_common.sh)
+* The shared configuration file [`.shell_common.sh`](../../.shell_common.sh)
   determines the location of the dotfiles repository at runtime.  It then
-  sources [`scripts/load_env.sh`](../scripts/load_env.sh), which defines a
+  sources [`lib/env-loader.sh`](../../lib/env-loader.sh), which defines a
   `load_env_file` function.  This function parses dotenv files without
   executing code and exports each key/value pair into your shell.
 
@@ -80,7 +80,7 @@ to suit your needs.
 ### Windows PowerShell
 
 * A complementary loader script lives at
-  [`PowerShell/Utils/Load-Env.ps1`](../PowerShell/Utils/Load-Env.ps1).  It
+  [`PowerShell/Utils/Load-Env.ps1`](../../PowerShell/Utils/Load-Env.ps1).  It
   defines the `Load-EnvFile` function that accepts a file path and populates
   `$env:` variables.  You can also run this script directly to load a file
   into your current PowerShell session:
@@ -92,7 +92,7 @@ to suit your needs.
   ```
 
 * During PowerShell startup, the profile
-  [`Microsoft.PowerShell_profile.ps1`](../PowerShell/Microsoft.PowerShell_profile.ps1)
+  [`Microsoft.PowerShell_profile.ps1`](../../PowerShell/Microsoft.PowerShell_profile.ps1)
   sets `$env:DOTFILES_ROOT` and `$env:PROJECTS_ROOT` based on the profile
   location, then loads both `.env` and `mcp/.env` via the loader.  This
   ensures that all your PowerShell functions (e.g. in `Get-SecretKey.ps1`) can
@@ -205,7 +205,7 @@ logic in the scripts.
 
 For WSL2 users who wish to use their **Windows OpenSSH agent** in WSL
 without duplicating keys, a consolidated script lives at
-[`scripts/setup-ssh-agent-bridge.sh`](../scripts/setup-ssh-agent-bridge.sh).
+[`scripts/setup-wsl2-remote-access.sh`](../../scripts/setup-wsl2-remote-access.sh).
 This script checks if you are running in WSL2, starts
 `wsl-ssh-agent-relay` and `socat` as needed, and exports `SSH_AUTH_SOCK` to
 point at a Unix socket inside your WSL home directory.  It is sourced by

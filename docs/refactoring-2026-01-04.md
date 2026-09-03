@@ -275,8 +275,8 @@ Host wsl-Yoga7i
 ### Files Created
 | File | Purpose | Lines |
 |------|---------|-------|
-| `docs/wsl2-remote-access.md` | Comprehensive setup guide | 450+ |
-| `docs/refactoring-2026-01-04.md` | This document | 350+ |
+| `wsl2-remote-access.md` | Comprehensive setup guide | 450+ |
+| `refactoring-2026-01-04.md` | This document | 350+ |
 
 ### Files Modified
 | File | Lines Changed | Description |
@@ -523,14 +523,14 @@ tailscale status --self --json | jq -r '.Self.DNSName'
 
 ### New Documentation Files
 
-1. **[docs/wsl2-remote-access.md](docs/wsl2-remote-access.md)**
+1. **[wsl2-remote-access.md](wsl2-remote-access.md)**
    - Complete setup guide
    - VS Code integration instructions
    - Troubleshooting section
    - Architecture details
    - Security considerations
 
-2. **[docs/refactoring-2026-01-04.md](docs/refactoring-2026-01-04.md)** (this file)
+2. **[refactoring-2026-01-04.md](refactoring-2026-01-04.md)** (this file)
    - Comprehensive change log
    - Migration guide
    - Testing strategy
@@ -573,7 +573,7 @@ This refactoring achieves:
 ✅ **Performance** - 50-60% faster, fewer dependencies
 
 **Next Steps:**
-1. Read [docs/wsl2-remote-access.md](docs/wsl2-remote-access.md) for usage guide
+1. Read [wsl2-remote-access.md](wsl2-remote-access.md) for usage guide
 2. Run `bash scripts/setup-wsl2-remote-access.sh` to configure your system
 3. Connect via VS Code Remote-SSH from any device on your tailnet
 4. Enjoy seamless remote development! 🚀

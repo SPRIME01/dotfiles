@@ -1,99 +1,107 @@
-# Dotfiles System — Overview and Quickstart
+# Dotfiles System — Technical Knowledge System
 
-Welcome. This repository manages your shell and editor configuration across Linux, macOS, and Windows (including WSL) using four core tools:
+> **Orientation:** Layer 0 Entry Point  
+> **Audience:** Everyone — from newcomers with no prior repository context to senior engineers seeking architectural depth  
+> **System Status:** Production Cockpit (WSL2, Linux, macOS, Windows PowerShell 7)  
 
-- chezmoi: declarative dotfile management and templating
-- direnv: per-directory environments with safe “allow” gates
-- just: convenient task runner for repeatable tasks
-- mise: tool/version manager loaded early in shell init
-Use the tutorials for the happy path and the how‑tos for common tasks. Reference pages list commands and structure; the explanation page shows how the pieces fit.
+---
 
-Quickstart
+## 1. What This Project Is
 
-- Linux/macOS (recommended happy path)
-  1) Clone and apply with chezmoi installer baked in:
-     ```bash
-     git clone https://github.com/SPRIME01/dotfiles "$HOME/dotfiles"
-     cd "$HOME/dotfiles"
-     bash install.sh
-     ```
-     - When to use: first setup on a Unix-like system.
-     - Why it matters: installs chezmoi if missing; applies templates safely.
+This repository is a **unified cross-platform developer environment**. It manages and synchronizes shell configurations (`zsh`, `bash`, and `pwsh`), environment variables, toolchains (`mise`, `direnv`), encrypted secrets (`sops`, `age`), AI agent protocols (Model Context Protocol), and terminal themes (`powerlevel10k`, `oh-my-posh`) across Linux, WSL2, and Windows hosts from a single Git repository.
 
-  2) Validate core health and environment:
-     ```bash
-     bash scripts/doctor.sh
-     CHEZMOI_NO_PAGER=1 PAGER=cat chezmoi doctor
-     ```
-     - When to use: after bootstrap, any time things feel off.
-     - Why it matters: confirms basics (paths, git ignores, optional tools).
+---
 
-  3) Install direnv and enable in this repo:
-     ```bash
-     # Option A: from inside the repo using the project justfile
-     just install-direnv
-     # Option B: directly via the helper script
-     bash scripts/install-direnv.sh
+## 2. What Problem It Solves
 
-     direnv version
-     direnv allow   # in the repo root (re-run after editing .envrc)
-     direnv status
-     ```
-     - When to use: once per machine; re-run if direnv missing.
-     - Why it matters: quiet, per-repo envs and PATH for tools in this repo.
+Modern developers often work in mixed environments: Windows as the physical host and terminal runner, with WSL2 or remote Linux as the development environment.
 
-- Windows
-  - WSL integration (recommended): from WSL, after cloning/applying as above:
-    ```bash
-    # Sets up Windows PowerShell 7 to load this repo’s profile
-    just setup-pwsh7
+Without a unified system, this setup degrades rapidly:
+- **Duplicated Configs:** Developers create separate aliases and scripts for Windows PowerShell and Linux Bash.
+- **Startup Latency:** Heavy PowerShell and Zsh configurations easily blow past 1 to 2 seconds of startup lag.
+- **Path & Symlink Corruption:** Windows NTFS symlinks pointing into Linux ext4 filesystems corrupt across reboots or require administrative elevation.
+- **Secret Leaks:** Accidental commits of `.env` files or API keys into public repositories.
+- **Toolchain Inconsistency:** Node, Python, or Go versions diverge between Windows IDE extensions and WSL terminals.
 
-    # Preview/apply Windows-side changes managed by chezmoi from WSL
-    just windows-chezmoi-diff
-    just windows-chezmoi-apply
-    ```
-    Notes:
-    - See docs/how-to/chezmoi-windows.md for manual commands and details.
-    - The Windows chezmoi helper scripts are evolving; fall back to manual diff/apply if needed.
+**This system solves these problems by establishing a strict host-boundary separation:** all configuration lives in the Linux filesystem in WSL2 and is bridged into Windows PowerShell via Universal Naming Convention (UNC) network paths. Common aliases and environment variables are written once and shared across all shells, while startup times are kept strictly under 250 milliseconds using lazy-loading proxy stubs.
 
-  - Native PowerShell (alternative):
-    ```powershell
-    # Bootstrap PowerShell with the repo’s profile and modules
-    Invoke-RestMethod https://raw.githubusercontent.com/SPRIME01/dotfiles/main/bootstrap.ps1 | Invoke-Expression
-    ```
-    - When to use: on Windows without WSL, to load the PowerShell profile directly.
+---
 
-Table of contents
+## 3. The System in One Picture
 
-- Tutorials
-  - docs/tutorials/new-machine-setup.md
-  - docs/tutorials/update-existing-machine.md
+```mermaid
+graph LR
+    subgraph WindowsHost ["Windows Host (Interface)"]
+        WT["Windows Terminal"] --> Pwsh["PowerShell 7 (Disposable $PROFILE)"]
+    end
 
-- How‑to guides
-  - docs/how-to/use-chezmoi.md
-  - docs/how-to/use-just.md
-  - docs/how-to/use-direnv.md
-  - docs/how-to/windows.md
-  - docs/how-to/chezmoi-windows.md (existing)
-  - docs/how-to/WSL-Windows-pwsh-integration.md (existing)
-  - docs/how-to/backup-and-restore.md (optional)
+    subgraph Bridge ["UNC 9P Hypervisor Share"]
+        UNC["\\\\wsl.localhost\\Ubuntu\\home\\sprime01\\dotfiles"]
+    end
 
-- Reference
-  - docs/reference/repo-structure.md
-  - docs/reference/commands.md
-  - docs/reference/README.md (existing index)
+    subgraph WSLHost ["WSL2 Linux (Engine Room)"]
+        Repo["Git Repository (~/dotfiles)"]
+        Zsh["Zsh / Bash (~/.zshrc)"]
+        EnvPipe["Environment Pipeline (.env / direnv / mise)"]
+        Secrets["SOPS + Age (.secrets.json)"]
+    end
 
-- Explanation
-  - docs/explanation/architecture.md
+    Pwsh -->|Read config over UNC| UNC
+    UNC --> Repo
+    Zsh --> Repo
+    Repo --> EnvPipe
+    Repo --> Secrets
+```
 
-- Support
-  - docs/troubleshooting.md
-  - docs/how-to/troubleshooting.md (existing)
-  - docs/glossary.md
+---
 
-Assumptions and notes
+## 4. The 7 Concepts You Need First
 
-- Safe defaults first: diff before apply; verify after major steps.
-- Windows PowerShell profile is intentionally managed with helper scripts rather than direct chezmoi apply to Documents/ (see .chezmoiignore). Use docs/how-to/chezmoi-windows.md for that flow.
-- Some Windows scripts under scripts/ are experimental; if they fail, use the manual chezmoi diff/apply commands documented in docs/how-to/chezmoi-windows.md.
+1. **`DOTFILES_ROOT`**: The absolute path to this repository, computed portably at startup (e.g. `/home/sprime01/dotfiles` in Linux, or `\\wsl.localhost\Ubuntu\...` in Windows).
+2. **`PROJECTS_ROOT`**: The base folder where your development projects live (defaults to `$HOME/projects` or Windows `$env:USERPROFILE\projects`).
+3. **Disposable Bootstrap (`$PROFILE`)**: The minimal 15-line stub in Windows user storage that reaches over UNC into WSL. It can be regenerated at any time with `just setup-pwsh7`.
+4. **Repo Profile (`PowerShell/Microsoft.PowerShell_profile.ps1`)**: The full, version-controlled PowerShell profile stored in the repository.
+5. **Lazy-Load Proxy Stubs**: Tiny wrapper functions in PowerShell that defer loading the heavy `Aliases.psm1` module until you actually call a command (e.g. `gs`), keeping startup under 200ms.
+6. **Deny-by-Default Whitelist (`.chezmoiignore`)**: Chezmoi ignores all files (`*`) except an explicit minimal whitelist (`.bashrc`, `.zshrc`, `.justfile`, `.mise.toml`, `.gitignore_global`), preventing repository scratch files from polluting your home directory.
+7. **Safe Environment Controller (`scripts/envctl.sh`)**: Manages `.env` variables with strict `0600` permissions without using dangerous `eval` statements.
 
+---
+
+## 5. A Representative Journey: Opening a Terminal & Running a Command
+
+Here is what happens when you launch Windows Terminal and type `gs`:
+
+1. **Host Launch:** Windows Terminal starts `pwsh.exe` in Windows.
+2. **Bootstrap Stub:** PowerShell reads `$PROFILE` in your Windows user folder, purges slow OneDrive paths, imports `Terminal-Icons`, and accesses `\\wsl.localhost\Ubuntu\home\sprime01\dotfiles`.
+3. **Repo Sourcing:** The repository profile in WSL is dot-sourced into the Windows process. It parses `.env`, sets up Oh My Posh, and declares lazy-loading proxy stubs. The prompt appears in ~190ms.
+4. **Command Execution:** You type `gs`. PowerShell runs the proxy stub, which executes `Import-Module Aliases.psm1 -Force` and calls `Get-GitStatus`. The git status of your active repository is displayed immediately.
+
+---
+
+## 6. Where to Go Next: Navigation by Intent
+
+### 🚀 "I want to set up a new machine"
+- Follow the step-by-step [New Machine Setup Tutorial](tutorials/new-machine-setup.md).
+- If connecting Windows PowerShell 7 to WSL2, follow the [Windows-WSL Integration Tutorial](tutorials/windows-wsl-integration.md).
+
+### 🏗️ "I want to understand the architecture"
+- Read the [System Mental Model](mental-model.md) for conceptual structure and boundaries.
+- Read the comprehensive [Architecture Specification](architecture.md) for logical, runtime, dependency, and security views.
+- Explore individual [Subsystem Guides](subsystems/shell-loader.md).
+
+### 🛠️ "I want to perform a specific task"
+- [How to add an alias or function across shells](how-to/add-alias-or-function.md)
+- [How to manage encrypted secrets with SOPS](how-to/manage-secrets-sops.md)
+- [How to configure and test an MCP gateway](how-to/configure-mcp.md)
+- [How to use chezmoi across Windows and WSL](how-to/chezmoi-windows.md)
+
+### 🐛 "I am diagnosing or troubleshooting an issue"
+- Follow the [Diagnose and Repair Guide](how-to/diagnose-and-repair.md).
+- Consult the [Comprehensive Troubleshooting Matrix](how-to/troubleshooting.md).
+- Trace the execution path in [Shell Startup Workflow](workflows/shell-startup.md) or [PowerShell UNC Startup Workflow](workflows/powershell-unc-startup.md).
+
+### 📖 "I need exact command or variable references"
+- Look up tasks in [CLI Commands Reference](reference/cli-commands.md).
+- Look up variables in [Environment Variables Dictionary](reference/env-vars.md).
+- Check the [Documentation Map](documentation-map.md) for the complete page catalog.
+- Check the [Source Map](source-map.md) to trace concepts back to implementation code.

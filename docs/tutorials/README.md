@@ -1,8 +1,10 @@
 # Tutorials
 
-Step-by-step guides to help you learn by doing. Follow these in order when setting up a new machine or WSL environment.
+Learning-oriented, step-by-step guides that teach through guided experience.
 
-- WSL2 + Windows SSH Agent (from scratch): `ssh.md`
-- Windows SSH Agent Quick Start: `ssh-agent-quick-start.md`
-- WSL2 + Windows End-to-End Setup: `WSL2-Windows-setup.md`
-- Setup Wizard overview: `../reference/wizard.md`
+- [New Machine Setup](new-machine-setup.md) — Complete from-scratch installation on Linux or WSL2.
+- [Windows PowerShell 7 & WSL2 Integration](windows-wsl-integration.md) — Setting up the UNC profile bridge from Windows to WSL2.
+- [WSL2 + Windows Setup Walkthrough](WSL2-Windows-setup.md) — End-to-end guide for Windows terminal users.
+- [Tailscale SSH Setup](tailscale-ssh-setup.md) — Configuring WireGuard-encrypted remote SSH into WSL2 instances.
+- [Updating an Existing Machine](update-existing-machine.md) — Safe routine updates using `just update` and `chezmoi`.
+- [SSH Agent in WSL](ssh.md) — Setting up SSH key forwarding and agent bridging.
